@@ -4600,14 +4600,23 @@ html.read-only-mode .page { user-select: text; }
     const d = state.temp - t_opt;
     return clamp(Math.exp(-d * d / (2 * cv.heatSigma)), 0.15, 1.0);
   }
+  /** Руккола/салат беби: −15…20% при T≥30 °C (норматив Георгия), не общая кривая Cornell. */
+  function effectiveTempFactor(cv){
+    cv = cv || getCv();
+    if (georgyMode){
+      const profile = georgyMode.getGeorgyProfile(cv);
+      if (profile) return georgyMode.georgyYieldFactor(profile, state.temp);
+    }
+    return tempFactor(cv);
+  }
   function boltShift(cv){
     const t_opt = cv.t_opt || 20;
     /* Bolting accelerates above (T_opt + 3°C), not fixed 22°C */
     return cv.heatBolt * Math.max(0, state.temp - (t_opt + 3));
   }
-  function envK(cv){ return cv.k * dliFactor() * tempFactor(cv); }
+  function envK(cv){ return cv.k * dliFactor() * effectiveTempFactor(cv); }
   function envBolt(cv){ return cv.bolt - boltShift(cv); }
-  function envMultiplier(cv){ return dliFactor() * photoperiodFactor() * tempFactor(cv); }
+  function envMultiplier(cv){ return dliFactor() * photoperiodFactor() * effectiveTempFactor(cv); }
 
   /* Crowding factor: when canopies overlap, plants shade each other,
      reducing achievable maximum mass. Negligible if leaves don't touch,
@@ -5183,7 +5192,7 @@ html.read-only-mode .page { user-select: text; }
     const netProfit = revenue - electricityCost;
 
     /* Growth multiplier and shading info */
-    const growthMult = dliFactor() * tempFactor(cv);
+    const growthMult = dliFactor() * effectiveTempFactor(cv);
     const naturalDliVal = naturalDLI();
     const effectiveDliVal = effectiveDLI();
     const boltShiftDays = boltShift(cv);
@@ -6432,7 +6441,7 @@ html.read-only-mode .page { user-select: text; }
     const effPh = effectivePhotoperiod();
     const dliF = dliFactor();
     const phF = photoperiodFactor();
-    const tF = tempFactor(r.cv);
+    const tF = effectiveTempFactor(r.cv);
     const mult = envMultiplier(r.cv);
     const mol = ui('ui.unit.mol');
     const hUnit = ui('ui.unit.hDay');
@@ -6762,7 +6771,7 @@ html.read-only-mode .page { user-select: text; }
         for (let i = 0; i <= stepN; i++){
           const tCh = xMin + (xMax - xMin) * i / stepN;
           const tTotal = totalAge(tCh);
-          const km = ocv.k * dliFactor() * tempFactor(ocv);
+          const km = ocv.k * dliFactor() * effectiveTempFactor(ocv);
           const m = ocv.M_max / (1 + Math.exp(-km * (tTotal - ocv.t50)));
           p += (i === 0 ? 'M' : 'L') + xs(tCh).toFixed(1) + ',' + ysM(m).toFixed(1);
         }
@@ -7400,18 +7409,19 @@ html.read-only-mode .page { user-select: text; }
     const tempLimit1 = isHeatTolerant ? 8 : 4;
     const tempLimit2 = isHeatTolerant ? 12 : 8;
 
+    const growthPct = r1(effectiveTempFactor(r.cv) * 100);
     if (overOpt >= tempLimit2){
       push('bad', 'bad', pr('rec.temp.bad', {
         temp: state.temp, name: r.cv.name, opt: t_opt, over: r1(overOpt),
-        growth: r1(tempFactor(r.cv) * 100), bolt: r1(boltShift(r.cv))
+        growth: growthPct, bolt: r1(boltShift(r.cv))
       }));
     } else if (overOpt >= tempLimit1){
       push('warn', 'warn', pr(isHeatTolerant ? 'rec.temp.warnHeat' : 'rec.temp.warn', {
-        temp: state.temp, opt: t_opt, growth: r1(tempFactor(r.cv) * 100), bolt: r1(boltShift(r.cv))
+        temp: state.temp, opt: t_opt, growth: growthPct, bolt: r1(boltShift(r.cv))
       }));
     } else if (Math.abs(overOpt) <= 2){
       push('check', 'check', pr('rec.temp.ok', {
-        temp: state.temp, name: r.cv.name, opt: t_opt, growth: r1(tempFactor(r.cv) * 100)
+        temp: state.temp, name: r.cv.name, opt: t_opt, growth: growthPct
       }));
     } else if (overOpt < -3){
       push('info', 'info', pr('rec.temp.cold', { temp: state.temp, opt: t_opt }));
