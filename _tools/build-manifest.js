@@ -12,6 +12,7 @@ module.exports = {
     'js/growth-light-model.js',
     'js/cut-model.js',
     'js/planting-cut-model-init.js',
+    'js/preview-config.js',
     'js/planting-constants.js',
     'js/planting-state.js',
     'js/planting-runtime-init.js',

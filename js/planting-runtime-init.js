@@ -17,6 +17,14 @@
     var MAX_WIDTH = deps.MAX_WIDTH;
     var CH_W = deps.CH_W;
     var DENSITY_MAX = deps.DENSITY_MAX;
+    var CASSETTES_PER_PALLET = PC.CASSETTES_PER_PALLET || 3;
+    var CASSETTE_L_MM = PC.CASSETTE_L_MM || 400;
+    var CASSETTE_W_MM = PC.CASSETTE_W_MM || 600;
+    var PALLET_L_MM = PC.PALLET_L_MM || 1300;
+    var PALLET_W_MM = PC.PALLET_W_MM || 650;
+    var PALLET_TIER_ZONE_MM = PC.PALLET_TIER_ZONE_MM || 400;
+    var PALLET_L_M = PC.PALLET_L_M != null ? PC.PALLET_L_M : PALLET_L_MM / 1000;
+    var PALLET_W_M = PC.PALLET_W_M != null ? PC.PALLET_W_M : PALLET_W_MM / 1000;
     var $ = deps.$;
     var round = deps.round;
     var r1 = deps.r1;

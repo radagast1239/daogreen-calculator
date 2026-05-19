@@ -140,7 +140,15 @@ const prelude =
   '    var fmtNum = deps.fmtNum;\n' +
   '    var mergeLocaleDeps = deps.mergeLocaleDeps;\n' +
   '    var _plantLayoutApi = null;\n' +
-  '    var _plantUi;\n\n';
+  '    var _plantUi;\n' +
+  '    var CASSETTES_PER_PALLET = PC.CASSETTES_PER_PALLET || 3;\n' +
+  '    var CASSETTE_L_MM = PC.CASSETTE_L_MM || 400;\n' +
+  '    var CASSETTE_W_MM = PC.CASSETTE_W_MM || 600;\n' +
+  '    var PALLET_L_MM = PC.PALLET_L_MM || 1300;\n' +
+  '    var PALLET_W_MM = PC.PALLET_W_MM || 650;\n' +
+  '    var PALLET_TIER_ZONE_MM = PC.PALLET_TIER_ZONE_MM || 400;\n' +
+  '    var PALLET_L_M = PC.PALLET_L_M != null ? PC.PALLET_L_M : PALLET_L_MM / 1000;\n' +
+  '    var PALLET_W_M = PC.PALLET_W_M != null ? PC.PALLET_W_M : PALLET_W_MM / 1000;\n\n';
 
 const out =
   '/**\n * Цепочка init*: registry → calc-core.\n * DG_createPlantingRuntime(deps) → API для inline-обёрток\n */\n' +

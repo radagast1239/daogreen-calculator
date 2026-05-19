@@ -3,14 +3,17 @@
   'use strict';
 
   function getBuild(){
+    if (global.CALC_BUILD_EARLY) return global.CALC_BUILD_EARLY;
     if (global.DaoGreenCalc && global.DaoGreenCalc.BUILD) return global.DaoGreenCalc.BUILD;
     var scripts = document.getElementsByTagName('script');
+    var build = null;
     for (var i = 0; i < scripts.length; i++){
       var src = scripts[i].src || '';
+      if (!src || /preview-config\.js/i.test(src)) continue;
       var m = src.match(/[?&]v=([^&]+)/);
-      if (m) return decodeURIComponent(m[1]);
+      if (m) build = decodeURIComponent(m[1]);
     }
-    return null;
+    return build;
   }
 
   function registerSw(){
