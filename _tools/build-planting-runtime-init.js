@@ -162,7 +162,15 @@ fs.writeFileSync(outPath, out);
 var runtimeOut = fs.readFileSync(outPath, 'utf8');
 var plantUiShims =
   '  function getPlantingStd(){ return _plantUi.getPlantingStd(); }\n' +
-  '  function syncCycleSlidersFromState(){ return _plantUi.syncCycleSlidersFromState(); }\n';
+  '  function syncCycleSlidersFromState(){ return _plantUi.syncCycleSlidersFromState(); }\n' +
+  '  function renderAll(){\n' +
+  '    var r = global.DG_plantingRender;\n' +
+  '    if (r) return r.renderAll.apply(r, arguments);\n' +
+  '  }\n' +
+  '  function setFacility(mode){\n' +
+  '    var r = global.DG_plantingRender;\n' +
+  '    if (r) return r.setFacility(mode);\n' +
+  '  }\n';
 if (!runtimeOut.includes('function getPlantingStd(){ return _plantUi')) {
   runtimeOut = runtimeOut.replace(
     /(_plantUi = createPlantUi\(\{[\s\S]*?\}\);)\n/,

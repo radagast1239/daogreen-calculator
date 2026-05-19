@@ -83,6 +83,15 @@
   });
   function getPlantingStd(){ return _plantUi.getPlantingStd(); }
   function syncCycleSlidersFromState(){ return _plantUi.syncCycleSlidersFromState(); }
+  /** Модуль render подключается в DG_createPlantingLateInit → global.DG_plantingRender */
+  function renderAll(){
+    var r = global.DG_plantingRender;
+    if (r) return r.renderAll.apply(r, arguments);
+  }
+  function setFacility(mode){
+    var r = global.DG_plantingRender;
+    if (r) return r.setFacility(mode);
+  }
 
   var _palletSheet;
   function initPalletValuesFromSheet(cv){ return _palletSheet.initPalletValuesFromSheet(cv); }

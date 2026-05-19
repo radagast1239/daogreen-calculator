@@ -309,6 +309,7 @@
       initPlantingSnapshot();
       initGeorgyMode();
       _render = createRenderModule();
+      global.DG_plantingRender = _render;
     }
 
     function api() {

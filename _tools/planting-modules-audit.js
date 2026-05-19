@@ -431,6 +431,12 @@ else ok('gh yield init wired');
 
 if (!html.includes('DG_createPlantingRuntime')) fail('runtime init factory missing');
 else ok('runtime init wired');
+if (!initSrc.includes('function renderAll(){') || !initSrc.includes('DG_plantingRender')) {
+  fail('renderAll shim missing in planting-runtime-init.js');
+} else ok('renderAll runtime shim');
+if (!fs.readFileSync(path.join(root, 'js/planting-late-init.js'), 'utf8').includes('DG_plantingRender')) {
+  fail('DG_plantingRender not set in planting-late-init.js');
+} else ok('render module late bind');
 if (!html.includes('DG_createPlantingLateInit')) fail('late init factory missing');
 else ok('late init wired');
 if (/function initCultivarRegistry\(\)\{[\s\S]{0,80}window\.DG_createCultivarRegistry/.test(html)) {
