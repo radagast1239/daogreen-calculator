@@ -114,13 +114,25 @@ npm run serve:auth
 
 Обычный `npm run serve` **не** подключает API входа — только статика.
 
-### GitHub Pages
+### GitHub Pages (вход без Netlify / VPN)
 
-На GitHub Pages **нет** Netlify Functions. Варианты:
+На GitHub Pages **нет** серверных Functions. Включён **локальный вход** (хеш пароля, без открытого текста в коде):
 
-- публиковать калькулятор **только на Netlify** с переменными выше;
-- или включить **пароль на весь сайт** в Netlify (см. ниже);
-- или Cloudflare Access перед доменом.
+```bash
+# в .env задайте AUTH_USER и AUTH_PASS, затем:
+npm run auth:config
+git add js/auth-client-config.js
+git push
+```
+
+В репозиторий попадает только **хеш** пароля (`js/auth-client-config.js`), не сам пароль.  
+Сессия — 7 суток в браузере (`sessionStorage`). Это защита от случайных гостей; **не** от целенаправленного взлома статики (JS всё равно можно изучить).
+
+Смена пароля: правьте `.env` → снова `npm run auth:config` → `git push`.
+
+### GitHub Pages без входа
+
+Альтернативы: Netlify (если доступен), Cloudflare Access, пароль в панели российского хостинга.
 
 ---
 

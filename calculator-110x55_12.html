@@ -1680,7 +1680,7 @@ html.read-only-mode .page { user-select: text; }
 </style>
 <link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-18-p52-masthead">
 <link rel="stylesheet" href="css/mobile.css?v=2026-05-19-desktop-page-width">
-<link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-server-auth">
+<link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-unlock-fix">
 <script>document.documentElement.classList.add('auth-locked');</script>
 </head>
 <body>
@@ -1696,7 +1696,7 @@ html.read-only-mode .page { user-select: text; }
       </label>
       <label class="app-auth-field">
         <span>Пароль</span>
-        <input type="password" name="password" autocomplete="current-password" required>
+        <input type="password" id="app-auth-password" name="password" autocomplete="current-password" required>
       </label>
       <p id="app-auth-error" class="app-auth-error" hidden></p>
       <button type="submit" class="auto-btn auto-btn--primary app-auth-submit">Войти</button>
@@ -1721,6 +1721,7 @@ html.read-only-mode .page { user-select: text; }
     </div>
   </div>
 </div>
+<script src="js/auth-client-config.js?v=2026-05-19-window-fix"></script>
 <script src="js/app-auth.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
 <div class="page" aria-hidden="true">
   <header class="masthead">

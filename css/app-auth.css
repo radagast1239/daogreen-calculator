@@ -16,6 +16,10 @@ html.auth-locked .page {
   right: 0;
 }
 
+.app-auth-gate[hidden] {
+  display: none !important;
+}
+
 .app-auth-gate {
   position: fixed;
   inset: 0;
