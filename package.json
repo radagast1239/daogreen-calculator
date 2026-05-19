@@ -6,7 +6,8 @@
     "build": "node _tools/build.js",
     "check": "node _tools/smoke-check.js && node _tools/golden-scenarios.js",
     "check:golden": "node _tools/golden-scenarios.js",
-    "serve": "npx --yes serve -p 8080"
+    "serve": "npx --yes serve -p 8080",
+    "serve:auth": "node _tools/serve-auth.js"
   },
   "optionalDependencies": {
     "dejavu-fonts-ttf": "^2.37.3"

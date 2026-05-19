@@ -79,24 +79,32 @@
     overlay.querySelector('#tour-prev').disabled = stepIdx === 0;
     overlay.querySelector('#tour-next').textContent = stepIdx >= steps.length - 1 ? doneLbl : nextLbl;
 
+    var useCenter = !s.target || window.innerWidth < 768;
+    pop.classList.toggle('tour-pop--center', useCenter);
+    pop.classList.toggle('tour-pop--anchored', !useCenter);
     if (s.target){
       var el = document.querySelector(s.target);
       if (el){
         el.classList.add('tour-highlight');
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        var r = el.getBoundingClientRect();
-        pop.style.position = 'fixed';
-        var top = r.bottom + 12;
-        if (top + 200 > window.innerHeight) top = Math.max(12, r.top - 200);
-        pop.style.top = top + 'px';
-        pop.style.left = Math.min(Math.max(12, r.left), window.innerWidth - pop.offsetWidth - 12) + 'px';
+        if (!useCenter){
+          var r = el.getBoundingClientRect();
+          pop.style.position = 'fixed';
+          var top = r.bottom + 12;
+          if (top + 200 > window.innerHeight) top = Math.max(12, r.top - 200);
+          pop.style.top = top + 'px';
+          pop.style.left = Math.min(Math.max(12, r.left), window.innerWidth - pop.offsetWidth - 12) + 'px';
+          pop.style.transform = '';
+        }
       }
-    } else {
+    }
+    if (useCenter){
+      pop.style.position = 'fixed';
       pop.style.top = '50%';
       pop.style.left = '50%';
+      pop.style.right = 'auto';
       pop.style.transform = 'translate(-50%, -50%)';
     }
-    if (s.target) pop.style.transform = '';
   }
 
   function endTour(done){
@@ -106,6 +114,8 @@
   }
 
   function startTour(force){
+    if (document.documentElement.classList.contains('auth-locked')) return;
+    if (global.DG_isAppAuthed && !global.DG_isAppAuthed()) return;
     if (!force){
       try { if (localStorage.getItem(STORAGE_KEY) === '1') return; } catch(_){}
     }
@@ -119,7 +129,13 @@
       btn.addEventListener('click', function(){ startTour(true); });
     }
     if (location.search.indexOf('tour=1') >= 0) startTour(true);
-    else setTimeout(function(){ startTour(false); }, 800);
+    else {
+      setTimeout(function(){ startTour(false); }, 800);
+      global.addEventListener('daogreen-auth-ok', function onAuth(){
+        global.removeEventListener('daogreen-auth-ok', onAuth);
+        setTimeout(function(){ startTour(false); }, 400);
+      });
+    }
   }
 
   global.DG_initOnboardingTour = initOnboardingTour;

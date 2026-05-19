@@ -631,7 +631,7 @@
           const yc = b.unitIsPieces ? uPcs() : uG();
           tbl += '<tr><td>' + p.name + '</td><td>' + deps.round(b.density) + '</td><td>' + deps.r1(b.yieldPerCut) + ' ' + yc + '</td><td>' + deps.r1(b.cutIntervalDays) + '</td><td>' + deps.r1(b.cutsPerMonth) + '</td><td>' + y + '</td><td>' + deps.r3(b.kwhPerM2Hour) + '</td><td>' + deps.r1(b.lightHoursDay) + '</td></tr>';
         });
-        derived.innerHTML = tbl + '</table>';
+        derived.innerHTML = '<div class="econ-table-scroll">' + tbl + '</table></div>';
       } else {
         derived.innerHTML = '<p style="color:var(--ink-faint);font-size:13px">' + L('econ.derived.empty') + '</p>';
       }
@@ -713,10 +713,10 @@
     }
     const oE = res.otherElec || {};
     metrics += '<div class="econ-results-farm"><p class="econ-results-sub">' + L('econ.metrics.elecMo') + '</p>' +
-      '<table class="econ-breakdown econ-elec-total"><tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwh') + '</th><th>' + moneySym() + '</th></tr>' +
+      '<div class="econ-table-scroll"><table class="econ-breakdown econ-elec-total"><tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwh') + '</th><th>' + moneySym() + '</th></tr>' +
       '<tr><td>' + L('econ.elec.light') + '</td><td>' + deps.fmtNum(res.lightKwhMonth || 0) + '</td><td>' + moneyFmt(res.lightCost) + '</td></tr>' +
       '<tr><td>' + tFmt('econ.elec.other', { kw: deps.r1(oE.kw || 0), h: deps.r1(oE.hoursDay || 0) }) + '</td><td>' + deps.fmtNum(res.otherElecKwhMonth || 0) + '</td><td>' + moneyFmt(res.otherElecCost) + '</td></tr>' +
-      '<tr class="econ-row-total"><td><strong>' + L('econ.elec.total') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr></table></div>';
+      '<tr class="econ-row-total"><td><strong>' + L('econ.elec.total') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr></table></div></div>';
     metrics += '<div class="econ-results-farm"><p class="econ-results-sub">' + L('econ.metrics.farm') + '</p><div class="econ-results" style="margin-top:0">' +
       '<div class="m"><div class="m-label">' + L('econ.metrics.opex') + '</div><div class="m-val">' + moneyFmt(res.monthlyOpex) + '<span class="m-unit">' + moneySym() + '</span></div></div>' +
       '<div class="m ' + (res.margin >= 0 ? 'hl' : 'bad-tint') + '"><div class="m-label">' + L('econ.metrics.marginAll') + '</div><div class="m-val">' + moneyFmt(res.margin) + '<span class="m-unit">' + moneySym() + '</span></div></div>' +

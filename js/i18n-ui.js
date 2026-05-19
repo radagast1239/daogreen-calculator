@@ -139,6 +139,8 @@
       'cvCompare.row.cyclesYear': 'Циклов в год',
       'cvCompare.row.yieldMonth': 'Урожай, кг/м²·мес',
       'cvCompare.row.cutsMonth': 'Срезов в месяц',
+      'cvCompare.row.farmKgMonth': 'Урожай фермы, кг/мес',
+      'cvCompare.row.farmKgYear': 'Урожай фермы, кг/год',
       'cvCompare.row.rhoRec': 'Рекоменд. плотность',
       'cvCompare.showRange': 'Показать погрешность',
       'cvCompare.errorPct': 'Погрешность',

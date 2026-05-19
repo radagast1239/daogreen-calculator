@@ -87,6 +87,19 @@
       return !!(s.georgyMode && s.facility === 'greenhouse' && !deps.isVF() && !deps.isPalletView());
     }
 
+    /** Каналы в теплице (солнце, не VF и не поддоны). */
+    function isChannelGreenhouse(){
+      var s = st();
+      return s.facility === 'greenhouse' && !deps.isVF() && !deps.isPalletView();
+    }
+
+    /** Подбор плотности по шапке: каналы, салаты и беби (не поддоны/VF). */
+    function canUseCanopyDensityPick(cv){
+      if (!isChannelGreenhouse() || !cv) return false;
+      if (cv.vfSheet) return false;
+      return true;
+    }
+
     function getGeorgyProfile(cv){
       cv = cv || deps.getCv();
       return cv && PROFILES[cv.id] ? PROFILES[cv.id] : null;
@@ -468,6 +481,99 @@
       el.textContent = T(profile.recKey, vars, '');
     }
 
+    function buildCutPlanRows(profile, cv, opts){
+      opts = opts || {};
+      if (!profile || !cv) return [];
+      var s = st();
+      if (!s.multicut && !opts.force) return [];
+      var interval = s.cutInterval || profile.cutInterval;
+      var firstCh = s.georgyFirstCutCh > 0 ? s.georgyFirstCutCh : profile.firstCutCh;
+      var nCuts = opts.nCuts != null ? opts.nCuts
+        : (s.useManualGhCutCount ? s.ghCutCount : resolveGeorgyMaxCuts(profile, cv));
+      nCuts = clamp(Math.round(nCuts), 1, 24);
+      var masses = scaledProfileCutMasses(profile, nCuts);
+      var pm = deps.plantMetric || function(k){ return k; };
+      var rows = [];
+      for (var i = 0; i < nCuts; i++){
+        var ch = firstCh + i * interval;
+        var mass = (s.ghCutMasses && s.ghCutMasses[i] != null && (s.useManualCutMass || opts.useManualMasses))
+          ? s.ghCutMasses[i]
+          : masses[i];
+        rows.push({
+          n: i + 1,
+          chLabel: Math.round(ch) + ' ' + (pm('unit.days') || 'сут'),
+          massLabel: Math.round(mass) + ' ' + (pm('unit.g') || 'г')
+        });
+      }
+      return rows;
+    }
+
+    function renderCutPlanTable(box, r, opts){
+      if (!box) return;
+      var profile = getGeorgyProfile(r && r.cv);
+      if (!profile || !st().multicut){
+        box.innerHTML = '';
+        box.classList.add('env-block-hidden');
+        return;
+      }
+      var rows = buildCutPlanRows(profile, r.cv, opts);
+      if (!rows.length){
+        box.innerHTML = '';
+        box.classList.add('env-block-hidden');
+        return;
+      }
+      box.classList.remove('env-block-hidden');
+      var autoNote = st().useManualGhCutCount || st().useManualCutMass
+        ? T('mc.cutPlan.manualNote', null, 'Часть параметров задана вручную; остальное — по нормативу.')
+        : T('mc.cutPlan.autoNote', null, 'Автоматический план: число срезок от температуры, массы — с учётом жары и света.');
+      box.innerHTML = '<div class="georgy-cut-preview-title">' + T('georgy.profile.cutsTitle', null, 'План срезок') + '</div>' +
+        '<p class="georgy-density-hint" style="margin:0 0 8px">' + autoNote + '</p>' +
+        '<table class="georgy-cut-preview-table"><thead><tr><th>№</th><th>' + T('georgy.rucola.cutsColDay', null, 'В канале') + '</th><th>' +
+        T('georgy.rucola.cutsColMass', null, 'Масса') + '</th></tr></thead><tbody>' +
+        rows.map(function(row){
+          return '<tr><td>' + row.n + '</td><td>' + row.chLabel + '</td><td>' + row.massLabel + '</td></tr>';
+        }).join('') + '</tbody></table>';
+    }
+
+    function renderMulticutBabyCutPreview(r){
+      var box = document.getElementById('multicut-cut-preview');
+      if (!box) return;
+      if (isGeorgyGh() || deps.isVF() || deps.isPalletView()){
+        box.innerHTML = '';
+        box.classList.add('env-block-hidden');
+        return;
+      }
+      if (!getGeorgyProfile(r && r.cv)){
+        box.innerHTML = '';
+        box.classList.add('env-block-hidden');
+        return;
+      }
+      renderCutPlanTable(box, r, {});
+    }
+
+    function syncBabyGhCutsAuto(cv){
+      cv = cv || deps.getCv();
+      var profile = getGeorgyProfile(cv);
+      if (!profile || st().useManualGhCutCount) return;
+      st().ghCutCount = resolveGeorgyMaxCuts(profile, cv);
+      refreshGeorgyCutMasses(profile, cv);
+      if (st().georgyFirstCutCh == null) st().georgyFirstCutCh = profile.firstCutCh;
+    }
+
+    function applyCanopyDensityBeforeCalc(){
+      if (isGeorgyGh()) return;
+      if (!st().georgyDensityFitted || !(st().georgyTargetDensity > 0)) return;
+      var cv = deps.getCv();
+      if (!canUseCanopyDensityPick(cv)) return;
+      var profile = getGeorgyProfile(cv);
+      var rho = st().georgyTargetDensity;
+      if (profile) rho = clampProfiledDensity(profile, rho);
+      var lay = layoutAtDensity(cv, rho);
+      st().density = rho;
+      st().extraB = lay.extraB;
+      st().georgyLastFitGap = Math.round(lay.gap);
+    }
+
     function renderGeorgyCutPreview(r){
       var box = document.getElementById('georgy-cut-preview');
       if (!box) return;
@@ -478,27 +584,7 @@
         box.classList.add('env-block-hidden');
         return;
       }
-      box.classList.remove('env-block-hidden');
-      if (!st().multicut){
-        box.innerHTML = '';
-        return;
-      }
-      var interval = st().cutInterval || profile.cutInterval;
-      var firstCh = st().georgyFirstCutCh || profile.firstCutCh;
-      var nCuts = resolveGeorgyMaxCuts(profile, cv);
-      var pm = deps.plantMetric || function(k){ return k; };
-      var rows = [];
-      for (var i = 0; i < nCuts; i++){
-        var ch = firstCh + i * interval;
-        var mass = (st().ghCutMasses && st().ghCutMasses[i]) ||
-          scaledProfileCutMasses(profile, nCuts)[i] ||
-          profile.cutMasses[profile.cutMasses.length - 1];
-        rows.push('<tr><td>' + (i + 1) + '</td><td>' + Math.round(ch) + ' ' + (pm('unit.days') || 'сут') + '</td><td>' + mass + ' ' + (pm('unit.g') || 'г') + '</td></tr>');
-      }
-      box.innerHTML = '<div class="georgy-cut-preview-title">' + T('georgy.profile.cutsTitle', null, 'План срезок') + '</div>' +
-        '<p class="georgy-density-hint" style="margin:0 0 8px">' + T('georgy.cuts.planNote', null, '') + '</p>' +
-        '<table class="georgy-cut-preview-table"><thead><tr><th>№</th><th>' + T('georgy.rucola.cutsColDay', null, 'В канале') + '</th><th>' +
-        T('georgy.rucola.cutsColMass', null, 'Масса') + '</th></tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+      renderCutPlanTable(box, r, {});
     }
 
     function setGeorgyDom(on){
@@ -807,6 +893,8 @@
 
     return {
       isGeorgyGh: isGeorgyGh,
+      isChannelGreenhouse: isChannelGreenhouse,
+      canUseCanopyDensityPick: canUseCanopyDensityPick,
       isGeorgyRucola: isGeorgyRucola,
       isGeorgyLettuce: isGeorgyLettuce,
       isGeorgyProfiled: isGeorgyProfiled,
@@ -828,7 +916,11 @@
       LETTUCE_PROFILE: LETTUCE_PROFILE,
       preChannelDaysGeorgy: preChannelDaysGeorgy,
       applyGeorgyBeforeCalc: applyGeorgyBeforeCalc,
+      applyCanopyDensityBeforeCalc: applyCanopyDensityBeforeCalc,
       syncGeorgyControls: syncGeorgyControls,
+      renderMulticutBabyCutPreview: renderMulticutBabyCutPreview,
+      syncBabyGhCutsAuto: syncBabyGhCutsAuto,
+      scaledProfileCutMasses: scaledProfileCutMasses,
       renderGeorgyWarnings: renderGeorgyWarnings,
       renderGeorgyGuide: renderGeorgyGuide,
       toggleGeorgyMode: toggleGeorgyMode,

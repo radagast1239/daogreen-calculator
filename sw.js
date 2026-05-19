@@ -35,6 +35,7 @@ var PRECACHE = [
   "./js/pwa-register.js?v=2026-05-19-p69-georgy-salad-lettuce",
   "./js/project-summary.js?v=2026-05-19-p69-georgy-salad-lettuce",
   "./js/project-compare.js?v=2026-05-19-p69-georgy-salad-lettuce",
+  "./js/app-auth.js?v=2026-05-19-p69-georgy-salad-lettuce",
   "./js/onboarding-tour.js?v=2026-05-19-p69-georgy-salad-lettuce",
   "./js/pwa-qr.js?v=2026-05-19-p69-georgy-salad-lettuce",
   "./js/econ-advanced.js?v=2026-05-19-p69-georgy-salad-lettuce",

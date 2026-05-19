@@ -293,7 +293,7 @@ html.georgy-active #block-grow-time,
 html.georgy-active #block-mass,
 html.georgy-active #block-panel-standards,
 html.georgy-active #block-panel-growth,
-html.georgy-active #block-panel-calendar,
+html.georgy-active #block-panel-calendar .calendar-sow-only,
 html.georgy-active #panel-scenarios,
 html.georgy-active .cv-custom-bar,
 html.georgy-active #ctrl-germination,
@@ -305,11 +305,29 @@ html.georgy-active .gh-geom-only,
 html.georgy-active #block-panel-multicut,
 html.georgy-active #block-panel-multicut .collapse-body > .toggle-wrap,
 html.georgy-active #multicut-detail,
-html.georgy-active #auto-led-gh,
 html.georgy-active #panel-cv-compare,
 html.georgy-active #panel-scenarios { display: none !important; }
+html.georgy-active #block-panel-calendar { display: block !important; }
+html.georgy-active #block-panel-calendar > .collapse-head > span:first-child { font-size: 0; }
+html.georgy-active #block-panel-calendar > .collapse-head > span:first-child::before {
+  content: 'Сезон и естественный свет';
+  font-size: 14px;
+}
 html.georgy-active .georgy-multicut-badge { display: none !important; }
 html.georgy-active #gh-cuts-block { display: none !important; }
+.canopy-density-wrap { margin: 4px 0 14px; grid-column: 1 / -1; }
+.canopy-density-wrap .ctrl-row-extra { margin-bottom: 6px; }
+.canopy-density-block.is-locked #density { pointer-events: none; opacity: 0.55; }
+#ctrl-density.canopy-density-locked input[type="range"] { pointer-events: none; opacity: 0.55; }
+.multicut-baby-only.env-block-hidden { display: none !important; }
+html.simple-ui-active #block-panel-growth,
+html.simple-ui-active #block-panel-calendar .calendar-sow-only,
+html.simple-ui-active #panel-cv-compare,
+html.simple-ui-active #panel-scenarios,
+html.simple-ui-active #panel-gh-standards,
+html.simple-ui-active .cv-custom-bar { display: none !important; }
+html.simple-ui-active #simple-ui-hint { display: block; }
+#simple-ui-hint { display: none; font-size: 12px; color: var(--ink-faint); margin: 0 0 12px; line-height: 1.5; }
 .env-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 10px; font-size: 12px; font-variant-numeric: tabular-nums; }
 .env-pill.ok { background: var(--olive-pale); color: var(--olive-text); }
 .env-pill.warn { background: var(--honey-pale); color: var(--honey-text); }
@@ -1661,10 +1679,50 @@ html.read-only-mode .page { user-select: text; }
 .adv-infl-form input { width: 72px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: var(--radius); }
 </style>
 <link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-18-p52-masthead">
-<link rel="stylesheet" href="css/mobile.css?v=2026-05-19-p69-georgy-salad-lettuce">
+<link rel="stylesheet" href="css/mobile.css?v=2026-05-19-desktop-page-width">
+<link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-server-auth">
+<script>document.documentElement.classList.add('auth-locked');</script>
 </head>
 <body>
-<div class="page">
+<div id="app-auth-gate" class="app-auth-gate" role="dialog" aria-modal="true" aria-labelledby="app-auth-title">
+  <div class="app-auth-card">
+    <p class="app-auth-brand" id="app-auth-title">Daogreen</p>
+    <p class="app-auth-lead">Калькулятор посадки и экономики фермы</p>
+    <p id="app-auth-config-hint" class="app-auth-config-hint" hidden></p>
+    <form id="app-auth-form" autocomplete="on">
+      <label class="app-auth-field">
+        <span>Логин</span>
+        <input type="text" id="app-auth-login" name="login" autocomplete="username" required>
+      </label>
+      <label class="app-auth-field">
+        <span>Пароль</span>
+        <input type="password" name="password" autocomplete="current-password" required>
+      </label>
+      <p id="app-auth-error" class="app-auth-error" hidden></p>
+      <button type="submit" class="auto-btn auto-btn--primary app-auth-submit">Войти</button>
+    </form>
+    <div id="app-auth-success" class="app-auth-success" hidden>
+      <p class="app-auth-success-title">Добро пожаловать</p>
+      <p class="app-auth-success-text">Контакты и ссылки:</p>
+      <div class="app-auth-links app-auth-links--success">
+        <div class="app-auth-links-list">
+          <a href="https://t.me/daogreen" target="_blank" rel="noopener noreferrer">Telegram @daogreen</a>
+          <a href="https://nikita-daogreen.ru" target="_blank" rel="noopener noreferrer">nikita-daogreen.ru</a>
+        </div>
+      </div>
+      <button type="button" class="auto-btn auto-btn--primary app-auth-enter" id="app-auth-enter">Открыть калькулятор</button>
+    </div>
+    <div class="app-auth-links" id="app-auth-footer-links">
+      <p class="app-auth-links-title">Связаться</p>
+      <div class="app-auth-links-list">
+        <a href="https://t.me/daogreen" target="_blank" rel="noopener noreferrer">Telegram @daogreen</a>
+        <a href="https://nikita-daogreen.ru" target="_blank" rel="noopener noreferrer">nikita-daogreen.ru</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/app-auth.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
+<div class="page" aria-hidden="true">
   <header class="masthead">
     <div class="masthead-bar">
       <div class="brand-logo" id="brand">Daogreen</div>
@@ -1681,9 +1739,11 @@ html.read-only-mode .page { user-select: text; }
         <button type="button" class="auto-btn auto-btn--primary" id="btn-export-pdf" data-i18n="btn.pdf" data-i18n-attr="title" data-readonly-allow>PDF</button>
           </div>
           <div class="masthead-group masthead-group--app">
+        <button type="button" class="auto-btn" id="btn-simple-ui" data-i18n="ui.simple.btn" data-readonly-allow title="Скрыть второстепенные панели">Простой интерфейс</button>
         <button type="button" class="auto-btn" id="btn-tour" data-i18n="btn.tour" data-i18n-attr="title" data-readonly-allow>Гайд</button>
         <button type="button" class="auto-btn" id="btn-pwa-qr" data-i18n="btn.qr" data-i18n-attr="title" data-readonly-allow>QR</button>
         <button type="button" class="auto-btn" id="btn-readonly" data-i18n="btn.readonly" data-i18n-attr="title" data-readonly-allow>Просмотр</button>
+        <button type="button" class="auto-btn auto-btn--compact" id="btn-logout" title="Выйти из калькулятора">Выход</button>
           </div>
           <div class="masthead-group masthead-group--prefs">
         <div class="locale-bar" id="locale-bar">
@@ -1732,6 +1792,7 @@ html.read-only-mode .page { user-select: text; }
       <button type="button" class="facility-btn on" data-facility="greenhouse" role="tab" aria-selected="true">Теплица</button>
       <button type="button" class="facility-btn" data-facility="vertical" role="tab" aria-selected="false">Вертикальная ферма</button>
     </div>
+    <p id="simple-ui-hint" class="georgy-mode-intro" data-i18n="ui.simple.hint">Скрыты второстепенные панели. Основной расчёт доступен.</p>
     <button type="button" class="auto-btn georgy-mode-btn" id="btn-georgy-mode" data-i18n="georgy.btn" style="margin-top:10px;width:100%;max-width:420px">Расчёт для Георгия</button>
     <p class="georgy-mode-intro georgy-only" id="georgy-mode-intro" data-i18n="georgy.intro">Упрощённый режим теплицы: сроки, плотность, свет и срезки подставляются автоматически.</p>
   </div>
@@ -1931,51 +1992,6 @@ html.read-only-mode .page { user-select: text; }
   </section>
 
   <section class="panel" id="env-panel">
-    <div class="collapse-block gh-only" id="block-env-gh-season">
-      <div class="collapse-head" data-collapse-target="block-env-gh-season">
-        <span>Сезон и естественный свет</span>
-        <span class="collapse-chev" aria-hidden="true">▼</span>
-      </div>
-      <div class="collapse-body" id="block-env-gh-season-body">
-<div id="env-greenhouse">
-
-    <div class="ctrl">
-      <span class="ctrl-label">Месяц</span>
-      <div class="month-picker" id="months" style="grid-column: 2 / 4"></div>
-    </div>
-
-    <div class="ctrl">
-      <span class="ctrl-label">Искусственная досветка</span>
-      <label class="toggle" style="grid-column: 2 / 4">
-        <input type="checkbox" id="lighting">
-        <span class="toggle-switch"></span>
-        <span class="toggle-label" id="lighting-label">Выключена — только естественный свет</span>
-      </label>
-    </div>
-
-    <div class="ctrl env-gh-lighting">
-      <span class="ctrl-label">Целевой DLI с досветкой</span>
-      <input type="range" id="targetDli" min="14" max="22" step="0.5" value="17">
-      <span class="ctrl-val"><span id="targetDli-v">17</span><span class="unit">моль</span></span>
-    </div>
-
-    <div class="ctrl env-gh-lighting">
-      <span class="ctrl-label">Целевой фотопериод</span>
-      <input type="range" id="targetPhotoperiod" min="12" max="18" step="0.5" value="16">
-      <span class="ctrl-val"><span id="targetPhotoperiod-v">16</span><span class="unit">ч/сут</span></span>
-    </div>
-
-    <div class="ctrl env-gh-lighting">
-      <span class="ctrl-label">КПД LED (досветка)</span>
-      <span class="ctrl-val"><span id="ledEfficacyGh-v">2.1</span><span class="unit">µmol/Дж</span></span>
-    </div>
-    <div class="ctrl-row-extra env-gh-lighting">
-      <button type="button" class="auto-btn" id="auto-led-gh">→ Стандарт 2.1 µmol/Дж (теплица)</button>
-    </div>
-    </div>
-      </div>
-    </div>
-
     <div class="collapse-block vf-only env-block-hidden" id="block-env-vf-light">
       <div class="collapse-head" data-collapse-target="block-env-vf-light">
         <span>Искусственный свет (закрытое помещение)</span>
@@ -2080,22 +2096,68 @@ html.read-only-mode .page { user-select: text; }
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="block-panel-calendar-body">
+    <div class="collapse-block gh-only" id="block-env-gh-season">
+      <div class="collapse-head" data-collapse-target="block-env-gh-season">
+        <span>Сезон и естественный свет</span>
+        <span class="collapse-chev" aria-hidden="true">▼</span>
+      </div>
+      <div class="collapse-body" id="block-env-gh-season-body">
+<div id="env-greenhouse">
+
     <div class="ctrl">
+      <span class="ctrl-label">Месяц</span>
+      <div class="month-picker" id="months" style="grid-column: 2 / 4"></div>
+    </div>
+
+    <div class="ctrl">
+      <span class="ctrl-label">Искусственная досветка</span>
+      <label class="toggle" style="grid-column: 2 / 4">
+        <input type="checkbox" id="lighting">
+        <span class="toggle-switch"></span>
+        <span class="toggle-label" id="lighting-label">Выключена — только естественный свет</span>
+      </label>
+    </div>
+
+    <div class="ctrl env-gh-lighting">
+      <span class="ctrl-label">Целевой DLI с досветкой</span>
+      <input type="range" id="targetDli" min="14" max="22" step="0.5" value="17">
+      <span class="ctrl-val"><span id="targetDli-v">17</span><span class="unit">моль</span></span>
+    </div>
+
+    <div class="ctrl env-gh-lighting">
+      <span class="ctrl-label">Целевой фотопериод</span>
+      <input type="range" id="targetPhotoperiod" min="12" max="18" step="0.5" value="16">
+      <span class="ctrl-val"><span id="targetPhotoperiod-v">16</span><span class="unit">ч/сут</span></span>
+    </div>
+
+    <div class="ctrl env-gh-lighting">
+      <span class="ctrl-label">КПД LED (досветка)</span>
+      <span class="ctrl-val"><span id="ledEfficacyGh-v">2.1</span><span class="unit">µmol/Дж</span></span>
+    </div>
+    <div class="ctrl-row-extra env-gh-lighting">
+      <button type="button" class="auto-btn" id="auto-led-gh">→ Стандарт 2.1 µmol/Дж (теплица)</button>
+    </div>
+    </div>
+      </div>
+    </div>
+
+
+    <div class="ctrl calendar-sow-only">
       <span class="ctrl-label">Дата посева</span>
       <input type="date" id="sowDate" class="date-input" style="grid-column: 2 / 4">
     </div>
-    <table class="cal-table" id="cal-table"></table>
+    <table class="cal-table calendar-sow-only" id="cal-table"></table>
     </div>
   </section>
 
   <section class="panel collapse-block" id="block-panel-multicut">
     <div class="collapse-head" data-collapse-target="block-panel-multicut">
-      <span>Многократный срез <span class="georgy-multicut-badge" data-i18n="georgy.multicutWip">(НЕДОРАБОТАНО)</span></span>
+      <span>Многократный срез</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="block-panel-multicut-body">
     <div class="toggle-wrap" style="margin-bottom: 12px">
-      <span class="toggle-label">Многократный срез <span class="georgy-multicut-badge" data-i18n="georgy.multicutWip">(НЕДОРАБОТАНО)</span></span>
+      <span class="toggle-label">Многократный срез</span>
       <label class="toggle">
         <input type="checkbox" id="multicut">
         <span class="toggle-switch"></span>
@@ -2113,6 +2175,17 @@ html.read-only-mode .page { user-select: text; }
         <button type="button" class="auto-btn" id="auto-cut-interval">→ Интервал из справочника</button>
       </div>
 
+      <div id="multicut-baby-plan-wrap" class="multicut-baby-only env-block-hidden">
+        <div id="multicut-cut-preview" class="georgy-cut-preview env-block-hidden"></div>
+      </div>
+      <div class="toggle-wrap multicut-baby-only env-block-hidden" style="margin: 10px 0">
+        <span class="toggle-label" data-i18n="mc.manualCutCount">Задать число срезок вручную</span>
+        <label class="toggle">
+          <input type="checkbox" id="useManualGhCutCount">
+          <span class="toggle-switch"></span>
+        </label>
+      </div>
+      <p id="manual-gh-cut-count-hint" class="multicut-meta multicut-baby-only env-block-hidden" data-i18n="mc.manualCutCountHint"></p>
       <div id="gh-cuts-block" class="gh-only">
         <p style="font-size:12.5px;color:var(--ink-faint);margin:12px 0 6px">Теплица: число срезок и масса с 1 горшка на каждый срез</p>
         <div class="cut-count-row" id="gh-cut-count-row">
@@ -2213,6 +2286,12 @@ html.read-only-mode .page { user-select: text; }
     </div>
     <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-tier-hint">Высота стеллажа (ориентир): <strong id="pallet-rack-height">—</strong> мм · посевная площадь: <strong id="pallet-useful-area">—</strong> м² <span class="pallet-area-footprint">(отпечаток <strong id="pallet-footprint-area">—</strong> м² × <span id="pallet-tier-count-hint">—</span> яр.)</span></p>
 
+    <div class="canopy-density-wrap sys-channel-only env-block-hidden" id="canopy-density-wrap">
+      <div class="ctrl-row-extra">
+        <button type="button" class="auto-btn" id="canopy-density-auto" data-i18n="canopy.density.autoBtn">Подобрать по шапке (≤20 мм)</button>
+      </div>
+      <p class="georgy-density-hint" id="canopy-density-hint"></p>
+    </div>
 <div class="ctrl sys-channel-only" id="ctrl-density" data-vf-param="density">
       <span class="ctrl-label">Целевая плотность<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="density" id="vf-badge-density">стандарт</button></span>
       <input type="range" id="density" min="15" max="220" step="1" value="40">
@@ -2241,7 +2320,23 @@ html.read-only-mode .page { user-select: text; }
     </div>
   </section>
 
-  <section class="panel gh-yield-panel env-gh-only" id="panel-gh-yield-totals">
+  <section class="panel collapse-block sys-channel-only" id="panel-channel-guide">
+    <div class="collapse-head" data-collapse-target="panel-channel-guide">
+      <span data-i18n="guide.channel.title">Гайд · каналы в теплице</span>
+      <span class="collapse-chev" aria-hidden="true">▼</span>
+    </div>
+    <div class="collapse-body georgy-guide-wrap" id="channel-guide-body"></div>
+  </section>
+
+  <section class="panel collapse-block sys-pallet-only env-block-hidden" id="panel-pallet-guide">
+    <div class="collapse-head" data-collapse-target="panel-pallet-guide">
+      <span data-i18n="guide.pallet.title">Гайд · поддоны 130×65</span>
+      <span class="collapse-chev" aria-hidden="true">▼</span>
+    </div>
+    <div class="collapse-body georgy-guide-wrap" id="pallet-guide-body"></div>
+  </section>
+
+  <section class="panel gh-yield-panel plant-yield-only" id="panel-gh-yield-totals">
     <div class="section-h" id="gh-yield-section-title" data-i18n="gh.yield.title">Урожай с полезной площади теплицы</div>
     <p class="gh-yield-intro" id="gh-yield-intro" data-i18n="gh.yield.intro">Площадь — вся полезная посевная зона (м²). Урожай масштабируется от кг/м² текущего расчёта (сорт, свет, температура, плотность). Погрешность — разброс по партии.</p>
     <div class="gh-yield-controls">
@@ -2260,7 +2355,7 @@ html.read-only-mode .page { user-select: text; }
     </div>
     <div class="metrics gh-yield-results" id="gh-yield-results"></div>
 
-    <div id="gh-yield-georgy-compare" class="gh-yield-georgy-compare georgy-only env-block-hidden">
+    <div id="gh-yield-cultivar-compare" class="gh-yield-georgy-compare env-block-hidden">
       <div class="section-h" data-i18n="gh.yield.compareTitle">Сравнение урожая по сортам (вся площадь)</div>
       <p class="gh-yield-intro" id="gh-yield-compare-intro" data-i18n="gh.yield.compareIntro">Одинаковые дни роста, свет и температура; у каждого сорта — своя плотность по шапке (перекрытие до 20&nbsp;мм). Площадь — из поля выше.</p>
       <p class="gh-yield-geom-hint" id="gh-yield-compare-meta"></p>
@@ -2548,8 +2643,12 @@ html.read-only-mode .page { user-select: text; }
     <section class="panel" id="econ-panel-results">
       <div class="section-h" data-i18n="econ.section.results">Итог</div>
       <div class="econ-results-stack" id="econ-results-metrics"></div>
-      <table class="econ-breakdown econ-cultures-table" id="econ-cultures-breakdown"></table>
-      <table class="econ-breakdown" id="econ-breakdown-table"></table>
+      <div class="econ-table-scroll">
+        <table class="econ-breakdown econ-cultures-table" id="econ-cultures-breakdown"></table>
+      </div>
+      <div class="econ-table-scroll">
+        <table class="econ-breakdown" id="econ-breakdown-table"></table>
+      </div>
     </section>
 
     <section class="panel" id="econ-panel-advanced">
@@ -2649,6 +2748,9 @@ html.read-only-mode .page { user-select: text; }
 <script src="js/cut-model.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
 <script src="js/planting-snapshot.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
 <script src="js/georgy-mode.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
+<script src="js/canopy-density-ui.js?v=2026-05-19-p70-plant-ui"></script>
+<script src="js/simple-ui-mode.js?v=2026-05-19-p70-plant-ui"></script>
+<script src="js/planting-guides.js?v=2026-05-19-p70-plant-ui"></script>
 <script src="js/planting-i18n.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
 <script src="js/i18n-plant-dynamic.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
 <script src="js/i18n-ui.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
@@ -2810,6 +2912,8 @@ html.read-only-mode .page { user-select: text; }
     useManualMass: false, manualMass: 120,
     useManualCanopy: false, manualCanopy: 150, canopyPct: 100,
     ghCutCount: 3, ghCutMasses: [50, 45, 40, 35, 30],
+    useManualGhCutCount: false,
+    simpleUiMode: false,
     ghStandards: {},
     vfUserStandards: {},
     showRange: false, errorPct: 12, ghUsefulArea: 24,
@@ -4354,29 +4458,54 @@ html.read-only-mode .page { user-select: text; }
     if (hint) hint.classList.toggle('env-block-hidden', hide);
   }
 
+  function updateGhYieldPanelCopy(r){
+    const title = $('gh-yield-section-title');
+    const intro = $('gh-yield-intro');
+    const btn = $('gh-useful-area-from-geom');
+    const cmpIntro = $('gh-yield-compare-intro');
+    if (isPalletView()){
+      if (title) title.textContent = ui('gh.yield.titlePallet');
+      if (intro) intro.textContent = ui('gh.yield.introPallet');
+      if (btn) btn.textContent = ui('gh.yield.fromGeomPallet');
+    } else {
+      if (title) title.textContent = ui('gh.yield.title');
+      if (intro) intro.textContent = ui('gh.yield.intro');
+      if (btn) btn.textContent = ui('gh.yield.fromGeom');
+    }
+    if (cmpIntro){
+      cmpIntro.textContent = isChannelGreenhouse()
+        ? ui('gh.yield.compareIntroCanopy')
+        : (isPalletView() ? ui('gh.yield.introPallet') + ' ' + ui('gh.yield.palletEnvNote') : ui('gh.yield.compareIntroGeneral'));
+    }
+    const hint = $('gh-useful-area-geom-hint');
+    if (hint && r && r.sysArea > 0){
+      hint.textContent = isPalletView()
+        ? ui('gh.yield.geomHintPallet', { area: r1(r.sysArea) })
+        : ui('gh.yield.geomHint', { area: r1(r.sysArea) });
+    }
+  }
+
   function syncGhYieldControls(r){
     syncGhYieldMarginSliders();
     syncBioMarginVisibility();
+    updateGhYieldPanelCopy(r);
     const inp = $('gh-useful-area');
     if (inp && document.activeElement !== inp){
       const a = state.ghUsefulArea;
       inp.value = (a > 0) ? String(a) : '';
     }
     const hint = $('gh-useful-area-geom-hint');
-    if (hint){
-      if (r && r.sysArea > 0){
-        hint.textContent = ui('gh.yield.geomHint', { area: r1(r.sysArea) });
-      } else hint.textContent = '';
-    }
+    if (hint && !(r && r.sysArea > 0)) hint.textContent = '';
   }
 
-  function calcForGeorgyGhYieldCv(cv){
+  function calcForGhYieldCompareCv(cv){
     const saved = getPlantingStateEconSlice();
     const savedRho = state.georgyTargetDensity;
     const savedFitted = state.georgyDensityFitted;
     try {
-      state.cv = cv.id;
-      if (georgyMode && georgyMode.isGeorgyGh()){
+      if (isPalletView()) state.palletCv = cv.id;
+      else state.cv = cv.id;
+      if (georgyMode && georgyMode.canUseCanopyDensityPick(cv)){
         state.georgyTargetDensity = georgyMode.densityFromCanopy(cv);
         state.georgyDensityFitted = true;
       }
@@ -4404,11 +4533,11 @@ html.read-only-mode .page { user-select: text; }
     });
   }
 
-  function renderGhYieldGeorgyCompare(r){
-    const block = $('gh-yield-georgy-compare');
+  function renderGhYieldCultivarCompare(r){
+    const block = $('gh-yield-cultivar-compare');
     const table = $('gh-yield-compare-table');
     if (!block || !table) return;
-    const show = georgyMode && georgyMode.isGeorgyGh() && !isVF() && !isPalletView() && getCompareList().length > 1;
+    const show = isGreenhousePlanting() && getCompareList().length > 1;
     block.classList.toggle('env-block-hidden', !show);
     if (!show) return;
 
@@ -4435,14 +4564,18 @@ html.read-only-mode .page { user-select: text; }
     }
 
     const activeId = comparePickActiveId();
+    const showRhoRec = isChannelGreenhouse();
     const dataRows = getCompareSelected().map(function(cv){
-      const rc = calcForGeorgyGhYieldCv(cv);
+      const rc = calcForGhYieldCompareCv(cv);
       const kgSqmYear = ghYieldKgSqmYear(rc, cv);
       const kgYear = kgSqmYear * area;
+      const rhoRec = (showRhoRec && georgyMode && georgyMode.canUseCanopyDensityPick(cv))
+        ? georgyMode.densityFromCanopy(cv) : null;
       return {
         cv: cv,
         mass: rc.mass,
-        rhoRec: georgyMode.densityFromCanopy(cv),
+        rhoRec: rhoRec,
+        rhoA: rc.rhoA,
         kgSqmYear: kgSqmYear,
         kgMonth: kgSqmYear / 12,
         kgYear: kgYear,
@@ -4454,7 +4587,8 @@ html.read-only-mode .page { user-select: text; }
     const head = '<thead><tr>' +
       '<th>' + ui('gh.yield.compareColCultivar') + '</th>' +
       '<th>' + ui('gh.yield.compareColMass') + '</th>' +
-      '<th>' + ui('gh.yield.compareColRho') + '</th>' +
+      (showRhoRec ? '<th>' + ui('gh.yield.compareColRho') + '</th>' : '') +
+      '<th>' + ui('gh.yield.compareColRhoA') + '</th>' +
       '<th>' + ui('gh.yield.compareColKgSqmY') + '</th>' +
       '<th>' + ui('gh.yield.compareColMonth') + '</th>' +
       '<th>' + ui('gh.yield.compareColYear') + '</th>' +
@@ -4465,7 +4599,8 @@ html.read-only-mode .page { user-select: text; }
         '<td><span class="compare-chip-dot" style="background:' + cvColor(row.cv.id) + ';display:inline-block;vertical-align:middle;margin-right:6px"></span>' +
         row.cv.name + '</td>' +
         '<td>' + round(row.mass) + ' ' + pm('unit.g') + '</td>' +
-        '<td>' + Math.round(row.rhoRec) + ' ' + pm('ui.unit.pcsSqm') + '</td>' +
+        (showRhoRec ? '<td>' + (row.rhoRec != null ? Math.round(row.rhoRec) : '—') + ' ' + pm('ui.unit.pcsSqm') + '</td>' : '') +
+        '<td>' + Math.round(row.rhoA) + ' ' + pm('ui.unit.pcsSqm') + '</td>' +
         '<td>' + ghYieldWithMargin(row.kgSqmYear, 1) + ' kg/m²</td>' +
         '<td>' + ghYieldWithMargin(row.kgMonth, 1) + ' ' + ui('gh.yield.unitKgMo') + '</td>' +
         '<td><strong>' + ghYieldWithMargin(row.kgYear, 1) + '</strong> ' + ui('gh.yield.unitKgYear') + '</td>' +
@@ -4478,9 +4613,9 @@ html.read-only-mode .page { user-select: text; }
   function renderGhYieldTotals(r){
     const box = $('gh-yield-results');
     if (!box) return;
-    if (isVF() || isPalletView()){
+    if (!isGreenhousePlanting()){
       box.innerHTML = '';
-      const gcmp = $('gh-yield-georgy-compare');
+      const gcmp = $('gh-yield-cultivar-compare');
       if (gcmp) gcmp.classList.add('env-block-hidden');
       return;
     }
@@ -4489,7 +4624,7 @@ html.read-only-mode .page { user-select: text; }
     if (!t.hasArea){
       box.innerHTML = '<div class="m"><div class="m-label">—</div><div class="m-val" style="font-size:14px;color:var(--ink-soft)">' +
         ui('gh.yield.enterArea') + '</div></div>';
-      renderGhYieldGeorgyCompare(r);
+      renderGhYieldCultivarCompare(r);
       return;
     }
     const rows = [];
@@ -4515,7 +4650,7 @@ html.read-only-mode .page { user-select: text; }
         noteEl.textContent = ui('gh.yield.note');
       }
     }
-    renderGhYieldGeorgyCompare(r);
+    renderGhYieldCultivarCompare(r);
   }
 
   function withRange(v, halfWidth, unit){
@@ -4601,13 +4736,45 @@ html.read-only-mode .page { user-select: text; }
     const d = state.temp - t_opt;
     return clamp(Math.exp(-d * d / (2 * cv.heatSigma)), 0.15, 1.0);
   }
-  /** Руккола/салат беби: −15…20% при T≥30 °C (норматив Георгия), не общая кривая Cornell. */
+  /** Теплица: линейное снижение урожая 26→30 °C, при 30 °C −18…20% (как у Георгия). */
+  function greenhouseHeatYieldFactor(temp){
+    temp = temp != null ? temp : state.temp;
+    const t0 = 26;
+    const t1 = 30;
+    const lossMax = 0.20;
+    if (temp <= t0) return 1;
+    if (temp >= t1) return 1 - lossMax;
+    return 1 - lossMax * (temp - t0) / (t1 - t0);
+  }
+  function greenhouseHeatYieldLossPct(temp){
+    return Math.round((1 - greenhouseHeatYieldFactor(temp)) * 100);
+  }
+  /** Каналы в открытой теплице (солнце, не VF и не поддоны). */
+  function isChannelGreenhouse(){
+    return state.facility === 'greenhouse' && !isVF() && !isPalletView();
+  }
+  /** Поддоны и VF — закрытое помещение, искусственный свет и стабильный климат. */
+  function isControlledEnv(){
+    return isVF() || isPalletView();
+  }
+  /** Урожай с площади: каналы теплицы и поддоны (не вкладка VF). */
+  function isPlantingYieldView(){
+    return isChannelGreenhouse() || isPalletView();
+  }
+  function isGreenhousePlanting(){
+    return isPlantingYieldView();
+  }
+  /** Руккола/салат беби: профиль жары; поддоны/VF — модель tempFactor; каналы — кривая 26→30°C. */
   function effectiveTempFactor(cv){
     cv = cv || getCv();
     if (georgyMode){
       const profile = georgyMode.getGeorgyProfile(cv);
-      if (profile) return georgyMode.georgyYieldFactor(profile, state.temp);
+      if (profile && (georgyMode.isGeorgyGh() || isChannelGreenhouse())){
+        return georgyMode.georgyYieldFactor(profile, state.temp);
+      }
     }
+    if (isControlledEnv()) return tempFactor(cv);
+    if (isChannelGreenhouse()) return greenhouseHeatYieldFactor(state.temp);
     return tempFactor(cv);
   }
   function boltShift(cv){
@@ -4776,10 +4943,49 @@ html.read-only-mode .page { user-select: text; }
     return clamp(state.ghCutMasses[i] != null ? state.ghCutMasses[i] : state.ghCutMasses[0], 1, 500);
   }
 
+  function ghCutCountMax(cv){
+    cv = cv || getCv();
+    if (georgyMode && georgyMode.isGeorgyProfiled(cv)){
+      const p = georgyMode.getGeorgyProfile(cv);
+      return p ? p.maxCutsBelowHot : 12;
+    }
+    return 5;
+  }
+
+  function rebuildGhCutCountRow(cv){
+    const row = $('gh-cut-count-row');
+    if (!row) return;
+    const max = ghCutCountMax(cv);
+    const label = row.querySelector('span');
+    const labelHtml = label ? label.outerHTML : '<span style="font-size:12px;color:var(--ink-faint);margin-right:6px">Срезок:</span>';
+    let btns = '';
+    for (let n = 1; n <= max; n++){
+      btns += '<button type="button" class="cut-count-btn" data-gh-cuts="' + n + '">' + n + '</button>';
+    }
+    row.innerHTML = labelHtml + btns;
+  }
+
+  function syncMulticutBabyUi(cv){
+    cv = cv || getCv();
+    const isBaby = georgyMode && georgyMode.isGeorgyProfiled(cv);
+    const hideBaby = !isBaby || !state.multicut || isVF() || isPalletView() || (georgyMode && georgyMode.isGeorgyGh());
+    document.querySelectorAll('.multicut-baby-only').forEach(function(el){
+      el.classList.toggle('env-block-hidden', hideBaby);
+    });
+    if (isBaby && !hideBaby && georgyMode.syncBabyGhCutsAuto){
+      georgyMode.syncBabyGhCutsAuto(cv);
+    }
+    if (isBaby && !hideBaby) rebuildGhCutCountRow(cv);
+  }
+
   function syncGhCutsUI(){
+    const cv = getCv();
+    syncMulticutBabyUi(cv);
     const block = $('gh-cuts-block');
-    if (block) block.classList.toggle('env-block-hidden', isVF() || !state.multicut);
-    document.querySelectorAll('.cut-count-btn').forEach(btn => {
+    if (block) block.classList.toggle('env-block-hidden', isVF() || isPalletView() || !state.multicut);
+    const max = ghCutCountMax(cv);
+    state.ghCutCount = clamp(state.ghCutCount, 1, max);
+    document.querySelectorAll('#gh-cut-count-row .cut-count-btn').forEach(btn => {
       btn.classList.toggle('on', parseInt(btn.dataset.ghCuts, 10) === state.ghCutCount);
     });
     const grid = $('gh-cut-masses-grid');
@@ -4802,7 +5008,7 @@ html.read-only-mode .page { user-select: text; }
   function syncGhFacilityPanels(){
     document.querySelectorAll('.gh-only').forEach(el => el.classList.toggle('env-block-hidden', isVF() || isPalletView()));
     document.querySelectorAll('.vf-only').forEach(el => el.classList.toggle('env-block-hidden', !isVF() && !isPalletView()));
-    document.querySelectorAll('.env-gh-only').forEach(el => el.classList.toggle('env-block-hidden', isVF() || isPalletView()));
+    document.querySelectorAll('.plant-yield-only').forEach(el => el.classList.toggle('env-block-hidden', isVF()));
     syncBioMarginVisibility();
   }
 
@@ -5023,12 +5229,15 @@ html.read-only-mode .page { user-select: text; }
       totalAge: totalAge,
       envBolt: envBolt,
       georgyPlannedCuts: function(cv){
-        if (!georgyMode || !georgyMode.isGeorgyGh || !georgyMode.isGeorgyGh()) return null;
-        if (!georgyMode.isGeorgyProfiled(cv)) return null;
+        if (!georgyMode || !georgyMode.isGeorgyProfiled(cv)) return null;
+        if (!isChannelGreenhouse() && !(georgyMode.isGeorgyGh && georgyMode.isGeorgyGh())) return null;
         var p = georgyMode.getGeorgyProfile(cv);
+        var maxCuts = state.useManualGhCutCount
+          ? state.ghCutCount
+          : georgyMode.resolveGeorgyMaxCuts(p, cv);
         return {
           firstCutCh: state.georgyFirstCutCh > 0 ? state.georgyFirstCutCh : p.firstCutCh,
-          maxCuts: state.ghCutCount
+          maxCuts: maxCuts
         };
       }
     });
@@ -5271,6 +5480,7 @@ html.read-only-mode .page { user-select: text; }
 
   function calc(){
     if (georgyMode) georgyMode.applyGeorgyBeforeCalc();
+    else if (georgyMode && georgyMode.applyCanopyDensityBeforeCalc) georgyMode.applyCanopyDensityBeforeCalc();
     if (isPalletView()){
       let r;
       if (allPalletCultivars().length) r = calcFromPalletSheet(getPalletCv());
@@ -5331,6 +5541,9 @@ html.read-only-mode .page { user-select: text; }
   }
 
   var georgyMode;
+  var canopyDensityUi;
+  var simpleUiMode;
+  var plantingGuides;
   var plantingHarvestYieldParams, buildPlantingSnapshot, getPlantingSnapshot;
   var getPlantingStateEconSlice, restorePlantingStateEconSlice, plantingCvIdMatchesLiveState;
   var getPlantingSnapshotForCvId, averageSnapshots, getSaladMixSnapshot;
@@ -5466,6 +5679,38 @@ html.read-only-mode .page { user-select: text; }
         if ($('density')) $('density').value = v;
         if ($('density-v')) $('density-v').textContent = String(v);
         renderAll();
+      });
+    }
+    if (window.DG_createCanopyDensityUi){
+      canopyDensityUi = window.DG_createCanopyDensityUi({
+        getState: function(){ return state; },
+        getCv: getCv,
+        georgyMode: georgyMode,
+        syncMainSliders: function(){
+          if ($('density')){ $('density').value = state.density; if ($('density-v')) $('density-v').textContent = state.density; }
+          if ($('extraB')){ $('extraB').value = state.extraB; if ($('extraB-v')) $('extraB-v').textContent = state.extraB; }
+        },
+        renderAll: renderAll,
+        t: window.DG_t,
+        tFmt: window.DG_tFmt
+      });
+      canopyDensityUi.bind();
+    }
+    if (window.DG_createSimpleUiMode){
+      simpleUiMode = window.DG_createSimpleUiMode({
+        getState: function(){ return state; },
+        renderAll: renderAll,
+        t: window.DG_t
+      });
+      simpleUiMode.load();
+      simpleUiMode.bind();
+    }
+    if (window.DG_createPlantingGuides){
+      plantingGuides = window.DG_createPlantingGuides({
+        t: window.DG_t,
+        tFmt: window.DG_tFmt,
+        isChannelGreenhouse: isChannelGreenhouse,
+        isPalletView: isPalletView
       });
     }
     var gDensAuto = $('georgy-density-auto');
@@ -6071,6 +6316,17 @@ html.read-only-mode .page { user-select: text; }
       case 'cutsMo':
         if (!hy || !hy.multicutHarvest) return '—';
         return r1(hy.harvestCutsPerMonth) + ' ' + pm('u.pcs');
+      case 'farmKgMonth': {
+        const area = getGhUsefulAreaM2();
+        if (!(area > 0)) return '—';
+        const kgSqmMo = ghYieldKgSqmYear(r, col.cv) / 12;
+        return ghYieldWithMargin(kgSqmMo * area, 1) + ' ' + ui('gh.yield.unitKgMo');
+      }
+      case 'farmKgYear': {
+        const area = getGhUsefulAreaM2();
+        if (!(area > 0)) return '—';
+        return ghYieldWithMargin(ghYieldKgSqmYear(r, col.cv) * area, 1) + ' ' + ui('gh.yield.unitKgYear');
+      }
       default:
         return '—';
     }
@@ -6093,7 +6349,7 @@ html.read-only-mode .page { user-select: text; }
       const hy = state.multicut && supportsMulticut(c) && plantingHarvestYieldParams
         ? plantingHarvestYieldParams(c, r) : null;
       var rhoRec = null;
-      if (georgyMode && georgyMode.isGeorgyGh && georgyMode.densityFromCanopy){
+      if (georgyMode && georgyMode.canUseCanopyDensityPick && georgyMode.canUseCanopyDensityPick(c)){
         rhoRec = georgyMode.densityFromCanopy(c);
       }
       return { cv: c, r: r, hy: hy, rhoRec: rhoRec };
@@ -6109,7 +6365,7 @@ html.read-only-mode .page { user-select: text; }
       { id: 'rhoA', label: ui('cvCompare.row.rhoA') },
       { id: 'leafGap', label: ui('cvCompare.row.leafGap') }
     ];
-    if (georgyMode && georgyMode.isGeorgyGh()){
+    if (isChannelGreenhouse()){
       metricRows.splice(metricRows.findIndex(function(row){ return row.id === 'rhoA'; }) + 1,
         0, { id: 'rhoRec', label: ui('cvCompare.row.rhoRec') });
     }
@@ -6118,6 +6374,11 @@ html.read-only-mode .page { user-select: text; }
     } else {
       metricRows.push({ id: 'yieldMo', label: ui('cvCompare.row.yieldMonth') });
       metricRows.push({ id: 'cutsMo', label: ui('cvCompare.row.cutsMonth') });
+    }
+    const farmArea = getGhUsefulAreaM2();
+    if (farmArea > 0 && isGreenhousePlanting()){
+      metricRows.push({ id: 'farmKgMonth', label: ui('cvCompare.row.farmKgMonth') });
+      metricRows.push({ id: 'farmKgYear', label: ui('cvCompare.row.farmKgYear') });
     }
     let html = '<thead><tr><th></th>';
     cols.forEach(function(col){
@@ -6865,6 +7126,10 @@ html.read-only-mode .page { user-select: text; }
     const panel = $('block-panel-multicut');
     const cv = r.cv;
     if (!panel) return;
+    syncMulticutBabyUi(cv);
+    if (georgyMode && georgyMode.renderMulticutBabyCutPreview){
+      georgyMode.renderMulticutBabyCutPreview(r);
+    }
     if (georgyMode && georgyMode.isGeorgyGh()){
       $('cut-schedule').innerHTML = '';
       return;
@@ -6889,7 +7154,7 @@ html.read-only-mode .page { user-select: text; }
       firstCutCh = Math.max(1, state.day);
     } else if (isVfSheetCv(cv)){
       firstCutCh = vfEffectiveDay(cv);
-    } else if (state.georgyFirstCutCh > 0 && georgyMode && georgyMode.isGeorgyGh()){
+    } else if (state.georgyFirstCutCh > 0 && georgyMode && georgyMode.isGeorgyProfiled(cv)){
       firstCutCh = state.georgyFirstCutCh;
     } else {
       firstCutCh = Math.max(1, Math.round(harvestChannel(cv)));
@@ -7518,9 +7783,9 @@ html.read-only-mode .page { user-select: text; }
       }));
     }
 
-    if (georgyMode && georgyMode.isGeorgyGh() && georgyMode.isGeorgyProfiled && georgyMode.isGeorgyProfiled(r.cv)){
+    if (georgyMode && georgyMode.isGeorgyProfiled && georgyMode.isGeorgyProfiled(r.cv) && (georgyMode.isGeorgyGh() || isChannelGreenhouse())){
       const gp = georgyMode.getGeorgyProfile(r.cv);
-      const maxCuts = georgyMode.resolveGeorgyMaxCuts(gp, r.cv);
+      const maxCuts = state.useManualGhCutCount ? state.ghCutCount : georgyMode.resolveGeorgyMaxCuts(gp, r.cv);
       const yf = georgyMode.georgyYieldFactor(gp, state.temp);
       push('info', 'bulb', pr(gp.recKey, {
         rhoMin: gp.densityMin, rhoMax: gp.densityMax, rhoLight: gp.densityLight,
@@ -7534,6 +7799,11 @@ html.read-only-mode .page { user-select: text; }
         temp: state.temp,
         babyPct: georgyMode.georgyYieldLossPct(georgyMode.LETTUCE_PROFILE, state.temp),
         headPct: Math.round((1 - tempFactor(r.cv)) * 100)
+      }));
+    } else if (isChannelGreenhouse() && state.temp >= 28){
+      push('info', 'bulb', ui('gh.yield.tempHeat', {
+        temp: r1(state.temp),
+        pct: greenhouseHeatYieldLossPct(state.temp)
       }));
     } else if (r.cv.id === 'rucola') push('info', 'bulb', pr('rec.cv.rucola'));
     if (r.cv.id === 'aficion') push('info', 'bulb', pr('rec.cv.aficion'));
@@ -7667,10 +7937,13 @@ html.read-only-mode .page { user-select: text; }
       renderGhStandardsPanel();
       renderVfStandardsPanel();
     }
-    if (georgyMode){
+    if (georgyMode && georgyMode.isGeorgyGh()){
       georgyMode.syncGeorgyControls(r);
       georgyMode.renderGeorgyWarnings(r);
     }
+    if (canopyDensityUi) canopyDensityUi.syncCanopyDensityUi(r);
+    if (plantingGuides) plantingGuides.sync();
+    if (simpleUiMode) simpleUiMode.sync();
     renderStage(r);
     renderEnvSummary(r);
     renderMetrics(r);
@@ -7706,6 +7979,13 @@ html.read-only-mode .page { user-select: text; }
         syncCanopyUI();
       } else {
         state[key] = v;
+      }
+      if (id === 'day'){
+        if (georgyMode && georgyMode.onGeorgyDayChanged) georgyMode.onGeorgyDayChanged();
+        else if (canopyDensityUi && canopyDensityUi.onDayChanged) canopyDensityUi.onDayChanged();
+      }
+      if (id === 'density' && state.georgyDensityFitted && !(georgyMode && georgyMode.isGeorgyGh())){
+        state.georgyTargetDensity = clamp(v, 15, 220);
       }
       if (id === 'errorPct') syncGhYieldMarginSliders();
       if (isPalletView()){
@@ -7916,13 +8196,32 @@ html.read-only-mode .page { user-select: text; }
     renderAll();
   });
 
-  document.querySelectorAll('.cut-count-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.ghCutCount = clamp(parseInt(btn.dataset.ghCuts, 10), 1, 5);
+  const ghCutRow = $('gh-cut-count-row');
+  if (ghCutRow && !ghCutRow.dataset.cutBound){
+    ghCutRow.dataset.cutBound = '1';
+    ghCutRow.addEventListener('click', function(e){
+      const btn = e.target.closest('.cut-count-btn');
+      if (!btn) return;
+      const cv = getCv();
+      const max = ghCutCountMax(cv);
+      state.ghCutCount = clamp(parseInt(btn.dataset.ghCuts, 10), 1, max);
+      state.useManualGhCutCount = !!(georgyMode && georgyMode.isGeorgyProfiled(cv));
       syncGhCutsUI();
       renderAll();
     });
-  });
+  }
+  const manualGhCuts = $('useManualGhCutCount');
+  if (manualGhCuts && !manualGhCuts.dataset.bound){
+    manualGhCuts.dataset.bound = '1';
+    manualGhCuts.addEventListener('change', function(){
+      state.useManualGhCutCount = manualGhCuts.checked;
+      if (!state.useManualGhCutCount && georgyMode && georgyMode.syncBabyGhCutsAuto){
+        georgyMode.syncBabyGhCutsAuto(getCv());
+      }
+      syncGhCutsUI();
+      renderAll();
+    });
+  }
 
   document.addEventListener('click', e => {
     const stdBtn = e.target.closest('.js-canopy-std');

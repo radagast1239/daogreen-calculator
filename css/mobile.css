@@ -8,17 +8,17 @@ html {
   text-size-adjust: 100%;
 }
 
-.page {
-  max-width: 100%;
-  overflow-x: clip;
-}
-
 /* Room for fixed build badge + home indicator */
 body {
   padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (max-width: 768px) {
+  .page {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
   body {
     padding-left: max(10px, env(safe-area-inset-left, 0px));
     padding-right: max(10px, env(safe-area-inset-right, 0px));
@@ -111,6 +111,86 @@ body {
 
   .econ-results-per-culture {
     grid-template-columns: 1fr !important;
+  }
+
+  /* Economics: wide tables — horizontal scroll instead of clipping */
+  .econ-table-scroll {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 12px 0 4px;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .econ-table-scroll .econ-breakdown {
+    width: max-content;
+    min-width: 100%;
+    margin-top: 0;
+  }
+
+  .econ-table-scroll .econ-breakdown th,
+  .econ-table-scroll .econ-breakdown td {
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  #econ-derived-panel.econ-derived {
+    padding: 10px 8px;
+    overflow: hidden;
+  }
+
+  #econ-derived-panel .econ-table-scroll {
+    margin: 0;
+  }
+
+  .econ-derived dl {
+    grid-template-columns: 1fr;
+    gap: 2px 0;
+  }
+
+  .econ-derived dt {
+    font-size: 12px;
+    padding-top: 6px;
+  }
+
+  .econ-derived dd {
+    text-align: left;
+    font-size: 13px;
+    word-break: break-word;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .econ-derived dd:last-child {
+    border-bottom: none;
+  }
+
+  .econ-culture-metric .line {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .econ-culture-metric .line strong {
+    text-align: left;
+    max-width: 100%;
+    word-break: break-word;
+  }
+
+  .econ-results-farm .econ-results {
+    grid-template-columns: 1fr;
+  }
+
+  .econ-results .m-val {
+    font-size: 22px;
+  }
+
+  .panel {
+    overflow-x: clip;
   }
 
   .planting-econ-bridge {
@@ -386,12 +466,22 @@ body {
     min-height: 44px;
   }
 
-  .tour-pop {
+  .tour-pop.tour-pop--center {
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: min(420px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px);
+    margin: 0;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .tour-pop.tour-pop--anchored {
     left: 12px !important;
     right: 12px !important;
     width: auto !important;
     max-width: none;
-    margin: 0 auto;
   }
 
   .tour-actions {
