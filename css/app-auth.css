@@ -43,6 +43,7 @@ html.auth-locked .page {
 }
 
 .app-auth-card {
+  position: relative;
   width: min(400px, 100%);
   background: var(--card, #fff);
   border: 1px solid var(--rule, #ddd8cc);
@@ -188,4 +189,58 @@ html.auth-locked .page {
   width: 100%;
   min-height: 46px;
   margin-top: 16px;
+}
+
+.app-auth-preview-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 199999;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 16px;
+  padding: 10px 16px;
+  background: var(--brand, #276d5c);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(20, 18, 12, 0.15);
+}
+
+.app-auth-preview-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  max-width: min(720px, 92vw);
+}
+
+.app-auth-preview-banner .auto-btn--primary {
+  background: #fff;
+  color: var(--brand, #276d5c);
+  border-color: #fff;
+  min-height: 36px;
+  padding: 6px 18px;
+  font-size: 13px;
+}
+
+.app-auth-gate--modal {
+  background: rgba(20, 18, 12, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.app-auth-gate-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--paper, #f7f5f0);
+  color: var(--ink-soft, #5a564c);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
 }

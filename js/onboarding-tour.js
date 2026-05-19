@@ -115,6 +115,7 @@
 
   function startTour(force){
     if (document.documentElement.classList.contains('auth-locked')) return;
+    if (global.DG_isPreviewMode && global.DG_isPreviewMode()) return;
     if (global.DG_isAppAuthed && !global.DG_isAppAuthed()) return;
     if (!force){
       try { if (localStorage.getItem(STORAGE_KEY) === '1') return; } catch(_){}

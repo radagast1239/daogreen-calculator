@@ -14,6 +14,9 @@
   }
 
   function applyReadonly(on){
+    if (global.DG_isPreviewMode && global.DG_isPreviewMode()) {
+      on = false;
+    }
     document.documentElement.classList.toggle('read-only-mode', !!on);
     var btn = document.getElementById('btn-readonly');
     if (btn){
@@ -33,6 +36,7 @@
     btn.dataset.bound = '1';
     applyReadonly(isReadonly());
     btn.addEventListener('click', function(){
+      if (global.DG_isPreviewMode && global.DG_isPreviewMode()) return;
       applyReadonly(!document.documentElement.classList.contains('read-only-mode'));
     });
   }

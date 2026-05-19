@@ -64,14 +64,79 @@
     return serverAuth === true || clientAuth === true;
   }
 
-  function unlock() {
-    document.documentElement.classList.remove('auth-locked');
-    var gate = document.getElementById('app-auth-gate');
-    if (gate) {
-      gate.hidden = true;
-      gate.setAttribute('aria-hidden', 'true');
-      gate.style.display = 'none';
+  function isPreviewMode() {
+    return document.documentElement.classList.contains('auth-preview');
+  }
+
+  function tAuth(key, fallback) {
+    return (global.DG_t && global.DG_t(key)) || fallback;
+  }
+
+  function syncPreviewBannerText() {
+    var text = document.getElementById('app-auth-preview-text');
+    var loginBtn = document.getElementById('btn-auth-preview-login');
+    if (text) {
+      text.textContent = tAuth(
+        'auth.preview.banner',
+        'Режим предпросмотра — можно смотреть все вкладки. Для расчётов и правок войдите.'
+      );
     }
+    if (loginBtn) {
+      loginBtn.textContent = tAuth('auth.preview.login', 'Войти');
+    }
+  }
+
+  function showAuthGateModal() {
+    var gate = document.getElementById('app-auth-gate');
+    if (!gate) return;
+    gate.hidden = false;
+    gate.style.display = '';
+    gate.classList.add('app-auth-gate--modal');
+    gate.setAttribute('aria-hidden', 'false');
+    var login = document.getElementById('app-auth-login');
+    if (login) login.focus();
+  }
+
+  function hideAuthGate() {
+    var gate = document.getElementById('app-auth-gate');
+    if (!gate) return;
+    gate.hidden = true;
+    gate.style.display = 'none';
+    gate.classList.remove('app-auth-gate--modal');
+    gate.setAttribute('aria-hidden', 'true');
+  }
+
+  function enterPreviewMode() {
+    document.documentElement.classList.remove('auth-locked');
+    document.documentElement.classList.add('auth-preview');
+    document.documentElement.classList.remove('read-only-mode');
+    hideAuthGate();
+    var banner = document.getElementById('app-auth-preview-banner');
+    if (banner) banner.hidden = false;
+    syncPreviewBannerText();
+    var page = document.querySelector('.page');
+    if (page) {
+      page.removeAttribute('aria-hidden');
+      page.style.visibility = '';
+      page.style.pointerEvents = '';
+    }
+    try {
+      localStorage.removeItem('daogreen-readonly');
+    } catch (_) {}
+    var roBtn = document.getElementById('btn-readonly');
+    if (roBtn) roBtn.classList.remove('on');
+  }
+
+  function exitPreviewMode() {
+    document.documentElement.classList.remove('auth-preview');
+    var banner = document.getElementById('app-auth-preview-banner');
+    if (banner) banner.hidden = true;
+    hideAuthGate();
+  }
+
+  function unlock() {
+    exitPreviewMode();
+    document.documentElement.classList.remove('auth-locked');
     var page = document.querySelector('.page');
     if (page) {
       page.removeAttribute('aria-hidden');
@@ -96,15 +161,7 @@
   }
 
   function lock() {
-    document.documentElement.classList.add('auth-locked');
-    var gate = document.getElementById('app-auth-gate');
-    if (gate) {
-      gate.hidden = false;
-      gate.style.display = '';
-      gate.setAttribute('aria-hidden', 'false');
-    }
-    var page = document.querySelector('.page');
-    if (page) page.setAttribute('aria-hidden', 'true');
+    enterPreviewMode();
   }
 
   function formatErr(msg) {
@@ -346,10 +403,81 @@
     });
   }
 
+  function isPreviewAllowedTarget(el) {
+    if (!el) return false;
+    return !!(
+      el.closest('#app-auth-preview-banner') ||
+      el.closest('#app-auth-gate') ||
+      el.closest('[data-preview-allow]') ||
+      el.closest('.app-tab') ||
+      el.closest('.facility-btn') ||
+      el.closest('.collapse-head')
+    );
+  }
+
+  function bindPreviewGuards() {
+    if (document.documentElement.dataset.previewGuard) return;
+    document.documentElement.dataset.previewGuard = '1';
+
+    document.addEventListener('click', function (e) {
+      if (!isPreviewMode()) return;
+      if (isPreviewAllowedTarget(e.target)) return;
+      var blocked = e.target.closest(
+        'input, select, textarea, button, label, .cv-card, .cv-row, .cultivar, [role="slider"], .theme-toggle'
+      );
+      if (blocked) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    document.addEventListener('change', function (e) {
+      if (!isPreviewMode()) return;
+      if (isPreviewAllowedTarget(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+
+    document.addEventListener('keydown', function (e) {
+      if (!isPreviewMode()) return;
+      if (isPreviewAllowedTarget(e.target)) return;
+      var tag = e.target && e.target.tagName;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
+        e.preventDefault();
+      }
+    }, true);
+  }
+
+  function bindPreviewUi() {
+    var loginBtn = document.getElementById('btn-auth-preview-login');
+    if (loginBtn && !loginBtn.dataset.bound) {
+      loginBtn.dataset.bound = '1';
+      loginBtn.addEventListener('click', function () {
+        showAuthGateModal();
+      });
+    }
+    var closeBtn = document.getElementById('app-auth-gate-close');
+    if (closeBtn && !closeBtn.dataset.bound) {
+      closeBtn.dataset.bound = '1';
+      closeBtn.addEventListener('click', function () {
+        hideAuthGate();
+      });
+    }
+    var gate = document.getElementById('app-auth-gate');
+    if (gate && !gate.dataset.previewBound) {
+      gate.dataset.previewBound = '1';
+      gate.addEventListener('click', function (e) {
+        if (!isPreviewMode()) return;
+        if (e.target === gate) hideAuthGate();
+      });
+    }
+  }
+
   function initAppAuth() {
     bindForm();
     bindLogout();
-    lock();
+    bindPreviewGuards();
+    bindPreviewUi();
 
     function finishInit() {
       return checkClientSession().then(function (clientOk) {
@@ -358,22 +486,24 @@
           unlock();
           return;
         }
-        if (clientReady()) {
-          enableClientMode();
-          showConfigHint('');
-          return;
-        }
         if (hostUsesServerAuth()) {
           return checkServerSession().then(function (serverOk) {
-            if (serverOk) unlock();
-            else showConfigHint('Задайте AUTH_USER, AUTH_PASS, AUTH_SECRET в Netlify → Environment variables.');
+            if (serverOk) {
+              enableClientMode();
+              unlock();
+              return;
+            }
+            enterPreviewMode();
+            if (clientReady()) showConfigHint('');
           });
         }
+        if (clientReady()) enableClientMode();
+        enterPreviewMode();
         var host = global.location && global.location.hostname;
         if (host === 'localhost' || host === '127.0.0.1') {
-          showConfigHint('Выполните: node _tools/write-auth-client-config.js daogreen ваш_пароль  затем npm run serve и Ctrl+F5.');
+          showConfigHint('');
         } else {
-          showConfigHint('Выполните npm run auth:config и git push (файл js/auth-client-config.js).');
+          showConfigHint('');
         }
       });
     }
@@ -381,6 +511,8 @@
   }
 
   global.DG_isAppAuthed = isAuthed;
+  global.DG_isPreviewMode = isPreviewMode;
+  global.DG_syncAuthPreviewI18n = syncPreviewBannerText;
   global.DG_logoutApp = function () {
     var done = function () {
       serverAuth = false;
@@ -398,8 +530,6 @@
       if (okBox) okBox.hidden = true;
       if (footerLinks) footerLinks.hidden = false;
       showError('');
-      var login = document.getElementById('app-auth-login');
-      if (login) login.focus();
     };
     if (serverAuth && hostUsesServerAuth()) {
       fetchJson(API.logout, { method: 'POST' }).finally(done);

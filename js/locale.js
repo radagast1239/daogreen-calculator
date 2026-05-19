@@ -51,6 +51,8 @@
       'badge.noCatalog': 'НЕТ справочника!',
       'badge.plants': 'раст.',
       'badge.loading': 'Калькулятор · загрузка…',
+      'auth.preview.banner': 'Режим предпросмотра — можно смотреть все вкладки. Для расчётов и правок войдите.',
+      'auth.preview.login': 'Войти',
       'currency.note': 'В проекте суммы хранятся в ₽',
       'currency.activeUsd': 'Суммы в долларах США (USD)',
       'currency.activeRub': 'Суммы в рублях (₽)',
@@ -187,6 +189,8 @@
       'badge.noCatalog': 'NO catalog!',
       'badge.plants': 'plants',
       'badge.loading': 'Calculator · loading…',
+      'auth.preview.banner': 'Preview mode — browse all tabs. Sign in to edit and calculate.',
+      'auth.preview.login': 'Sign in',
       'currency.note': 'Project amounts are stored in ₽',
       'currency.activeUsd': 'Amounts in US dollars (USD)',
       'currency.activeRub': 'Amounts in Russian rubles (₽)',
@@ -527,6 +531,7 @@
     var facBar = document.getElementById('facility-bar');
     if (facBar) facBar.setAttribute('aria-label', t('facility.ariaType'));
     root.querySelectorAll('[data-i18n]').forEach(function(el){
+      if (el.id === 'calc-build-badge') return;
       var key = el.getAttribute('data-i18n');
       var attr = el.getAttribute('data-i18n-attr');
       var val = t(key);
@@ -582,6 +587,7 @@
       if (typeof global.DG_applyPlantingI18n === 'function') global.DG_applyPlantingI18n();
     }
     if (typeof global.DG_syncReadonlyI18n === 'function') global.DG_syncReadonlyI18n();
+    if (typeof global.DG_syncAuthPreviewI18n === 'function') global.DG_syncAuthPreviewI18n();
     syncCurrencyUi();
     invalidateDynamicForms();
     if (typeof _onChange === 'function') _onChange();

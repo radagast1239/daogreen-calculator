@@ -1656,6 +1656,29 @@ html.read-only-mode [data-readonly-allow] { pointer-events: auto; opacity: 1; }
 html.read-only-mode .page { user-select: text; }
 #btn-readonly.on { background: var(--brand-pale); border-color: var(--brand); color: var(--brand-text); }
 
+/* Предпросмотр без входа: смотреть вкладки и раскрывать блоки, без правок */
+html.auth-preview .page input,
+html.auth-preview .page select,
+html.auth-preview .page textarea,
+html.auth-preview .page button:not([data-preview-allow]) {
+  pointer-events: none !important;
+  cursor: default;
+  opacity: 0.9;
+}
+html.auth-preview .page .app-tab,
+html.auth-preview .page .facility-btn,
+html.auth-preview .page .collapse-head,
+html.auth-preview .page [data-preview-allow] {
+  pointer-events: auto !important;
+  cursor: pointer;
+  opacity: 1;
+}
+html.auth-preview .page label { pointer-events: none; }
+html.auth-preview .page { user-select: text; }
+html.auth-preview #btn-readonly,
+html.auth-preview #btn-logout { display: none !important; }
+html.auth-preview .page { padding-top: 52px; }
+
 .compare-lead, .compare-meta { font-size: 13px; color: var(--ink-soft); line-height: 1.45; }
 .compare-meta { margin-top: 12px; font-size: 12px; color: var(--ink-faint); }
 .project-compare-table { margin-top: 10px; }
@@ -1680,12 +1703,16 @@ html.read-only-mode .page { user-select: text; }
 </style>
 <link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-18-p52-masthead">
 <link rel="stylesheet" href="css/mobile.css?v=2026-05-19-desktop-page-width">
-<link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-unlock-fix">
-<script>document.documentElement.classList.add('auth-locked');</script>
+<link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-preview-mode">
 </head>
 <body>
-<div id="app-auth-gate" class="app-auth-gate" role="dialog" aria-modal="true" aria-labelledby="app-auth-title">
+<div id="app-auth-preview-banner" class="app-auth-preview-banner" hidden>
+  <p class="app-auth-preview-text" id="app-auth-preview-text">Режим предпросмотра — можно смотреть все вкладки. Для расчётов и правок войдите.</p>
+  <button type="button" class="auto-btn auto-btn--primary" id="btn-auth-preview-login" data-preview-allow>Войти</button>
+</div>
+<div id="app-auth-gate" class="app-auth-gate" role="dialog" aria-modal="true" aria-labelledby="app-auth-title" hidden>
   <div class="app-auth-card">
+    <button type="button" class="app-auth-gate-close" id="app-auth-gate-close" data-preview-allow aria-label="Закрыть" title="Закрыть">×</button>
     <p class="app-auth-brand" id="app-auth-title">Daogreen</p>
     <p class="app-auth-lead">Калькулятор посадки и экономики фермы</p>
     <p id="app-auth-config-hint" class="app-auth-config-hint" hidden></p>
@@ -1723,7 +1750,7 @@ html.read-only-mode .page { user-select: text; }
 </div>
 <script src="js/auth-client-config.js?v=2026-05-19-window-fix"></script>
 <script src="js/app-auth.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<div class="page" aria-hidden="true">
+<div class="page">
   <header class="masthead">
     <div class="masthead-bar">
       <div class="brand-logo" id="brand">Daogreen</div>
@@ -1770,12 +1797,12 @@ html.read-only-mode .page { user-select: text; }
   </header>
 
   <div id="currency-active-banner" class="currency-active-banner" hidden></div>
-  <div id="calc-build-badge" class="calc-build-badge" aria-live="polite" data-i18n="badge.loading">Калькулятор · загрузка…</div>
+  <div id="calc-build-badge" class="calc-build-badge" aria-live="polite">Калькулятор · загрузка…</div>
 
   <nav class="app-tabs" id="app-tabs" role="tablist" data-i18n="app.tabsAria" data-i18n-attr="aria-label" aria-label="Разделы калькулятора">
-    <button type="button" class="app-tab on" data-app-view="channels" data-i18n="tab.channels" role="tab" aria-selected="true" onclick="if(window.DaoGreenCalc){DaoGreenCalc.setAppView('channels');}return false;">Посадка и геометрия · каналы</button>
-    <button type="button" class="app-tab" data-app-view="pallets" data-i18n="tab.pallets" role="tab" aria-selected="false" onclick="if(window.DaoGreenCalc){DaoGreenCalc.setAppView('pallets');}return false;">Посадка и геометрия · поддоны 130×65</button>
-    <button type="button" class="app-tab" data-app-view="economics" data-i18n="tab.economics" role="tab" aria-selected="false" onclick="if(window.DaoGreenCalc){DaoGreenCalc.setAppView('economics');}return false;">Экономика</button>
+    <button type="button" class="app-tab on" data-app-view="channels" data-preview-allow data-i18n="tab.channels" role="tab" aria-selected="true" onclick="if(window.DaoGreenCalc){DaoGreenCalc.setAppView('channels');}return false;">Посадка и геометрия · каналы</button>
+    <button type="button" class="app-tab" data-app-view="pallets" data-preview-allow data-i18n="tab.pallets" role="tab" aria-selected="false" onclick="if(window.DaoGreenCalc){DaoGreenCalc.setAppView('pallets');}return false;">Посадка и геометрия · поддоны 130×65</button>
+    <button type="button" class="app-tab" data-app-view="economics" data-preview-allow data-i18n="tab.economics" role="tab" aria-selected="false" onclick="if(window.DaoGreenCalc){DaoGreenCalc.setAppView('economics');}return false;">Экономика</button>
   </nav>
 
   <div id="planting-econ-bridge" class="planting-econ-bridge">
@@ -1790,8 +1817,8 @@ html.read-only-mode .page { user-select: text; }
   <div class="facility-env-wrap" id="facility-env-wrap">
     <p class="facility-env-label">Среда выращивания</p>
     <div class="facility-bar" id="facility-bar" role="tablist" aria-label="Тип объекта выращивания">
-      <button type="button" class="facility-btn on" data-facility="greenhouse" role="tab" aria-selected="true">Теплица</button>
-      <button type="button" class="facility-btn" data-facility="vertical" role="tab" aria-selected="false">Вертикальная ферма</button>
+      <button type="button" class="facility-btn on" data-facility="greenhouse" data-preview-allow role="tab" aria-selected="true">Теплица</button>
+      <button type="button" class="facility-btn" data-facility="vertical" data-preview-allow role="tab" aria-selected="false">Вертикальная ферма</button>
     </div>
     <p id="simple-ui-hint" class="georgy-mode-intro" data-i18n="ui.simple.hint">Скрыты второстепенные панели. Основной расчёт доступен.</p>
     <button type="button" class="auto-btn georgy-mode-btn" id="btn-georgy-mode" data-i18n="georgy.btn" style="margin-top:10px;width:100%;max-width:420px">Расчёт для Георгия</button>
