@@ -79,7 +79,6 @@ function syncServiceWorker(build){
   var precache = [
     './',
     './index.html',
-    './' + manifest.htmlFile,
     './' + manifest.htmlFile + '?v=' + build,
     './manifest.webmanifest',
     './icons/icon.svg',

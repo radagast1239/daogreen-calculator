@@ -4,7 +4,12 @@
 
   function getBuild(){
     if (global.DaoGreenCalc && global.DaoGreenCalc.BUILD) return global.DaoGreenCalc.BUILD;
-    var m = document.querySelector('script[src*="calculator"]');
+    var scripts = document.getElementsByTagName('script');
+    for (var i = 0; i < scripts.length; i++){
+      var src = scripts[i].src || '';
+      var m = src.match(/[?&]v=([^&]+)/);
+      if (m) return decodeURIComponent(m[1]);
+    }
     return null;
   }
 
@@ -16,8 +21,23 @@
     }
     var build = getBuild();
     var url = 'sw.js' + (build ? '?v=' + encodeURIComponent(build) : '');
+    navigator.serviceWorker.addEventListener('controllerchange', function(){
+      global.location.reload();
+    });
     navigator.serviceWorker.register(url, { scope: './' }).then(function(reg){
-      if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      function activateWaiting(worker){
+        if (worker) worker.postMessage({ type: 'SKIP_WAITING' });
+      }
+      activateWaiting(reg.waiting);
+      reg.addEventListener('updatefound', function(){
+        var installing = reg.installing;
+        if (!installing) return;
+        installing.addEventListener('statechange', function(){
+          if (installing.state === 'installed' && navigator.serviceWorker.controller){
+            activateWaiting(reg.waiting || installing);
+          }
+        });
+      });
     }).catch(function(err){
       console.warn('PWA: service worker не зарегистрирован', err);
     });
