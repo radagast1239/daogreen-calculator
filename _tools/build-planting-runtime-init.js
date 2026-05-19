@@ -159,6 +159,18 @@ const out =
 const outPath = path.join(__dirname, '..', 'js', 'planting-runtime-init.js');
 fs.writeFileSync(outPath, out);
 
+var runtimeOut = fs.readFileSync(outPath, 'utf8');
+var plantUiShims =
+  '  function getPlantingStd(){ return _plantUi.getPlantingStd(); }\n' +
+  '  function syncCycleSlidersFromState(){ return _plantUi.syncCycleSlidersFromState(); }\n';
+if (!runtimeOut.includes('function getPlantingStd(){ return _plantUi')) {
+  runtimeOut = runtimeOut.replace(
+    /(_plantUi = createPlantUi\(\{[\s\S]*?\}\);)\n/,
+    '$1\n' + plantUiShims
+  );
+  fs.writeFileSync(outPath, runtimeOut);
+}
+
 const shims = fnUnique
   .map(function (n) {
     return '  function ' + n + '(){ return _rt.' + n + '.apply(_rt, arguments); }';

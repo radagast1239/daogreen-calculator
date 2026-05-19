@@ -81,6 +81,8 @@
     isPalletView: function(){ return isPalletView(); },
     naturalDli: NATURAL_DLI
   });
+  function getPlantingStd(){ return _plantUi.getPlantingStd(); }
+  function syncCycleSlidersFromState(){ return _plantUi.syncCycleSlidersFromState(); }
 
   var _palletSheet;
   function initPalletValuesFromSheet(cv){ return _palletSheet.initPalletValuesFromSheet(cv); }
