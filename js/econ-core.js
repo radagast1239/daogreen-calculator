@@ -686,29 +686,35 @@
         const c = deps.findCvById(id);
         return c ? c.name : id;
       });
-      w.push(TF('econ.warn.dupCv', { names: names.join(', ') }, 'Один сорт нельзя добавить дважды: {names} — оставьте одну строку.'));
+      w.push({ level: 'normal', text: TF('econ.warn.dupCv', { names: names.join(', ') }, 'Один сорт нельзя добавить дважды: {names} — оставьте одну строку.') });
     }
     const hasMix = parts.some(p => p.cvId === ECON_SALAD_MIX_ID);
     if (hasMix){
       const overlap = parts.filter(p => p.cvId && p.cvId !== ECON_SALAD_MIX_ID && ECON_SALAD_MIX_CV_IDS.indexOf(p.cvId) >= 0);
       if (overlap.length){
-        w.push(TF('econ.warn.mixOverlap', { names: overlap.map(p => p.name).join(', ') }, 'Микс салатов уже включает: {names} — уберите дубли из списка.'));
+        w.push({ level: 'normal', text: TF('econ.warn.mixOverlap', { names: overlap.map(p => p.name).join(', ') }, 'Микс салатов уже включает: {names} — уберите дубли из списка.') });
       }
     }
     st().econ.cultures.forEach(row => {
       const pct = parseFloat(row.pct) || 0;
       if (pct <= 0) return;
       const name = econCvDisplayName(row.cvId);
-      if (!row.cvId) w.push(TF('econ.warn.noCvId', { name: name }, 'Строка «{name}»: выберите сорт в списке — иначе в расчёт не попадёт.'));
+      if (!row.cvId) w.push({ level: 'normal', text: TF('econ.warn.noCvId', { name: name }, 'Строка «{name}»: выберите сорт в списке — иначе в расчёт не попадёт.') });
     });
     parts.forEach(p => {
-      if (!p.bio || p.bio.density <= 0) w.push(TF('econ.warn.noDensity', { name: p.name }, '«{name}»: укажите плотность стояния (шт/м²).'));
-      if (p.bio && p.bio.yieldPerCut <= 0) w.push(TF('econ.warn.noYield', { name: p.name }, '«{name}»: укажите урожай за срезку.'));
+      if (!p.bio || p.bio.density <= 0) w.push({ level: 'normal', text: TF('econ.warn.noDensity', { name: p.name }, '«{name}»: укажите плотность стояния (шт/м²).') });
+      if (p.bio && p.bio.yieldPerCut <= 0) w.push({ level: 'normal', text: TF('econ.warn.noYield', { name: p.name }, '«{name}»: укажите урожай за срезку.') });
     });
     if (farm.totalPct > 100){
-      w.push(TF('econ.warn.pctOver', { pct: deps.r1(farm.totalPct) }, 'Сумма долей {pct}% — в расчёте доли уменьшены пропорционально до 100%.'));
+      w.push({
+        level: 'strong',
+        text: TF('econ.warn.pctOver', { pct: deps.r1(farm.totalPct) }, 'Сумма долей {pct}% — в расчёте доли уменьшены пропорционально до 100%.')
+      });
     } else if (farm.totalPct > 0 && farm.totalPct < 100){
-      w.push(TF('econ.warn.pctUnder', { pct: deps.r1(farm.totalPct) }, 'Занято {pct}% посевной площади: полная аренда и ФОТ делятся на меньший выпуск → себестоимость выше, чем при 100% загрузке.'));
+      w.push({
+        level: 'strong',
+        text: TF('econ.warn.pctUnder', { pct: deps.r1(farm.totalPct) }, 'Занято {pct}% посевной площади: полная аренда и ФОТ делятся на меньший выпуск → себестоимость выше, чем при 100% загрузке.')
+      });
     }
     return w;
   }

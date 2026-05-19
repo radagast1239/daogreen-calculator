@@ -137,12 +137,19 @@
     function georgyYieldFactor(profile, temp){
       if (!profile) return 1;
       temp = temp != null ? temp : st().temp;
-      var t0 = profile.tempWarmStart != null ? profile.tempWarmStart : profile.tempHot - 4;
-      var t1 = profile.tempHot;
+      if (global.DG_growthLightModel && global.DG_growthLightModel.heatYieldFactor) {
+        return global.DG_growthLightModel.heatYieldFactor(temp, profile);
+      }
+      var t0 = profile.tempWarmStart != null ? profile.tempWarmStart : 26;
+      var t1 = profile.tempHot != null ? profile.tempHot : 30;
       var lossMax = profile.yieldLossMax != null ? profile.yieldLossMax : 0.20;
+      var tMax = profile.t_max != null ? profile.t_max : 34;
+      var fMin = 0.15;
       if (temp <= t0) return 1;
-      if (temp >= t1) return 1 - lossMax;
-      return 1 - lossMax * (temp - t0) / Math.max(0.1, t1 - t0);
+      if (temp <= t1) return 1 - lossMax * (temp - t0) / Math.max(0.1, t1 - t0);
+      if (temp >= tMax) return fMin;
+      var f30 = 1 - lossMax;
+      return f30 - (f30 - fMin) * (temp - t1) / Math.max(0.1, tMax - t1);
     }
 
     function georgyYieldLossPct(profile, temp){
@@ -836,6 +843,7 @@
     }
 
     function toggleGeorgyMode(forceOn){
+      if (global.DG_isPreviewMode && global.DG_isPreviewMode() && forceOn !== false) return;
       var s = st();
       var next = forceOn != null ? !!forceOn : !s.georgyMode;
       if (next === s.georgyMode) return;
@@ -872,6 +880,7 @@
     }
 
     function loadGeorgyMode(){
+      if (global.DG_isPreviewMode && global.DG_isPreviewMode()) return;
       try {
         if (localStorage.getItem(GEORGY_STORAGE_KEY) === '1'){
           st().georgyMode = true;

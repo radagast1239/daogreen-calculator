@@ -44,14 +44,38 @@
     return clamp(1 + perHour * opts.eveningH, 1, 1.12);
   }
 
-  /** Температурный отклик (упрощённая TI-модель, T_base / T_opt / T_max). */
+  /**
+   * Жара: 26→30 °C линейно до −20% урожая; выше 30 °C — дальнейшее снижение до ~15% при T_max.
+   * Единая кривая для теплицы, VF, поддонов и режима Георгия.
+   */
+  function heatYieldFactor(temp, cv){
+    cv = cv || {};
+    var t0 = cv.tempWarmStart != null ? cv.tempWarmStart : 26;
+    var t1 = cv.tempHot != null ? cv.tempHot : 30;
+    var lossAt30 = cv.yieldLossMax != null ? cv.yieldLossMax : 0.20;
+    var tMax = cv.t_max != null ? cv.t_max : 34;
+    var fMin = 0.15;
+    if (temp <= t0) return 1;
+    if (temp <= t1) return 1 - lossAt30 * (temp - t0) / Math.max(0.1, t1 - t0);
+    if (temp >= tMax) return fMin;
+    var f30 = 1 - lossAt30;
+    return f30 - (f30 - fMin) * (temp - t1) / Math.max(0.1, tMax - t1);
+  }
+
+  function heatYieldLossPct(temp, cv){
+    return Math.round((1 - heatYieldFactor(temp, cv)) * 100);
+  }
+
+  /** Температурный отклик: холод — TI-модель; тепло — heatYieldFactor с 26 °C. */
   function tempResponseFactor(temp, cv){
+    cv = cv || {};
     var tBase = cv.t_base != null ? cv.t_base : 5;
     var tOpt = cv.t_opt != null ? cv.t_opt : 20;
     var tMax = cv.t_max != null ? cv.t_max : 34;
     if (temp <= tBase || temp >= tMax) return 0.15;
     if (temp <= tOpt) return clamp((temp - tBase) / (tOpt - tBase), 0.15, 1);
-    return clamp(1 - 0.85 * (temp - tOpt) / (tMax - tOpt), 0.15, 1);
+    if (temp < 26) return 1;
+    return heatYieldFactor(temp, cv);
   }
 
   /** Коэффициент шапки d = ca·√M; лёгкое удлинение выше T_opt+3 (этиоляция). */
@@ -83,6 +107,8 @@
     EVENING_DLI_PER_HOUR: EVENING_DLI_PER_H,
     dliResponseFactor: dliResponseFactor,
     photoperiodExtensionFactor: photoperiodExtensionFactor,
+    heatYieldFactor: heatYieldFactor,
+    heatYieldLossPct: heatYieldLossPct,
     tempResponseFactor: tempResponseFactor,
     canopyCoeff: canopyCoeff,
     canopyFromMass: canopyFromMass,

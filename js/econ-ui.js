@@ -190,7 +190,11 @@
       return;
     }
     el.hidden = false;
-    el.innerHTML = list.map(t => '<li>' + t + '</li>').join('');
+    el.innerHTML = list.map(function(item){
+      const t = typeof item === 'string' ? item : (item && item.text ? item.text : '');
+      const strong = item && item.level === 'strong';
+      return '<li class="' + (strong ? 'econ-warn--strong' : '') + '">' + t + '</li>';
+    }).join('');
   }
 
   function econToggleHtml(id, label, checked){

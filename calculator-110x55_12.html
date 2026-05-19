@@ -769,10 +769,37 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   background: #fffbeb;
   color: #92400e;
 }
+.econ-warnings li.econ-warn--strong {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.5;
+  padding: 14px 16px;
+  border-width: 2px;
+  border-color: #d97706;
+  background: #fef3c7;
+  color: #78350f;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15);
+}
 [data-theme="dark"] .econ-warnings li {
   background: rgba(245, 158, 11, 0.12);
   color: #fcd34d;
   border-color: rgba(245, 158, 11, 0.45);
+}
+[data-theme="dark"] .econ-warnings li.econ-warn--strong {
+  background: rgba(217, 119, 6, 0.22);
+  color: #fde68a;
+  border-color: #f59e0b;
+}
+.planting-year-month-hint {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  background: var(--paper-deep);
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
 }
 
 /* Supplemental styles rebuilt 2026-05-17 */
@@ -1677,6 +1704,13 @@ html.auth-preview .page label { pointer-events: none; }
 html.auth-preview .page { user-select: text; }
 html.auth-preview #btn-readonly,
 html.auth-preview #btn-logout { display: none !important; }
+html.auth-preview #btn-georgy-mode,
+html.auth-preview #georgy-mode-intro,
+html.auth-preview #panel-georgy-simple,
+html.auth-preview #panel-georgy-guide,
+html.auth-preview .gh-yield-georgy-compare { display: none !important; }
+html.auth-preview.georgy-active .georgy-hide { display: block !important; }
+html.auth-preview.georgy-active .georgy-only { display: none !important; }
 html.auth-preview .page { padding-top: 52px; }
 
 .compare-lead, .compare-meta { font-size: 13px; color: var(--ink-soft); line-height: 1.45; }
@@ -1748,8 +1782,9 @@ html.auth-preview .page { padding-top: 52px; }
     </div>
   </div>
 </div>
+<script src="js/preview-config.js?v=2026-05-19-preview-data"></script>
 <script src="js/auth-client-config.js?v=2026-05-19-window-fix"></script>
-<script src="js/app-auth.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
+<script src="js/app-auth.js?v=2026-05-19-p71-audit-fixes"></script>
 <div class="page">
   <header class="masthead">
     <div class="masthead-bar">
@@ -1915,6 +1950,7 @@ html.auth-preview .page { padding-top: 52px; }
       </div>
       <div class="collapse-body" id="block-grow-time-body">
         <p class="grow-flow-note"><strong>Прорастание</strong>, затем <strong>период вегетации</strong> — рассада и выращивание (канал, поддон с кассетами или VF).</p>
+        <p class="grow-flow-note vf-audit-intro env-block-hidden" id="vf-audit-standards-intro"></p>
 
         <div class="ctrl" id="ctrl-germination" data-vf-param="germination">
           <span class="ctrl-label">Время прорастания<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="germination" id="vf-badge-germination">стандарт</button></span>
@@ -2240,6 +2276,7 @@ html.auth-preview .page { padding-top: 52px; }
           <input type="number" id="manualCutMass" min="1" max="500" step="1" value="15" style="grid-column:2/3;width:100%;max-width:140px;padding:8px 10px;border:1px solid var(--rule-strong);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--card);color:var(--ink)">
           <span class="ctrl-val"><span id="manualCutMass-v">15</span><span class="unit" id="manualCutMass-unit">г</span></span>
         </div>
+        <p id="vf-yield-std-hint" class="multicut-meta env-block-hidden"></p>
       </div>
       <div class="ctrl-row-extra">
         <button type="button" class="auto-btn" id="auto-cut-mass">→ Вес среза из справочника</button>
@@ -2769,41 +2806,43 @@ html.auth-preview .page { padding-top: 52px; }
   </div>
 </dialog>
 
-<script src="vf-cultivars.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="pallet-cultivars.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/cultivar-registry.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/growth-light-model.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/cut-model.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/planting-snapshot.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/georgy-mode.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
+<script src="vf-cultivars.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="pallet-cultivars.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/cultivar-registry.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/growth-light-model.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/cut-model.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/planting-constants.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/planting-layout.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/planting-snapshot.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/georgy-mode.js?v=2026-05-19-p71-audit-fixes"></script>
 <script src="js/canopy-density-ui.js?v=2026-05-19-p70-plant-ui"></script>
 <script src="js/simple-ui-mode.js?v=2026-05-19-p70-plant-ui"></script>
 <script src="js/planting-guides.js?v=2026-05-19-p70-plant-ui"></script>
-<script src="js/planting-i18n.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/i18n-plant-dynamic.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/i18n-ui.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/i18n-econ-extras.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/i18n-recs.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/locale.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/econ-core.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/econ-ui.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
+<script src="js/planting-i18n.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/i18n-plant-dynamic.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/i18n-ui.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/i18n-econ-extras.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/i18n-recs.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/locale.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/econ-core.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/econ-ui.js?v=2026-05-19-p71-audit-fixes"></script>
 <script src="js/vendor/html2canvas.min.js"></script>
 <script src="js/vendor/jspdf.umd.min.js"></script>
-<script src="js/project-store.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/econ-presets.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/econ-csv-export.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/econ-sensitivity.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/econ-payback.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/pdf-econ-tables.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/pdf-export.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/project-summary.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/project-compare.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/onboarding-tour.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
+<script src="js/project-store.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/econ-presets.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/econ-csv-export.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/econ-sensitivity.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/econ-payback.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/pdf-econ-tables.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/pdf-export.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/project-summary.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/project-compare.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/onboarding-tour.js?v=2026-05-19-p71-audit-fixes"></script>
 <script src="js/vendor/qrcode.min.js"></script>
-<script src="js/pwa-qr.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/econ-advanced.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/readonly-mode.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
-<script src="js/pwa-register.js?v=2026-05-19-p69-georgy-salad-lettuce"></script>
+<script src="js/pwa-qr.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/econ-advanced.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/readonly-mode.js?v=2026-05-19-p71-audit-fixes"></script>
+<script src="js/pwa-register.js?v=2026-05-19-p71-audit-fixes"></script>
 <script>
 (function(){
   var w = document.getElementById('pallet-load-warn');
@@ -2864,14 +2903,13 @@ html.auth-preview .page { padding-top: 52px; }
   }
 
   try {
-    var CH_W = 110;
-    var MAX_WIDTH = 2000;
+    var PC = window.DG_PLANTING_CONSTANTS || {};
+    var CH_W = PC.CH_W || 110;
+    var MAX_WIDTH = PC.MAX_WIDTH || 2000;
+    var _plantLayoutApi = null;
 
-  /* Monthly natural DLI inside greenhouse at ~41°N latitude
-     (3000 sunshine hours/year, sunny continental climate),
-     assuming ~65% greenhouse light transmission.
-     Source: NASA POWER + greenhouse PAR fraction. */
-  const NATURAL_DLI = [
+  /* Monthly natural DLI — см. js/planting-constants.js */
+  const NATURAL_DLI = PC.NATURAL_DLI || [
     { m:'янв', dli: 6.5,  ph: 9.7  },
     { m:'фев', dli: 10.0, ph: 10.8 },
     { m:'мар', dli: 14.0, ph: 12.0 },
@@ -3556,6 +3594,12 @@ html.auth-preview .page { padding-top: 52px; }
     syncVegPeriodTotal();
     const locksTitle = document.querySelector('.vf-std-locks-title');
     if (locksTitle) locksTitle.textContent = isPalletView() ? ui('ui.vf.stdLocksPal') : ui('ui.vf.stdLocksVf');
+    const auditIntro = $('vf-audit-standards-intro');
+    if (auditIntro){
+      const showIntro = (isVF() || isPalletView()) && usePlantingSheet();
+      auditIntro.classList.toggle('env-block-hidden', !showIntro);
+      if (showIntro) auditIntro.innerHTML = ui('standards.introHtml');
+    }
   }
   function bindVfStdBadges(){
     document.querySelectorAll('.vf-sheet-badge[data-vf-field]').forEach(btn => {
@@ -3608,6 +3652,20 @@ html.auth-preview .page { padding-top: 52px; }
     const u = cv && cv.countUnit === 'шт' ? pm('u.pcs') : pm('unit.g');
     const unitEl = $('manualCutMass-unit');
     if (unitEl) unitEl.textContent = u;
+    const yhint = $('vf-yield-std-hint');
+    if (yhint){
+      const showY = usePlantingSheet() && cv && isSheetCv(cv) && state.useManualCutMass;
+      yhint.classList.toggle('env-block-hidden', !showY);
+      if (showY){
+        const rule = isPalletView() ? ui('standards.yieldRulePallets') : ui('standards.yieldRuleChannels');
+        yhint.textContent = ui('standards.yieldHint', {
+          std: Math.round(cv.yieldPerCutG),
+          unit: u,
+          raw: cv.yieldPerCutStd,
+          rule: rule
+        });
+      }
+    }
   }
   function syncMulticutDetailUI(){
     const detail = $('multicut-detail');
@@ -3840,65 +3898,8 @@ html.auth-preview .page { padding-top: 52px; }
   }
 
   function plantLayoutPallet(cellsOverride){
-    syncPalletZoneLength();
-    const mount = palletMountMode();
-    const cells = cellsOverride != null ? cellsOverride : effectivePalletHoleCount();
-    const geo = palletCellGeometry(cells, mount);
-    const perPallet = geo.perPallet;
-    const along = Math.max(1, state.palletsAlong || 1);
-    const across = Math.max(1, state.nch);
-    const pitchW = PALLET_W_MM;
-    const zoneLenMm = along * PALLET_L_MM;
-    const totalPallets = along * across;
-    const tiers = Math.max(1, state.palletTiers || 1);
-    const plantsPerTier = totalPallets * perPallet;
-    const total = plantsPerTier * tiers;
-    const palletAreaM2 = PALLET_L_M * PALLET_W_M;
-    const footprintAreaM2 = totalPallets * palletAreaM2;
-    const sysArea = footprintAreaM2 * tiers;
-    const sysWmm = (across - 1) * pitchW + PALLET_W_MM;
-    const rhoA = sysArea > 0 ? total / sysArea : 0;
-    const tierGap = state.tierGapMm || 350;
-    const rackHeightMm = tiers * tierGap + PALLET_TIER_ZONE_MM;
-    return {
-      palletMode: true,
-      mountMode: mount,
-      alongLength: along,
-      acrossPallets: across,
-      zoneLenMm: zoneLenMm,
-      totalPallets: totalPallets,
-      plantsPerPallet: perPallet,
-      cellsPerCassette: cells,
-      cassettesPerPallet: mount === 'cassette' ? CASSETTES_PER_PALLET : 0,
-      cassetteL: geo.cassetteL,
-      cassetteW: geo.cassetteW,
-      cellPitch: geo.cellPitch,
-      cellD: geo.cellD,
-      cassettePitch: geo.cassetteL,
-      perChan: perPallet,
-      perRow: along,
-      total: total,
-      plantsPerTier: plantsPerTier,
-      footprintAreaM2: footprintAreaM2,
-      rhoA: rhoA,
-      rhoT: rhoA,
-      sysWmm: sysWmm,
-      sysArea: sysArea,
-      a: round(geo.cellPitch),
-      b: pitchW,
-      nearest: geo.cellPitch,
-      offMm: 0,
-      diag: geo.cellPitch,
-      ratio: 1,
-      constrained: false,
-      vfMode: false,
-      maxChannelsFit: across,
-      palletTiers: tiers,
-      tierGapMm: tierGap,
-      rackHeightMm: rackHeightMm,
-      totalPlantsAllTiers: total,
-      totalPalletSlots: totalPallets * tiers
-    };
+    if (!_plantLayoutApi) initPlantingLayoutApi();
+    return _plantLayoutApi.plantLayoutPallet(cellsOverride);
   }
 
   function manualHarvestMass(massAuto){
@@ -4764,17 +4765,23 @@ html.auth-preview .page { padding-top: 52px; }
     const d = state.temp - t_opt;
     return clamp(Math.exp(-d * d / (2 * cv.heatSigma)), 0.15, 1.0);
   }
-  /** Теплица: линейное снижение урожая 26→30 °C, при 30 °C −18…20% (как у Георгия). */
+  /** Жара 26→30 °C (−20% при 30), выше 30 — сильнее (см. growth-light-model). */
   function greenhouseHeatYieldFactor(temp){
     temp = temp != null ? temp : state.temp;
+    if (GLM && GLM.heatYieldFactor) return GLM.heatYieldFactor(temp, {});
     const t0 = 26;
     const t1 = 30;
     const lossMax = 0.20;
+    const tMax = 34;
+    const fMin = 0.15;
     if (temp <= t0) return 1;
-    if (temp >= t1) return 1 - lossMax;
-    return 1 - lossMax * (temp - t0) / (t1 - t0);
+    if (temp <= t1) return 1 - lossMax * (temp - t0) / (t1 - t0);
+    if (temp >= tMax) return fMin;
+    const f30 = 1 - lossMax;
+    return f30 - (f30 - fMin) * (temp - t1) / (tMax - t1);
   }
   function greenhouseHeatYieldLossPct(temp){
+    if (GLM && GLM.heatYieldLossPct) return GLM.heatYieldLossPct(temp, {});
     return Math.round((1 - greenhouseHeatYieldFactor(temp)) * 100);
   }
   /** Каналы в открытой теплице (солнце, не VF и не поддоны). */
@@ -4792,7 +4799,7 @@ html.auth-preview .page { padding-top: 52px; }
   function isGreenhousePlanting(){
     return isPlantingYieldView();
   }
-  /** Руккола/салат беби: профиль жары; поддоны/VF — модель tempFactor; каналы — кривая 26→30°C. */
+  /** Жара: единая кривая (26→30 °C −20%, выше 30 сильнее); беби Георгия — тот же профиль. */
   function effectiveTempFactor(cv){
     cv = cv || getCv();
     if (georgyMode){
@@ -4801,8 +4808,6 @@ html.auth-preview .page { padding-top: 52px; }
         return georgyMode.georgyYieldFactor(profile, state.temp);
       }
     }
-    if (isControlledEnv()) return tempFactor(cv);
-    if (isChannelGreenhouse()) return greenhouseHeatYieldFactor(state.temp);
     return tempFactor(cv);
   }
   function boltShift(cv){
@@ -5356,35 +5361,24 @@ html.auth-preview .page { padding-top: 52px; }
     return georgyMode && georgyMode.isGeorgyGh() && georgyMode.usesGeorgyChannel2Rows && georgyMode.usesGeorgyChannel2Rows(getCv());
   }
 
-  function plantLayout(cv){
-    cv = cv || getCv();
-    if (isPalletView()) return plantLayoutPallet();
-    const rhoT = state.density;
-    const Lmm = state.length * 1000;
-    const margin = 50;
+  function initPlantingLayoutApi(){
+    _plantLayoutApi = DG_createPlantingLayout({
+      constants: PC,
+      getState: function(){ return state; },
+      getCv: getCv,
+      isPalletView: isPalletView,
+      georgyChannelTwoRows: georgyChannelTwoRows,
+      syncPalletZoneLength: syncPalletZoneLength,
+      palletMountMode: palletMountMode,
+      effectivePalletHoleCount: effectivePalletHoleCount,
+      palletCellGeometry: palletCellGeometry,
+      round: round
+    });
+  }
 
-    const f = state.offset / 100;
-    const ratio = Math.sqrt(1 - f * f);
-    let a = 1000 / Math.sqrt(rhoT * ratio);
-    let b = a * ratio;
-    let constrained = false;
-    if (b < CH_W){ b = CH_W; a = 1e6 / (rhoT * b); constrained = true; }
-    b = b + state.extraB;
-    const rhoA = 1e6 / (a * b);
-    const offMm = a * f;
-    const diag = Math.sqrt(offMm * offMm + b * b);
-    const nearest = state.offset === 0 ? Math.min(a, b) : Math.min(a, diag);
-    const alongOne = Math.max(1, Math.floor((Lmm - 2 * margin) / a) + 1);
-    const twoRow = georgyChannelTwoRows();
-    const perRow = alongOne;
-    const perChan = twoRow ? alongOne * 2 : alongOne;
-    const total = perChan * state.nch;
-    const sysWmm = (state.nch - 1) * b + CH_W;
-    const sysArea = (sysWmm / 1000) * state.length;
-    return {
-      a, b, f, ratio, rhoA, offMm, diag, nearest, perChan, perRow, total,
-      sysWmm, sysArea, constrained, vfMode: twoRow
-    };
+  function plantLayout(cv){
+    if (!_plantLayoutApi) initPlantingLayoutApi();
+    return _plantLayoutApi.plantLayout(cv);
   }
 
   /* ---- Scenario calc: like calc() but with explicit cv/month/lighting/temp ---- */
@@ -6108,7 +6102,7 @@ html.auth-preview .page { padding-top: 52px; }
     if (view === 'economics'){ updatePageSub(); renderEconomics(); }
   }
 
-  const CALC_BUILD = '2026-05-19-p69-georgy-salad-lettuce';
+  const CALC_BUILD = '2026-05-19-p71-audit-fixes';
 
   function updateCalcBuildBadge(r){
     const el = document.getElementById('calc-build-badge');
@@ -6954,6 +6948,12 @@ html.auth-preview .page { padding-top: 52px; }
     $('metrics-sys').innerHTML = sys.map(m =>
       '<div class="m ' + (m.cls || '') + '"><div class="m-label">' + m.l + '</div><div class="m-val">' + m.v + '<span class="m-unit">' + m.u + '</span></div></div>'
     ).join('');
+    const sysEl = $('metrics-sys');
+    if (sysEl){
+      const hyMcHint = state.multicut && supportsMulticut(r.cv) ? plantingHarvestYieldParams(r.cv, r) : null;
+      const showYearHint = !(hyMcHint && hyMcHint.multicutHarvest) && (r.cyclesPerYear > 0 || r.yieldPerSqmYear > 0);
+      if (showYearHint) sysEl.insertAdjacentHTML('beforeend', '<p class="planting-year-month-hint">' + pm('m.yearMonthHint') + '</p>');
+    }
     syncHarvestBlockUI(r);
     updateMassModelHint(r.massAuto, r.mass, modelCanopyFromMass(r.cv, r.massAuto), r.canopy);
     renderGhYieldTotals(r);
@@ -7826,7 +7826,7 @@ html.auth-preview .page { padding-top: 52px; }
       push('info', 'bulb', ui('georgy.warn.tempHeadBaby', {
         temp: state.temp,
         babyPct: georgyMode.georgyYieldLossPct(georgyMode.LETTUCE_PROFILE, state.temp),
-        headPct: Math.round((1 - tempFactor(r.cv)) * 100)
+        headPct: Math.round((1 - effectiveTempFactor(r.cv)) * 100)
       }));
     } else if (isChannelGreenhouse() && state.temp >= 28){
       push('info', 'bulb', ui('gh.yield.tempHeat', {
@@ -8678,12 +8678,70 @@ html.auth-preview .page { padding-top: 52px; }
 
   window.DG_syncSchemaCanopyLegend = syncSchemaCanopyLegend;
 
+  function syncPreviewSlidersToState(){
+    const pairs = [
+      ['temp', 'temp-v', state.temp, r1],
+      ['day', 'day-v', state.day, String],
+      ['density', 'density-v', state.density, String],
+      ['nch', 'nch-v', state.nch, String],
+      ['offset', 'offset-v', state.offset, String],
+      ['germination', 'germination-v', state.germination, String],
+      ['nursery', 'nursery-v', state.nursery, String]
+    ];
+    pairs.forEach(([id, vid, val, fmt]) => {
+      const el = $(id);
+      const vel = $(vid);
+      if (el) el.value = val;
+      if (vel) vel.textContent = typeof fmt === 'function' ? fmt(val) : val;
+    });
+    document.querySelectorAll('.month-btn').forEach(btn => {
+      const on = parseInt(btn.dataset.month, 10) === state.month;
+      btn.classList.toggle('on', on);
+    });
+    const lightChk = $('lighting');
+    if (lightChk) lightChk.checked = !!state.lighting;
+    const mc = $('multicut');
+    if (mc) mc.checked = !!state.multicut;
+    const ghArea = $('gh-useful-area');
+    if (ghArea && state.ghUsefulArea != null) ghArea.value = String(state.ghUsefulArea);
+  }
+
+  global.DG_applyPreviewDefaults = function(){
+    if (!global.DG_isPreviewMode || !global.DG_isPreviewMode()) return;
+    const cfg = global.DG_PREVIEW_CONFIG || {};
+    state.georgyMode = false;
+    state.georgyRestore = null;
+    state.georgyDensityFitted = false;
+    document.documentElement.classList.remove('georgy-active');
+    const gBtn = $('btn-georgy-mode');
+    if (gBtn) gBtn.classList.remove('on');
+    const scalarKeys = [
+      'cv', 'temp', 'lighting', 'day', 'nch', 'density', 'offset', 'pot',
+      'multicut', 'germination', 'nursery', 'ghUsefulArea', 'palletCv', 'vfCv'
+    ];
+    scalarKeys.forEach(k => {
+      if (cfg[k] != null) state[k] = cfg[k];
+    });
+    if (cfg.month != null) state.month = cfg.month;
+    if (cfg.facility) setFacility(cfg.facility);
+    setAppView(cfg.appView || state.appView || 'channels');
+    syncPreviewSlidersToState();
+    renderCultivars();
+    if (state.appView === 'economics') renderEconomics();
+    else renderAll();
+  };
+
+  global.addEventListener('daogreen-preview-enter', function(){
+    if (global.DG_applyPreviewDefaults) global.DG_applyPreviewDefaults();
+  });
+
   window.DaoGreenCalc = {
     BUILD: CALC_BUILD,
     setAppView: setAppView,
     renderAll: renderAll,
     calc: calc,
     getState: function(){ return state; },
+    applyPreviewDefaults: global.DG_applyPreviewDefaults,
     applyProject: applyProjectState,
     exportEconCsv: function(){
       if (!state.econ) return;

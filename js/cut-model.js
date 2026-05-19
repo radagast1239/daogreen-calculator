@@ -103,7 +103,7 @@
       var vegDays = deps.isPalletView() ? state.day : (deps.isVF() ? deps.vfEffectiveDay(cv) : state.day);
       var cutsPerMonth = HARVEST_MONTH_DAYS / interval;
       var cutsInCycle = Math.max(1, Math.floor(vegDays / interval));
-      var monthsToReplace = vegDays / 30;
+      var monthsToReplace = vegDays / HARVEST_MONTH_DAYS;
       return { cutsPerMonth: cutsPerMonth, cutsInCycle: cutsInCycle, monthsToReplace: monthsToReplace, interval: interval };
     }
 

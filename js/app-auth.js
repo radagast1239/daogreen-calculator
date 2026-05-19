@@ -125,6 +125,7 @@
     } catch (_) {}
     var roBtn = document.getElementById('btn-readonly');
     if (roBtn) roBtn.classList.remove('on');
+    global.dispatchEvent(new CustomEvent('daogreen-preview-enter'));
   }
 
   function exitPreviewMode() {

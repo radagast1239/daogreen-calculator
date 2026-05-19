@@ -1,12 +1,16 @@
-/* Справочник поддонов 130×65 — из папки «ПОДДОНЫ КАССЕТЫ» (верхняя граница диапазонов) */
+/* Справочник поддонов 130×65 — из АУДИТ/ПОДДОНЫ.xlsx и АУДИТ/ЦВЕТЫ.xlsx
+   Поддоны: числовые диапазоны — midUpper (между серединой и верхней границей) */
 (function(global){
-  function hi(s){
+  function midUpper(s){
     if (s == null || s === '') return 0;
     const t = String(s).replace(/,/g, '.').replace(/\s*(г|шт)\s*$/gi, '').replace(/до\s*(\d+)/gi, '$1');
     const nums = [];
     t.replace(/(\d+(?:\.\d+)?)/g, (_, n) => { nums.push(parseFloat(n)); });
     if (!nums.length) return 0;
-    return Math.max.apply(null, nums);
+    const lo = Math.min.apply(null, nums);
+    const hi = Math.max.apply(null, nums);
+    const mid = (lo + hi) / 2;
+    return (mid + hi) / 2;
   }
 
   function replaceMonthsFromNote(note, cutNote){
@@ -45,14 +49,14 @@
   function plC(id, name, section, germ, ch, den, cellsStr, cut, avgCut, yCut, opts){
     opts = opts || {};
     const pc = pickCells(cellsStr);
-    const germination = Math.round(hi(germ) || 5);
-    const channelDays = Math.round(hi(ch) || 25);
-    const density = Math.round(hi(den) || 80);
-    const yieldPerCutG = Math.round(hi(yCut));
-    const cutNum = hi(avgCut) || hi(cut);
+    const germination = Math.round(midUpper(germ) || 5);
+    const channelDays = Math.round(midUpper(ch) || 25);
+    const density = Math.round(midUpper(den) || 80);
+    const unit = opts.unit || 'g';
+    const yieldPerCutG = Math.round(midUpper(yCut) || 0);
+    const cutNum = midUpper(avgCut) || midUpper(cut);
     const cutInterval = cutNum > 0 ? cutNum : (opts.cutInterval || (opts.partialCut ? 7 : 0));
     const cutNote = (typeof cut === 'string' && !cutNum) ? cut : (opts.cutNote || '');
-    const unit = opts.unit || 'g';
     const replaceNote = opts.replaceNote || '';
     const potHarvestMonths = replaceMonthsFromNote(replaceNote, cutNote) || 0;
     const multicut = opts.multicut !== false && (cutInterval > 0 || opts.partialCut);
@@ -95,42 +99,42 @@
     plC('pl-chard-baby', 'Мангольд', 'baby', '7-8', '25', '220', '54', '15-20', '18', '15-20', { replaceNote: 'До года' , sub: 'беби D6 · поддон' }),
     plC('pl-basil-baby', 'Базилик', 'baby', '5-7', '25-30', '80-150', '14-24', '20-25', '23', '15-20', { replaceNote: '2-3 месяца' , sub: 'беби D6 · поддон' }),
     plC('pl-strawberry-spinach', 'Марь гигантская (шпинат земляничный)', 'baby', '4', '20-25', '80-120', '14-24', '20', '20', '15-25', { replaceNote: '3-4 месяца' , sub: 'беби D6 · поддон' }),
-    plC('pl-melissa-baby', 'Мелисса', 'baby', '5-7', '35', '80-120', '14-24', '20-30 в зависимости от требуемого размера', '25', '15-20', { replaceNote: 'До года' , sub: 'беби D6 · поддон' }),
-    plC('pl-mint-baby', 'Мята', 'baby', '5-7', '35', '80-120', '14-24', '20 и более в зависимости от требуемого размера', '25', '15-20', { replaceNote: 'До года' , sub: 'беби D6 · поддон' }),
-    plC('pl-ice-plant', 'Хрустальная трава (Мезембриантемум)', 'baby', '4-6', '30', '80-100', '14-24', 'Срезается частично', '7', '10-15', { partialCut: true, replaceNote: '5 месяцев' , sub: 'беби D6 · поддон' }),
-    plC('pl-arugula-baby', 'Рукола', 'baby', '2-3', '20-25', '60-150', '14-24', '20', '20', '14-19', { replaceNote: '2' , sub: 'беби D6 · поддон' }),
+    plC('pl-melissa-baby', 'Мелисса', 'baby', '5-7', '35', '80-120', '14-24', '20-30', '25', '15-20', { replaceNote: 'До года' , sub: 'беби D6 · поддон' }),
+    plC('pl-mint-baby', 'Мята', 'baby', '5-7', '35', '80-120', '14-24', '20-30', '25', '15-20', { replaceNote: 'До года' , sub: 'беби D6 · поддон' }),
+    plC('pl-ice-plant', 'Хрустальная трава (Мезембриантемум)', 'baby', '4-6', '30', '80-100', '14-24', 'Срезается частично', '7', '10-15', { partialCut: true, replaceNote: '5 месяца' , sub: 'беби D6 · поддон' }),
+    plC('pl-arugula-baby', 'Рукола', 'baby', '2-3', '20-25', '60-150', '14-24', '20', '20', '14-19', { replaceNote: '2 месяца' , sub: 'беби D6 · поддон' }),
     plC('pl-arugula-dragon', 'Рукола Язык дракона', 'baby', '3-4', '25-30', '80-100', '14-24', '20-25', '23', '10-15', { replaceNote: '2-3 месяца' , sub: 'беби D6 · поддон' }),
     plC('pl-spinach-baby', 'Шпинат', 'baby', '5-7', '20-25', '150-220', '54', '7', '7', '3-5', { replaceNote: '3-6 недель' , sub: 'беби D6 · поддон' }),
     plC('pl-romano-baby', 'Салат Романо', 'baby', '3-4', '20-25', '50-80', '14-24', '20-25', '23', '30-40', { replaceNote: '2-3 месяца' , sub: 'беби D6 · поддон' }),
     plC('pl-pakchoi-baby', 'Пак чой', 'baby', '3-4', '20-25', '60-120', '14-24', '15-18', '17', '15-25', { replaceNote: '3-4 месяца' , sub: 'беби D6 · поддон' }),
-    plC('pl-nasturtium-baby', 'Настурция', 'baby', '7-8', '20-25', '50-60', '14-24', 'Срезается частично', '7', '5-8', { partialCut: true, replaceNote: '5 месяцев' , sub: 'беби D6 · поддон' }),
+    plC('pl-nasturtium-baby', 'Настурция', 'baby', '7-8', '20-25', '50-60', '14-24', 'Срезается частично', '7', '5-8', { partialCut: true, replaceNote: '5 месяца' , sub: 'беби D6 · поддон' }),
     plC('pl-tatsoi-baby', 'Татсой', 'baby', '3', '20-25', '60-120', '14-24', '20', '20', '15-25', { replaceNote: '3-4 месяца' , sub: 'беби D6 · поддон' }),
     plC('pl-komatsuna-baby', 'Комацуна', 'baby', '3-4', '20-25', '60-120', '14-24', '20', '20', '20', { replaceNote: '3-4 месяца' , sub: 'беби D6 · поддон' }),
     plC('pl-mustard-baby', 'Горчица', 'baby', '2-3', '20-25', '60-120', '14-24', '14-18', '16', '20', { replaceNote: '3-4 месяца' , sub: 'беби D6 · поддон' }),
-    plC('pl-verbena', 'Вербена лимон', 'baby', '', '', '50-80', '14-24', 'Срезается частично', '20', '5-8', { partialCut: true, replaceNote: '5 месяцев' , sub: 'беби D6 · поддон' }),
-    plC('pl-marigold-leaf', 'Бархатцы на лист', 'baby', '3-5', '25-30', '80-150', '9-14', 'Срезается частично', '12', '10', { partialCut: true, replaceNote: '6 месяцев и более' , sub: 'беби D6 · поддон' }),
+    plC('pl-verbena', 'Вербена лимон', 'baby', '', '', '50-80', '14-24', 'Срезается частично', '20', '5-8', { partialCut: true, replaceNote: '5 месяца' , sub: 'беби D6 · поддон' }),
+    plC('pl-marigold-leaf', 'Бархатцы на лист', 'baby', '3-5', '25-30', '80-150', '9-14', 'Срезается частично', '12', '10', { partialCut: true, replaceNote: '6-8 месяца' , sub: 'беби D6 · поддон' }),
     plC('pl-oyster-leaf', 'Устричный лист', 'baby', '14', '40', '50-80', '9-14', 'Срезается частично', '12', '5-8', { partialCut: true, replaceNote: 'До года' , sub: 'беби D6 · поддон' }),
-    plC('pl-viola', 'Виола', 'flowers', '2-3', '18', '60-80/30', '14', 'Срезается частично каждые 5-10 дней', '7', '30-80', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-mimulus', 'Мимулюс', 'flowers', '3-5', '40', '60/30', '9/14', 'Срезается частично каждые 5-10 дней', '7', '15-25', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-begonia', 'Бегония\\пеларгония\\герань', 'flowers', '7-8', '45', '45-60/30', '14', 'Срезается частично каждые 5-10 дней', '7', '15-25', { partialCut: true, unit: 'шт', replaceNote: 'До года' , sub: 'цветы · поддон' }),
-    plC('pl-torenia', 'Торения', 'flowers', '3-5', '40', '60-80/30-35', '9/14', 'Срезается частично каждые 5-10 дней', '7', '10-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-marigold-flower', 'Бархатцы', 'flowers', '4-6', '45', '80-120/35-45', '9', 'Срезается частично каждые 5-10 дней', '7', '10-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-spilanthes', 'Спилантес (Акмелла Электрическая)', 'flowers', '3-4', '30', '60-80/30', '9', 'Срезается частично каждые 5-10 дней', '7', 'до 20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-alyssum', 'Алисум', 'flowers', '5-7', '25', '60-80/30', '14', 'Срезается частично каждые 5-10 дней', '7', '30 и более', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-nasturtium-flower', 'Настурция', 'flowers', '10-14', '45', '25-35/20', '14', 'Срезается частично каждые 5-10 дней', '7', '5-10', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-carnation', 'Гвоздика', 'flowers', '3-4', '45', '60-80/30', '14', 'Срезается частично каждые 5-10 дней', '7', '10-18', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-pentas', 'Пентас', 'flowers', '5-7', '35', '45-60/30', '9/14', 'Срезается частично каждые 5-10 дней', '7', '30 и более', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-mesemb-flower', 'Мезембриантемум (Хрустальная трава)', 'flowers', '5-7', '40', '60-80/30-35', '14', 'Срезается частично каждые 5-10 дней', '7', '10', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-borage', 'Бораго', 'flowers', '3-4', '45', '30-35/15-20', '4', 'Срезается частично каждые 5-10 дней', '7', 'до 80', { partialCut: true, unit: 'шт', replaceNote: '2-3 месяца' , sub: 'цветы · поддон' }),
-    plC('pl-cornflower', 'Василек', 'flowers', '3-7', '45', '60-80/45', '9', 'Срезается частично каждые 5-10 дней', '7', '10', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-zucchini-flower', 'Цветы Цуккини (Кабачок)', 'flowers', '4-5', '35', '30/5', '4', 'Срезается частично каждые 5-10 дней', '7', '5-7', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-phlox', 'Флокс', 'flowers', '5-6', '60', '60/30', '9', 'Срезается частично каждые 5-10 дней', '7', '20 и более', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-lavender', 'Лаванда', 'flowers', '7-10', '50', '60/30', '14', 'Срезается частично каждые 5-10 дней', '7', '20 и более', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-bellflower', 'Колокольчик', 'flowers', '5-8', '35', '60-80/30-35', '14', 'Срезается частично каждые 5-10 дней', '7', '10-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-balsam', 'Бальзамин', 'flowers', '5-8', '35', '60-80/30-35', '9', 'Срезается частично каждые 5-10 дней', '7', '10-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · поддон' }),
-    plC('pl-mint-adult', 'Мята', 'adult', 'от 5-7, до 10-12', '50', '40-45', '9-14', '20-25 или частично', '23', '15-18', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · поддон' }),
-    plC('pl-melissa-adult', 'Мелисса', 'adult', '5-7', '50', '40-45', '9-14', '20-25 или частично', '23', '15-18', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · поддон' }),
-    plC('pl-thyme', 'Тимьян', 'adult', '5-7', '60', '40-45', '9-14', '20-25 или частично', '23', '10-15', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · поддон' }),
+    plC('pl-viola', 'Виола', 'flowers', '2-3', '18', '60-80/30', '14', 'Срезается частично каждые 5-10 дней', '7', '60-80', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-mimulus', 'Мимулюс', 'flowers', '3-5', '40', '60/30', '9/14', 'Срезается частично каждые 5-10 дней', '7', '25', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-begonia', 'Бегония\\пеларгония\\герань', 'flowers', '7-8', '45', '45-60/30', '14', 'Срезается частично каждые 5-10 дней', '7', '25', { partialCut: true, unit: 'шт', replaceNote: 'вечноцветущая' , sub: 'цветы · поддон' }),
+    plC('pl-torenia', 'Торения', 'flowers', '3-5', '40', '60-80/30-35', '9/14', 'Срезается частично каждые 5-10 дней', '7', '20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-marigold-flower', 'Бархатцы', 'flowers', '4-6', '45', '80-120/35-45', '9', 'Срезается частично каждые 5-10 дней', '7', '20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-spilanthes', 'Спилантес (Акмелла Электрическая)', 'flowers', '3-4', '30', '60-80/30', '9', 'Срезается частично каждые 5-10 дней', '7', '15-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-alyssum', 'Алисум', 'flowers', '5-7', '25', '60-80/30', '14', 'Срезается частично каждые 5-10 дней', '7', '30-50', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-nasturtium-flower', 'Настурция', 'flowers', '10-14', '45', '25-35/20', '14', 'Срезается частично каждые 5-10 дней', '7', '10', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-carnation', 'Гвоздика', 'flowers', '3-4', '45', '60-80/30', '14', 'Срезается частично каждые 5-10 дней', '7', '18', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-pentas', 'Пентас', 'flowers', '5-7', '35', '45-60/30', '9/14', 'Срезается частично каждые 5-10 дней', '7', '30-50', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-mesemb-flower', 'Мезембриантемум (Хрустальная трава)', 'flowers', '5-7', '40', '60-80/30-35', '14', 'Срезается частично каждые 5-10 дней', '7', '10', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-borage', 'Бораго', 'flowers', '3-4', '45', '30-35/15-20', '4', 'Срезается частично каждые 5-10 дней', '7', '80', { partialCut: true, unit: 'шт', replaceNote: '3 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-cornflower', 'Василек', 'flowers', '3-7', '45', '60-80/45', '9', 'Срезается частично каждые 5-10 дней', '7', '10', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-zucchini-flower', 'Цветы Цуккини (Кабачок)', 'flowers', '4-5', '35', '30/5', '4', 'Срезается частично каждые 5-10 дней', '7', '7', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-phlox', 'Флокс', 'flowers', '5-6', '60', '60/30', '9', 'Срезается частично каждые 5-10 дней', '7', '20-30', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-lavender', 'Лаванда', 'flowers', '7-10', '50', '60/30', '14', 'Срезается частично каждые 5-10 дней', '7', '20-30', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-bellflower', 'Колокольчик', 'flowers', '5-8', '35', '60-80/30-35', '14', 'Срезается частично каждые 5-10 дней', '7', '20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-balsam', 'Бальзамин', 'flowers', '5-8', '35', '60-80/30-35', '9', 'Срезается частично каждые 5-10 дней', '7', '20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · поддон' }),
+    plC('pl-mint-adult', 'Мята', 'adult', 'от 5-7, до 10-12', '50', '40-45', '9-14', '20-25', '23', '15-18', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · поддон' }),
+    plC('pl-melissa-adult', 'Мелисса', 'adult', '5-7', '50', '40-45', '9-14', '20-25', '23', '15-18', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · поддон' }),
+    plC('pl-thyme', 'Тимьян', 'adult', '5-7', '60', '40-45', '9-14', '20-25', '23', '10-15', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · поддон' }),
     plC('pl-rosemary', 'Розмарин', 'adult', '7-8', '60', '50-60', '9-14', 'Срезается частично', '9', '10-15', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · поддон' }),
     plC('pl-basil-adult', 'Базилик', 'adult', '5-7', '40', '50-60', '14', '18-25', '22', '60', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · поддон' }),
     plC('pl-oregano', 'Майоран (Орегано)', 'adult', '5-7', '40', '40-45', '9-14', 'Срезается частично', '9', '30-45', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · поддон' }),
@@ -146,9 +150,9 @@
     plC('pl-arugula-dragon-adult', 'Рукола Дракон', 'adult', '3-4', '30', '60-80', '9-14', 'Чаще практикуется однократная срезка', '-', '30', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '4-6 недель' , sub: 'взрослые D6 · поддон' }),
     plC('pl-mustard-red', 'Горчица Красная', 'adult', '2-3', '35', '45-50', '9-14', '25', '25', '40-60', { replaceNote: '3-4 месяца' , sub: 'взрослые D6 · поддон' }),
     plC('pl-spinach-adult', 'Шпинат', 'adult', '4-6', '35', '80', '24', '7-14', '9', '30-40', { replaceNote: '4 недели' , sub: 'взрослые D6 · поддон' }),
-    plC('pl-batavia', 'Салаты Ботавия', 'adult', '2-3', '35-45', '40-45', '9-14', '-', '-', '100-150', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка. 45 суток с момента посева' , sub: 'взрослые D6 · поддон' }),
-    plC('pl-romaine-adult', 'Салат Ромен', 'adult', '2-3', '35', '40-45', '9-14', '-', '-', '120-160', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка. 45 суток с момента посева' , sub: 'взрослые D6 · поддон' }),
-    plC('pl-frillice-lollo', 'Фрилис, Лоло Роса', 'adult', '2-3', '35', '40-45', '9-14', '-', '-', '120-140', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка. 45 суток с момента посева' , sub: 'взрослые D6 · поддон' }),
+    plC('pl-batavia', 'Салаты Ботавия', 'adult', '2-3', '35-45', '40-45', '9-14', '-', '-', '100-150', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка.' , sub: 'взрослые D6 · поддон' }),
+    plC('pl-romaine-adult', 'Салат Ромен', 'adult', '2-3', '35', '40-45', '9-14', '-', '-', '120-160', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка.' , sub: 'взрослые D6 · поддон' }),
+    plC('pl-frillice-lollo', 'Фрилис, Лоло Роса', 'adult', '2-3', '35', '40-45', '9-14', '-', '-', '120-140', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка.' , sub: 'взрослые D6 · поддон' }),
     plC('pl-dill', 'Укроп', 'adult', '5-7', '40', '50-60', '14-24', '30', '30', '25', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · поддон' }),
     plC('pl-parsley', 'Петрушка', 'adult', '5-7', '40', '50-60', '14-24', '30', '30', '25-35', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · поддон' }),
     plC('pl-cilantro', 'Кинза', 'adult', '5-7', '40', '50-60', '14-24', '30', '30', '25-35', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · поддон' }),
@@ -157,5 +161,5 @@
     plC('pl-tatsoi-adult', 'Татсой', 'adult', '2-3', '35-40', '45-50', '9-14', 'Чаще практикуется однократная срезка', '25', '30-50', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '3-4 месяца' , sub: 'взрослые D6 · поддон' }),
   ];
 
-  global.PALLET_SHEET = { PALLET_SECTIONS, PALLET_CULTIVARS, hi, replaceMonthsFromNote, pickCells };
+  global.PALLET_SHEET = { PALLET_SECTIONS, PALLET_CULTIVARS, midUpper, replaceMonthsFromNote, pickCells };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -8,7 +8,9 @@
     "check:golden": "node _tools/golden-scenarios.js",
     "serve": "npx --yes serve -p 8080",
     "serve:auth": "node _tools/serve-auth.js",
-    "auth:config": "node _tools/write-auth-client-config.js"
+    "auth:config": "node _tools/write-auth-client-config.js",
+    "preview:from-project": "node _tools/project-to-preview-config.js",
+    "sync:audit": "node _tools/sync-vf-audit-xlsx.js"
   },
   "optionalDependencies": {
     "dejavu-fonts-ttf": "^2.37.3"

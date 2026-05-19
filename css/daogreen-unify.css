@@ -231,6 +231,17 @@
   line-height: 1.45;
 }
 
+.econ-warnings li.econ-warn--strong {
+  font-size: 14.5px;
+  font-weight: 700;
+  padding: 14px 16px;
+  border-width: 2px;
+  border-color: #d97706;
+  background: #fef3c7;
+  color: #78350f;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.12);
+}
+
 /* —— Panels & nested collapses —— */
 .panel.collapse-block {
   border: none;

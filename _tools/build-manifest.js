@@ -11,6 +11,8 @@ module.exports = {
     'js/cultivar-registry.js',
     'js/growth-light-model.js',
     'js/cut-model.js',
+    'js/planting-constants.js',
+    'js/planting-layout.js',
     'js/planting-snapshot.js',
     'js/georgy-mode.js',
     'js/planting-i18n.js',

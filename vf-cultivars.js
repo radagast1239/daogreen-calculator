@@ -1,5 +1,16 @@
-/* Справочник каналов VF — из папки «КАНАЛЫ» (верхняя граница диапазонов, урожай +12.5%) */
+/* Справочник каналов VF — из АУДИТ/КАНАЛЫ.xlsx и АУДИТ/ЦВЕТЫ.xlsx
+   КАНАЛЫ: урожай г — верх диапазона +12,5%; остальное — mid */
 (function(global){
+  /** Среднее по диапазону «7–14», «60-80» и т.д. */
+  function mid(s){
+    if (s == null || s === '') return 0;
+    const t = String(s).replace(/,/g, '.').replace(/\s*(г|шт)\s*$/gi, '').replace(/до\s*(\d+)/gi, '$1');
+    const nums = [];
+    t.replace(/(\d+(?:\.\d+)?)/g, (_, n) => { nums.push(parseFloat(n)); });
+    if (!nums.length) return 0;
+    return nums.reduce((a, b) => a + b, 0) / nums.length;
+  }
+
   function hi(s){
     if (s == null || s === '') return 0;
     const t = String(s).replace(/,/g, '.').replace(/\s*(г|шт)\s*$/gi, '').replace(/до\s*(\d+)/gi, '$1');
@@ -44,14 +55,14 @@
 
   function vfC(id, name, section, germ, ch, den, cut, avgCut, yCut, opts){
     opts = opts || {};
-    const germination = Math.round(hi(germ) || 5);
-    const channelDays = Math.round(hi(ch) || 25);
-    const density = Math.round(hi(den) || 80);
-    let yieldPerCutG = Math.round(hi(yCut) * 1.125);
-    const cutNum = hi(avgCut) || hi(cut);
+    const germination = Math.round(mid(germ) || 5);
+    const channelDays = Math.round(mid(ch) || 25);
+    const density = Math.round(mid(den) || 80);
+    const unit = opts.unit || 'g';
+    let yieldPerCutG = Math.round((hi(yCut) || 0) * (unit === 'шт' ? 1 : 1.125));
+    const cutNum = mid(avgCut) || mid(cut);
     const cutInterval = cutNum > 0 ? cutNum : (opts.cutInterval || (opts.partialCut ? 7 : 0));
     const cutNote = (typeof cut === 'string' && !cutNum) ? cut : (opts.cutNote || '');
-    const unit = opts.unit || 'g';
     const replaceNote = opts.replaceNote || '';
     const potHarvestMonths = replaceMonthsFromNote(replaceNote, cutNote) || 0;
     const multicut = opts.multicut !== false && (cutInterval > 0 || opts.partialCut);
@@ -85,61 +96,61 @@
   ];
 
   const VF_CULTIVARS = [
-    vfC('vf-sorrel', 'Щавель красножильный', 'baby', '5-7', '35', '100-220', '20', '20', '10-15', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
-    vfC('vf-kale-baby', 'Капуста Кейл', 'baby', '3-5', '30', '80-150', '15', '15', '15-25', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
-    vfC('vf-mizuna-baby', 'Капуста мизуна', 'baby', '2-3', '25-30', '80-150', '15-20', '18', '15-20', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),
+    vfC('vf-sorrel', 'Щавель красножильный', 'baby', '5-7', '35', '100-220', '20', '20', '15', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
+    vfC('vf-kale-baby', 'Капуста Кейл', 'baby', '3-5', '30', '80-150', '15', '15', '25', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
+    vfC('vf-mizuna-baby', 'Капуста мизуна', 'baby', '2-3', '25-30', '80-150', '15-20', '18', '20', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),
     vfC('vf-corn', 'Салат Корн', 'baby', '5-7', '25-30', '80-150', '15-20', '18', '15', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
-    vfC('vf-chard-baby', 'Мангольд', 'baby', '7-8', '25', '220', '15-20', '18', '15-20', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
-    vfC('vf-basil-baby', 'Базилик', 'baby', '5-7', '25-30', '80-150', '20-25', '23', '15-20', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
-    vfC('vf-melissa-baby', 'Мелисса', 'baby', '5-7', '35', '80-120', '20-30 в зависимости от требуемого размера', '25', '15-20', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
-    vfC('vf-mint-baby', 'Мята', 'baby', '5-7', '35', '80-120', '20 и более в зависимости от требуемого размера', '25', '15-20', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
-    vfC('vf-arugula-dragon', 'Рукола Язык дракона', 'baby', '3-4', '25-30', '80-100', '20-25', '23', '10-15', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
-    vfC('vf-spinach-baby', 'Шпинат', 'baby', '5-7', '20-25', '150-220', '7', '7', '3-5', { replaceNote: '3-6 недель' , sub: 'беби D6 · каналы' }),
-    vfC('vf-romano-baby', 'Салат Романо', 'baby', '3-4', '20-25', '50-80', '20-25', '23', '30-40', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
-    vfC('vf-pakchoi-baby', 'Пак чой', 'baby', '3-4', '20-25', '60-120', '15-18', '17', '15-25', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),
-    vfC('vf-tatsoi-baby', 'Татсой', 'baby', '3', '20-25', '60-120', '20', '20', '15-25', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),
+    vfC('vf-chard-baby', 'Мангольд', 'baby', '7-8', '25', '220', '15-20', '18', '20', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
+    vfC('vf-basil-baby', 'Базилик', 'baby', '5-7', '25-30', '80-150', '20-25', '23', '50', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
+    vfC('vf-melissa-baby', 'Мелисса', 'baby', '5-7', '35', '80-120', '20-30', '25', '20', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
+    vfC('vf-mint-baby', 'Мята', 'baby', '5-7', '35', '80-120', '20', '25', '20', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
+    vfC('vf-arugula-dragon', 'Рукола Язык дракона', 'baby', '3-4', '25-30', '80-100', '20-25', '23', '15', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
+    vfC('vf-spinach-baby', 'Шпинат', 'baby', '5-7', '20-25', '150-220', '7', '7', '5', { replaceNote: '3-6 НЕДЕЛЬ' , sub: 'беби D6 · каналы' }),
+    vfC('vf-romano-baby', 'Салат Романо', 'baby', '3-4', '20-25', '50-80', '20-25', '23', '40', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
+    vfC('vf-pakchoi-baby', 'Пак чой', 'baby', '3-4', '20-25', '60-120', '15-18', '17', '25', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),
+    vfC('vf-tatsoi-baby', 'Татсой', 'baby', '3', '20-25', '60-120', '20', '20', '25', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),
     vfC('vf-komatsuna-baby', 'Комацуна', 'baby', '3-4', '20-25', '60-120', '20', '20', '20', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),
     vfC('vf-mustard-baby', 'Горчица', 'baby', '2-3', '20-25', '60-120', '14-18', '16', '20', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),
-    vfC('vf-marigold-leaf', 'Бархатцы на лист', 'baby', '3-5', '25-30', '80-150', 'Срезается частично', '12', '10', { partialCut: true, replaceNote: '6 и более' , sub: 'беби D6 · каналы' }),
-    vfC('vf-viola', 'Виола', 'flowers', '2-3', '18', '60-80/30', 'Срезается частично каждые 5-10 дней', '7', '30-80', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-mimulus', 'Мимулюс', 'flowers', '3-5', '40', '60/30', 'Срезается частично каждые 5-10 дней', '7', '15-25', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-torenia', 'Торения', 'flowers', '3-5', '40', '60-80/30-35', 'Срезается частично каждые 5-10 дней', '7', '10-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-marigold-flower', 'Бархатцы', 'flowers', '4-6', '45', '80-120/35-45', 'Срезается частично каждые 5-10 дней', '7', '10-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-spilanthes', 'Спилантес (Акмелла Электрическая)', 'flowers', '3-4', '30', '60-80/30', 'Срезается частично каждые 5-10 дней', '7', 'до 20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-alyssum', 'Алисум', 'flowers', '5-7', '25', '60-80/30', 'Срезается частично каждые 5-10 дней', '7', '30 и более', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-carnation', 'Гвоздика', 'flowers', '3-4', '45', '60-80/30', 'Срезается частично каждые 5-10 дней', '7', '10-18', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-pentas', 'Пентас', 'flowers', '5-7', '35', '45-60/30', 'Срезается частично каждые 5-10 дней', '7', '30 и более', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-cornflower', 'Василек', 'flowers', '3-7', '45', '60-80/45', 'Срезается частично каждые 5-10 дней', '7', '10', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-phlox', 'Флокс', 'flowers', '5-6', '60', '60/30', 'Срезается частично каждые 5-10 дней', '7', '20 и более', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-bellflower', 'Колокольчик', 'flowers', '5-8', '35', '60-80/30-35', 'Срезается частично каждые 5-10 дней', '7', '10-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-balsam', 'Бальзамин', 'flowers', '5-8', '35', '60-80/30-35', 'Срезается частично каждые 5-10 дней', '7', '10-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяцев' , sub: 'цветы · каналы' }),
-    vfC('vf-mint-adult', 'Мята', 'adult', 'от 5-7, до 10-12', '50', '40-45', '20-25 или частично', '23', '15-18', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-melissa-adult', 'Мелисса', 'adult', '5-7', '50', '40-45', '20-25 или частично', '23', '15-18', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-thyme', 'Тимьян', 'adult', '5-7', '60', '40-45', '20-25 или частично', '23', '10-15', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-rosemary', 'Розмарин', 'adult', '7-8', '60', '50-60', 'Срезается частично', '9', '10-15', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-marigold-leaf', 'Бархатцы на лист', 'baby', '3-5', '25-30', '80-150', 'Срезается частично', '12', '10', { partialCut: true, replaceNote: '6-8 месяца' , sub: 'беби D6 · каналы' }),
+    vfC('vf-viola', 'Виола', 'flowers', '2-3', '18', '60-80/30', 'Срезается частично каждые 5-10 дней', '7', '60-80', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-mimulus', 'Мимулюс', 'flowers', '3-5', '40', '60/30', 'Срезается частично каждые 5-10 дней', '7', '25', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-torenia', 'Торения', 'flowers', '3-5', '40', '60-80/30-35', 'Срезается частично каждые 5-10 дней', '7', '20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-marigold-flower', 'Бархатцы', 'flowers', '4-6', '45', '80-120/35-45', 'Срезается частично каждые 5-10 дней', '7', '20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-spilanthes', 'Спилантес (Акмелла Электрическая)', 'flowers', '3-4', '30', '60-80/30', 'Срезается частично каждые 5-10 дней', '7', '15-20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-alyssum', 'Алисум', 'flowers', '5-7', '25', '60-80/30', 'Срезается частично каждые 5-10 дней', '7', '30-50', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-carnation', 'Гвоздика', 'flowers', '3-4', '45', '60-80/30', 'Срезается частично каждые 5-10 дней', '7', '18', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-pentas', 'Пентас', 'flowers', '5-7', '35', '45-60/30', 'Срезается частично каждые 5-10 дней', '7', '30-50', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-cornflower', 'Василек', 'flowers', '3-7', '45', '60-80/45', 'Срезается частично каждые 5-10 дней', '7', '10', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-phlox', 'Флокс', 'flowers', '5-6', '60', '60/30', 'Срезается частично каждые 5-10 дней', '7', '20-30', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-bellflower', 'Колокольчик', 'flowers', '5-8', '35', '60-80/30-35', 'Срезается частично каждые 5-10 дней', '7', '20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-balsam', 'Бальзамин', 'flowers', '5-8', '35', '60-80/30-35', 'Срезается частично каждые 5-10 дней', '7', '20', { partialCut: true, unit: 'шт', replaceNote: '5 месяца' , sub: 'цветы · каналы' }),
+    vfC('vf-mint-adult', 'Мята', 'adult', 'от 5-7, до 10-12', '50', '40-45', '20-25', '23', '18', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-melissa-adult', 'Мелисса', 'adult', '5-7', '50', '40-45', '20-25', '23', '18', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-thyme', 'Тимьян', 'adult', '5-7', '60', '40-45', '20-25', '23', '15', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-rosemary', 'Розмарин', 'adult', '7-8', '60', '50-60', 'Срезается частично', '9', '15', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
     vfC('vf-basil-adult', 'Базилик', 'adult', '5-7', '40', '50-60', '18-25', '22', '60', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-oregano', 'Майоран (Орегано)', 'adult', '5-7', '40', '40-45', 'Срезается частично', '9', '30-45', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-oregano', 'Майоран (Орегано)', 'adult', '5-7', '40', '40-45', 'Срезается частично', '9', '45', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
     vfC('vf-sage', 'Шалфей', 'adult', '7-8', '40', '50-60', 'Срезается частично', '9', '30', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-chervil', 'Кервель', 'adult', '5-8', '40', '50-60', '25', '25', '25', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-fennel', 'Фенхель', 'adult', '7-8', '45', '50-60', '25', '25', '25', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-anise', 'Анис', 'adult', '7-8', '45', '50-60', '25', '25', '25', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-tarragon', 'Эстрагон', 'adult', '7-8', '60', '50-60', 'Срезается частично', '9', '10-15', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-kale-adult', 'Капуста Кейл', 'adult', '3-4', '40', '35-45', '40-45', '23', '20-25', { replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-mizuna-adult', 'Капуста мизуна', 'adult', '2-3', '35', '45-50', '30', '30', '35-50', { replaceNote: '3-4 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-arugula-adult', 'Рукола', 'adult', '3-4', '30', '60-80', 'Чаще практикуется однократная срезка', '-', '30', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '4-6 недель' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-arugula-dragon-adult', 'Рукола Дракон', 'adult', '3-4', '30', '60-80', 'Чаще практикуется однократная срезка', '-', '30', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '4-6 недель' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-mustard-red', 'Горчица Красная', 'adult', '2-3', '35', '45-50', '25', '25', '40-60', { replaceNote: '3-4 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-spinach-adult', 'Шпинат', 'adult', '4-6', '35', '80', '7-14', '9', '30-40', { replaceNote: '4 недели' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-batavia', 'Салаты Ботавия', 'adult', '2-3', '35-45', '40-45', '-', '-', '100-150', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка. 45 суток с момента посева' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-romaine-adult', 'Салат Ромен', 'adult', '2-3', '35', '40-45', '-', '-', '120-160', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка. 45 суток с момента посева' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-frillice-lollo', 'Фрилис, Лоло Роса', 'adult', '2-3', '35', '40-45', '-', '-', '120-140', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка. 45 суток с момента посева' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-dill', 'Укроп', 'adult', '5-7', '40', '50-60', '30', '30', '25', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-parsley', 'Петрушка', 'adult', '5-7', '40', '50-60', '30', '30', '25-35', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-cilantro', 'Кинза', 'adult', '5-7', '40', '50-60', '30', '30', '25-35', { replaceNote: '2-3 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-pakchoi-adult', 'Пак чой', 'adult', '3-4', '40', '45-50', 'Чаще практикуется однократная срезка', '25', '40-60', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '3-4 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-komatsuna-adult', 'Комацуна', 'adult', '2-3', '35-40', '45-50', 'Чаще практикуется однократная срезка', '25', '30-50', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '3-4 месяца' , sub: 'взрослые D6 · каналы' }),
-    vfC('vf-tatsoi-adult', 'Татсой', 'adult', '2-3', '35-40', '45-50', 'Чаще практикуется однократная срезка', '25', '30-50', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '3-4 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-chervil', 'Кервель', 'adult', '5-8', '40', '50-60', '25', '25', '25', { replaceNote: '3 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-fennel', 'Фенхель', 'adult', '7-8', '45', '50-60', '25', '25', '25', { replaceNote: '3 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-anise', 'Анис', 'adult', '7-8', '45', '50-60', '25', '25', '25', { replaceNote: '3 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-tarragon', 'Эстрагон', 'adult', '7-8', '60', '50-60', 'Срезается частично', '9', '15', { partialCut: true, replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-kale-adult', 'Капуста Кейл', 'adult', '3-4', '40', '35-45', '40-45', '23', '25', { replaceNote: 'До года' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-mizuna-adult', 'Капуста мизуна', 'adult', '2-3', '35', '45-50', '30', '30', '50', { replaceNote: '4 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-arugula-adult', 'Рукола', 'adult', '2-3', '35', '60', '15-20', '-', '40', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '4-6 недель' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-arugula-dragon-adult', 'Рукола Дракон', 'adult', '3-4', '30', '60-80', '15-20', '-', '30', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '4-6 недель' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-mustard-red', 'Горчица Красная', 'adult', '2-3', '35', '45-50', '25', '25', '50', { replaceNote: '4 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-spinach-adult', 'Шпинат', 'adult', '4-6', '35', '80', '7-14', '9', '40', { replaceNote: '4 недели' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-batavia', 'Салаты Ботавия', 'adult', '2-3', '35-45', '40-45', '-', '-', '150', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка.' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-romaine-adult', 'Салат Ромен', 'adult', '2-3', '35', '40-45', '-', '-', '150', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка.' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-frillice-lollo', 'Фрилис, Лоло Роса', 'adult', '2-3', '35', '40-45', '-', '-', '140', { multicut: false, cutNote: 'Однократная срезка · 45 сут от посева', replaceNote: 'Однократная срезка.' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-dill', 'Укроп', 'adult', '5-7', '40', '50-60', '30', '30', '25', { replaceNote: '3 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-parsley', 'Петрушка', 'adult', '5-7', '40', '50-60', '30', '30', '35', { replaceNote: '3 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-cilantro', 'Кинза', 'adult', '5-7', '40', '50-60', '30', '30', '35', { replaceNote: '3 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-pakchoi-adult', 'Пак чой', 'adult', '3-4', '40', '45-50', '-', '25', '60', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '4 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-komatsuna-adult', 'Комацуна', 'adult', '2-3', '35-40', '45-50', '-', '25', '50', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '4 месяца' , sub: 'взрослые D6 · каналы' }),
+    vfC('vf-tatsoi-adult', 'Татсой', 'adult', '2-3', '35-40', '45-50', '-', '25', '50', { multicut: false, cutNote: 'Однократная срезка', replaceNote: '4 месяца' , sub: 'взрослые D6 · каналы' }),
   ];
 
-  global.VF_SHEET = { VF_SECTIONS, VF_CULTIVARS, hi, replaceMonthsFromNote, pickCells };
+  global.VF_SHEET = { VF_SECTIONS, VF_CULTIVARS, mid, hi, replaceMonthsFromNote, pickCells };
 })(typeof window !== 'undefined' ? window : globalThis);
