@@ -1,0 +1,454 @@
+/**
+ * Daogreen calculator — mobile / touch layout
+ * Load after daogreen-unify.css
+ */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.page {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Room for fixed build badge + home indicator */
+body {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(64px, calc(56px + env(safe-area-inset-bottom, 0px)));
+  }
+
+  .page-title {
+    font-size: 26px;
+    line-height: 1.2;
+  }
+
+  .page-sub {
+    font-size: 13.5px;
+  }
+
+  /* iOS: no zoom on focus */
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  input[type="email"],
+  input[type="search"],
+  select,
+  textarea,
+  .cv-add-dialog input,
+  .cv-add-dialog select,
+  .econ-field input,
+  .econ-culture-card input,
+  .econ-culture-card select,
+  .pwa-qr-lan input {
+    font-size: 16px;
+  }
+
+  .masthead-actions .auto-btn,
+  .cv-btn,
+  .pot-btn,
+  .pallet-cell-btn,
+  .pallet-mount-btn,
+  .month-btn,
+  .app-tab,
+  .facility-btn,
+  .compare-chip,
+  .cut-count-btn,
+  .georgy-mode-btn {
+    touch-action: manipulation;
+  }
+
+  .env-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .env-row .env-pill {
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .m {
+    padding: 10px 12px;
+  }
+
+  .m-val {
+    font-size: 20px;
+  }
+
+  .econ-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .econ-custom-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .econ-culture-head {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .econ-culture-head .econ-rm {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .econ-results-per-culture {
+    grid-template-columns: 1fr !important;
+  }
+
+  .planting-econ-bridge {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .planting-econ-bridge .auto-btn,
+  #btn-go-economics {
+    width: 100%;
+    margin-left: 0 !important;
+    justify-content: center;
+  }
+
+  .econ-preset-bar,
+  .econ-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .econ-preset-bar .auto-btn,
+  .econ-actions .auto-btn {
+    width: 100%;
+    text-align: center;
+    min-height: 44px;
+  }
+
+  .gh-yield-area-wrap {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    flex: 1 1 100%;
+  }
+
+  .gh-yield-area-wrap .auto-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .gh-yield-area-wrap input[type="number"] {
+    width: 100%;
+    max-width: none;
+  }
+
+  .gh-yield-margin {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "label val" "slider slider";
+    gap: 8px 12px;
+  }
+
+  .gh-yield-margin .ctrl-label {
+    grid-area: label;
+  }
+
+  .gh-yield-margin .ctrl-val {
+    grid-area: val;
+  }
+
+  .gh-yield-margin input[type="range"] {
+    grid-area: slider;
+    width: 100%;
+  }
+
+  .cv-compare-scroll {
+    margin-left: -8px;
+    margin-right: -8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .cv-compare-scroll::after {
+    content: "";
+    display: block;
+    height: 1px;
+  }
+
+  .viz-frame {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  #growth-chart,
+  #cv-compare-growth-chart,
+  #schema {
+    min-width: 300px;
+  }
+
+  .georgy-harvest-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .georgy-baby-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .georgy-baby-actions .auto-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .georgy-cut-preview-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .canopy-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .canopy-toolbar .canopy-pct-ctrl {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .pallet-cell-row,
+  .pallet-mount-row {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+  }
+
+  .compare-pick-actions,
+  .gh-yield-compare-actions,
+  .cv-custom-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .compare-pick-actions .auto-btn,
+  .gh-yield-compare-actions .auto-btn,
+  .cv-custom-bar .auto-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .compare-pick-item {
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .stage-seg {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 6px;
+  }
+
+  .stage-seg .stage-lbl {
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .calc-build-badge {
+    left: max(10px, env(safe-area-inset-left, 0px));
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    max-width: none;
+    text-align: center;
+    font-size: 10.5px;
+    line-height: 1.35;
+    padding: 8px 12px;
+  }
+
+  .adv-infl-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .adv-infl-form input {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-tabs {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .app-tab {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    white-space: normal;
+    line-height: 1.25;
+    padding: 12px 14px;
+    min-height: 44px;
+  }
+
+  .facility-bar {
+    flex-direction: column;
+  }
+
+  .facility-btn {
+    width: 100%;
+    white-space: normal;
+    min-height: 44px;
+  }
+
+  .cultivar-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cv-btn {
+    min-height: 48px;
+    padding: 12px 14px;
+  }
+
+  .month-picker {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .month-btn {
+    min-height: 40px;
+    padding: 10px 4px;
+    font-size: 11px;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .ctrl-val {
+    font-size: 13px;
+  }
+
+  .pot-row {
+    gap: 8px;
+  }
+
+  .pot-btn {
+    flex: 1 1 calc(50% - 4px);
+    min-width: calc(50% - 4px);
+    min-height: 44px;
+    text-align: center;
+  }
+
+  input[type="range"] {
+    min-height: 32px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    margin-top: -11px;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+  }
+
+  .pdf-export-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .pdf-export-actions .auto-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .tour-pop {
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none;
+    margin: 0 auto;
+  }
+
+  .tour-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .tour-actions .auto-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .masthead {
+    padding: 16px 12px 14px;
+  }
+
+  .panel {
+    padding: 16px 14px;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  .brand-logo {
+    font-size: 15px;
+  }
+
+  .georgy-mode-btn {
+    max-width: none !important;
+  }
+
+  .cv-add-dialog,
+  .pdf-export-dialog {
+    width: calc(100vw - 20px) !important;
+    max-width: none;
+  }
+
+  .econ-custom-form {
+    grid-template-columns: 1fr;
+  }
+
+  .gh-cut-mass-item input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) and (pointer: coarse) {
+  .auto-btn,
+  .cv-btn,
+  .pot-btn,
+  .month-btn,
+  .app-tab,
+  .facility-btn {
+    min-height: 44px;
+  }
+}
