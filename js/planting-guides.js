@@ -46,8 +46,8 @@
       var pallets = deps.isPalletView && deps.isPalletView();
       if (chWrap) chWrap.classList.toggle('env-block-hidden', !channels);
       if (plWrap) plWrap.classList.toggle('env-block-hidden', !pallets);
-      if (channels) renderBox('channel-guide-body', CHANNEL_KEYS);
-      if (pallets) renderBox('pallet-guide-body', PALLET_KEYS);
+      if (channels) renderBox('panel-channel-guide-body', CHANNEL_KEYS);
+      if (pallets) renderBox('panel-pallet-guide-body', PALLET_KEYS);
     }
 
     return { sync: sync };

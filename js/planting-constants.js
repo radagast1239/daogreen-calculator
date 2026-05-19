@@ -38,4 +38,22 @@
       { m: 'дек', dli: 5.5, ph: 9.3 }
     ]
   };
+
+  global.DG_COLLAPSE_DEFAULTS = {
+    'panel-cultivars': true,
+    'block-env-gh-season': false,
+    'block-env-vf-light': false,
+    'block-env-climate': false,
+    'block-panel-growth': true,
+    'block-panel-calendar': true,
+    'block-panel-multicut': false,
+    'block-panel-recs': true,
+    'block-panel-standards': false,
+    'block-grow-time': false,
+    'block-mass': false,
+    'block-stage': false,
+    'panel-georgy-guide': false,
+    'panel-channel-guide': true,
+    'panel-pallet-guide': true
+  };
 })(typeof window !== 'undefined' ? window : global);

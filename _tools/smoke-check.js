@@ -53,7 +53,11 @@ else fail('getActivePlantingCvId not in initEconCore deps');
 if (html.includes('VF_CULTIVARS: VF_CULTIVARS')) ok('econ-ui VF_CULTIVARS dep');
 else fail('VF_CULTIVARS not in initEconUI deps');
 
-if (html.includes('econCulturesTotalPct: econCulturesTotalPct')) ok('econCulturesTotalPct dep');
+const econGlue = fs.existsSync(path.join(root, 'js/planting-econ-glue.js'))
+  ? read('js/planting-econ-glue.js')
+  : '';
+const econSrc = html + econGlue;
+if (econSrc.includes('econCulturesTotalPct: econCulturesTotalPct')) ok('econCulturesTotalPct dep');
 else fail('econCulturesTotalPct not in initEconUI deps');
 
 if (html.includes('econ-panel-sensitivity')) ok('sensitivity panel in html');
@@ -62,10 +66,10 @@ else fail('econ-panel-sensitivity missing');
 if (html.includes('econ-panel-payback')) ok('payback panel in html');
 else fail('econ-panel-payback missing');
 
-if (html.includes('DG_renderEconPayback')) ok('payback render wired');
+if (econSrc.includes('DG_renderEconPayback')) ok('payback render wired');
 else fail('DG_renderEconPayback not wired');
 
-if (html.includes('DG_initEconSensitivityExtras')) ok('sensitivity extras init');
+if (econSrc.includes('DG_initEconSensitivityExtras')) ok('sensitivity extras init');
 else fail('DG_initEconSensitivityExtras not wired');
 
 if (html.includes('btn-project-compare')) ok('project compare ui');
