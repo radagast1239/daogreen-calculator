@@ -31,6 +31,16 @@ function setCalcBuild(html, build){
   return html.replace(/const CALC_BUILD = '[^']+'/, "const CALC_BUILD = '" + build + "'");
 }
 
+function syncCacheGuard(html, build){
+  if (!html.includes('id="calc-cache-guard"')){
+    throw new Error('calc-cache-guard script missing in ' + manifest.htmlFile);
+  }
+  return html.replace(
+    /(<script id="calc-cache-guard">[\s\S]*?var BUILD=')[^']+'/,
+    "$1" + build + "'"
+  );
+}
+
 function syncScriptVersions(html, build){
   manifest.versionedScripts.forEach(function(rel){
     var esc = escapeRe(rel);
@@ -152,6 +162,7 @@ function main(){
 
   var beforeDrift = collectVersionDrift(html, build);
   html = syncScriptVersions(html, build);
+  html = syncCacheGuard(html, build);
   var afterDrift = collectVersionDrift(html, build);
 
   console.log('Build ID: ' + build);

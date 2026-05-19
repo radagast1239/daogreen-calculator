@@ -239,7 +239,10 @@
     syncCutIntervalSlider: syncCutIntervalSlider,
     syncManualMassUI: syncManualMassUI,
     modelCanopyFromMass: modelCanopyFromMass,
-    renderAll: renderAll,
+    renderAll: function(){
+      var r = global.DG_plantingRender;
+      if (r) return r.renderAll.apply(r, arguments);
+    },
     applyPalletStandardsFromSheet: function(cv, opts){ return _palletSheet.applyPalletStandardsFromSheet(cv, opts); },
     manualHarvestMass: manualHarvestMass,
     supportsMulticut: function(cv){ return supportsMulticut(cv); },
@@ -503,7 +506,10 @@
     isPalletView: isPalletView,
     georgyMode: deps.getGeorgyMode(),
     getGeorgyMode: function(){ return deps.getGeorgyMode(); },
-    renderAll: renderAll
+    renderAll: function(){
+      var r = global.DG_plantingRender;
+      if (r) return r.renderAll.apply(r, arguments);
+    }
   });
   _vfUserStandards = global.DG_createPlantingVfUserStandards({
     getState: deps.getState,
