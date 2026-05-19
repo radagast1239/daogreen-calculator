@@ -5483,6 +5483,31 @@ html.read-only-mode .page { user-select: text; }
   }
   initGeorgyMode();
 
+  function econStateFallback(){
+    return {
+      priceKwh: 5, rentMonth: 0, staffCount: 2, staffSalary: 55000, payrollTax: true, logisticsMonth: 0,
+      floorArea: 200, plantingArea: 150,
+      cultures: [{ cvId: '', pct: 100, salePrice: 0, density: 80, yieldPerCut: 15, cutIntervalDays: 15,
+        kwhPerM2Hour: 0.08, lightHoursDay: 16, consumablesPerPot: 4, potHarvestMonths: 3, unitIsPieces: false }],
+      salePrice: 800, kwhPerM2Hour: 0.08, lightHoursDay: 16, otherElecKw: 1.1, otherElecHoursDay: 24,
+      otherMonth: 15000, consumablesPerKg: 0, wastePct: 0, usnTax: false, amortMonths: 60,
+      equipmentEnabled: true, equipment: {}, equipmentCustom: []
+    };
+  }
+  function getDefaultEconState(){
+    if (typeof defaultEconState === 'function') return defaultEconState();
+    return econStateFallback();
+  }
+  function getDefaultEconEquipment(){
+    if (typeof defaultEconEquipment === 'function') return defaultEconEquipment();
+    return {};
+  }
+  function getDefaultEconCultureRow(cvId, opts){
+    if (typeof defaultEconCultureRow === 'function') return defaultEconCultureRow(cvId, opts);
+    return { cvId: cvId || '', pct: 100, salePrice: 0, density: 80, yieldPerCut: 15, cutIntervalDays: 15,
+      kwhPerM2Hour: 0.08, lightHoursDay: 16, consumablesPerPot: 4, potHarvestMonths: 3, unitIsPieces: false };
+  }
+
   function loadEconStore(){
     try {
       let raw = localStorage.getItem(ECON_STORAGE);
@@ -5491,10 +5516,10 @@ html.read-only-mode .page { user-select: text; }
       if (!raw) return;
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') return;
-      state.econ = Object.assign(defaultEconState(), data);
-      if (data.equipment) state.econ.equipment = Object.assign(defaultEconEquipment(), data.equipment);
+      state.econ = Object.assign(getDefaultEconState(), data);
+      if (data.equipment) state.econ.equipment = Object.assign(getDefaultEconEquipment(), data.equipment);
       if (!data.cultures && data.cultureShare != null){
-        state.econ.cultures = [defaultEconCultureRow('')];
+        state.econ.cultures = [getDefaultEconCultureRow('')];
         state.econ.cultures[0].pct = data.cultureShare;
       }
       ensureEconCultures();
@@ -5514,8 +5539,8 @@ html.read-only-mode .page { user-select: text; }
 
   function ensureEconEquipment(){
     if (!state.econ) return;
-    if (!state.econ.equipment) state.econ.equipment = defaultEconEquipment();
-    else state.econ.equipment = Object.assign(defaultEconEquipment(), state.econ.equipment);
+    if (!state.econ.equipment) state.econ.equipment = getDefaultEconEquipment();
+    else state.econ.equipment = Object.assign(getDefaultEconEquipment(), state.econ.equipment);
     if (!Array.isArray(state.econ.equipmentCustom)) state.econ.equipmentCustom = [];
     if (state.econ.equipmentEnabled == null) state.econ.equipmentEnabled = true;
   }
@@ -5598,9 +5623,10 @@ html.read-only-mode .page { user-select: text; }
     collectEconWarnings = ec.collectEconWarnings;
     calcFarmEconomics = ec.calcFarmEconomics;
     calcEconomics = ec.calcEconomics;
+    if (!state.econ && typeof ec.defaultEconState === 'function') state.econ = ec.defaultEconState();
   }
   initEconCore();
-  if (!state.econ) state.econ = defaultEconState();
+  if (!state.econ) state.econ = getDefaultEconState();
 
   function initEconUI(){
     if (!window.DG_createEconUI){
@@ -5744,7 +5770,7 @@ html.read-only-mode .page { user-select: text; }
   function applyProjectState(imported){
     if (!imported || typeof imported !== 'object') return;
     Object.keys(imported).forEach(function(k){ state[k] = imported[k]; });
-    if (!state.econ) state.econ = defaultEconState();
+    if (!state.econ) state.econ = getDefaultEconState();
     if (window.DG_ensureEconExtensions) DG_ensureEconExtensions(state);
     ensureEconCultures();
     migrateEconCultureRows();
@@ -8127,7 +8153,7 @@ html.read-only-mode .page { user-select: text; }
   if (econCsvBtn){
     econCsvBtn.addEventListener('click', function(){
       try {
-        if (!state.econ) state.econ = defaultEconState();
+        if (!state.econ) state.econ = getDefaultEconState();
         migrateEconOtherElectricity(state.econ);
         const farm = calcFarmEconomics(state.econ);
         const cv = getActiveCv();
