@@ -71,7 +71,11 @@
     findCvById = cr.findCvById;
   }
   initCultivarRegistry();
-  _plantUi = global.DG_createPlantingUiHelpers({
+  var createPlantUi = window.DG_createPlantingUiHelpers;
+  if (!createPlantUi){
+    throw new Error('planting-ui-helpers.js не загружен — подключите js/planting-ui-helpers.js перед planting-runtime-init.js');
+  }
+  _plantUi = createPlantUi({
     getState: deps.getState,
     $: $,
     isPalletView: function(){ return isPalletView(); },
