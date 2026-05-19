@@ -1,0 +1,7 @@
+/**
+ * Legacy supplemental styles — merged into css/daogreen-unify.css (2026-05-18).
+ * The calculator loads css/daogreen-unify.css from calculator-110x55_12.html.
+ * Keep this file for reference only; do not duplicate rules here.
+ */
+
+.env-block-hidden { display: none !important; }

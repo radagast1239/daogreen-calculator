@@ -1,0 +1,423 @@
+/**
+ * Daogreen calculator — unified UI layer (light + dark).
+ * Load after inline styles in calculator-110x55_12.html
+ */
+
+[data-theme="dark"] {
+  --brand-pale: rgba(39, 109, 92, 0.2);
+  --brand-text: #9fd4c4;
+  --chart-mass: #8fa85c;
+  --chart-canopy: #7ba3cc;
+}
+
+:root {
+  --chart-mass: #5a7d4a;
+  --chart-canopy: var(--sky);
+  --segment-bg: var(--paper-deep);
+  --segment-pad: 4px;
+}
+
+/* —— Segmented controls (tabs, facility) —— */
+.app-tabs,
+.facility-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--segment-pad);
+  padding: var(--segment-pad);
+  background: var(--segment-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: visible;
+}
+
+.facility-bar {
+  margin-bottom: 0;
+}
+
+.app-tab,
+.facility-btn {
+  flex: 1 1 0;
+  min-width: min(100%, 120px);
+  margin: 0 !important;
+  padding: 11px 14px !important;
+  border: 1px solid transparent !important;
+  border-right: none !important;
+  border-radius: var(--radius) !important;
+  background: transparent !important;
+  color: var(--ink-soft) !important;
+  font-family: inherit;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.app-tab:hover,
+.facility-btn:hover {
+  color: var(--ink) !important;
+  background: var(--card) !important;
+  border-color: var(--rule) !important;
+}
+
+.app-tab.on,
+.facility-btn.on {
+  background: var(--card) !important;
+  border-color: var(--rule-strong) !important;
+  color: var(--brand-text) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.facility-env-wrap {
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.facility-env-label {
+  margin-bottom: 10px;
+}
+
+/* —— Masthead toolbar —— */
+.masthead {
+  overflow: hidden;
+}
+
+.masthead-bar {
+  min-width: 0;
+}
+
+.masthead-toolbar {
+  min-width: 0;
+}
+
+.masthead-actions {
+  gap: 8px 10px;
+  row-gap: 8px;
+}
+
+.masthead-group {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.masthead-group + .masthead-group {
+  padding-left: 10px;
+  margin-left: 2px;
+  border-left: 1px solid var(--rule);
+}
+
+.masthead-actions .auto-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.masthead-actions .theme-toggle {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .masthead {
+    padding: 18px 16px 16px;
+  }
+
+  .masthead-actions .auto-btn {
+    padding: 5px 10px;
+    font-size: 11.5px;
+  }
+
+  .masthead-group + .masthead-group {
+    padding-left: 8px;
+    margin-left: 0;
+  }
+
+  .theme-toggle-label {
+    display: none;
+  }
+
+  .theme-toggle {
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .masthead-group {
+    width: 100%;
+    border-left: none !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    padding-top: 4px;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .masthead-group:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+}
+
+.locale-bar {
+  padding: 3px 4px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+}
+
+.locale-fx-wrap input {
+  min-height: 28px;
+  background: var(--card);
+}
+
+.locale-fx-wrap input:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--focus-ring);
+}
+
+/* —— Bridge & econ toolbars —— */
+.planting-econ-bridge {
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(39, 109, 92, 0.2);
+  background: linear-gradient(120deg, var(--brand-pale) 0%, var(--card) 42%, var(--paper-deep) 100%);
+}
+
+.planting-econ-bridge .auto-btn--primary,
+#btn-go-economics {
+  margin-left: auto;
+}
+
+@media (max-width: 640px) {
+  .planting-econ-bridge .auto-btn--primary,
+  #btn-go-economics { margin-left: 0; width: 100%; }
+}
+
+.econ-preset-bar,
+.econ-actions {
+  padding: 12px 14px;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.econ-preset-bar {
+  margin-bottom: 10px;
+}
+
+.econ-warnings {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.econ-warnings li {
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--honey);
+  background: var(--honey-pale);
+  color: var(--honey-text);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* —— Panels & nested collapses —— */
+.panel.collapse-block {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.panel.collapse-block > .collapse-head {
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--paper-deep);
+  cursor: pointer;
+}
+
+.panel.collapse-block > .collapse-head:hover {
+  background: var(--brand-pale);
+}
+
+#env-panel > .collapse-block,
+.panel .collapse-block:not(.panel) {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--card), var(--paper-deep));
+  margin-top: 12px;
+}
+
+#env-panel > .collapse-block:first-child {
+  margin-top: 0;
+}
+
+/* —— Chips & compare —— */
+.compare-chip,
+.cmp-pill {
+  border-radius: 999px;
+  border: 1px solid var(--rule-strong);
+  font-size: 12.5px;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.compare-chip {
+  padding: 5px 11px;
+  gap: 6px;
+}
+
+.compare-chip.on,
+.cmp-pill.on {
+  border-color: var(--brand);
+  background: var(--brand-pale);
+  color: var(--brand-text);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.compare-chip.is-active {
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+
+/* —— Chart legend swatches —— */
+.chart-legend .swatch.mass { background: var(--chart-mass); }
+.chart-legend .swatch.canopy { background: var(--chart-canopy); }
+
+.svg-curve { stroke: var(--chart-mass); }
+.svg-curve-canopy { stroke: var(--chart-canopy); }
+.svg-marker-dot { fill: var(--chart-mass); }
+.svg-marker-dot-c { fill: var(--chart-canopy); }
+.svg-band { fill: var(--chart-mass); }
+.svg-band-canopy { fill: var(--chart-canopy); }
+
+/* —— Forms: shared focus —— */
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--focus-ring), 0 0 0 1px var(--olive);
+}
+
+.date-input:focus-visible,
+.gh-standards-actions .auto-btn:focus-visible,
+.gh-standards-grid + .gh-standards-actions .auto-btn:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--focus-ring);
+}
+
+.econ-field input:focus-visible,
+.econ-culture-card input:focus-visible,
+.econ-culture-card select:focus-visible,
+.adv-table input:focus-visible,
+.adv-infl-form input:focus-visible {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--focus-ring);
+}
+
+/* —— Dialogs —— */
+.cv-add-dialog,
+.pdf-export-dialog,
+dialog {
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-xl);
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+}
+
+.cv-add-dialog::backdrop,
+.pdf-export-dialog::backdrop,
+dialog::backdrop {
+  background: rgba(31, 29, 23, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+[data-theme="dark"] .cv-add-dialog::backdrop,
+[data-theme="dark"] .pdf-export-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.cv-add-dialog-actions button[type="submit"] {
+  background: var(--brand);
+  border-color: var(--brand-deep);
+  color: #fff;
+  font-weight: 600;
+}
+
+.cv-add-dialog-actions button[type="submit"]:hover {
+  background: var(--brand-deep);
+}
+
+/* —— Standards block —— */
+.gh-standards-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.gh-standards-hint {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+}
+
+/* —— Metrics highlight —— */
+.m.hl {
+  border-color: rgba(39, 109, 92, 0.35);
+}
+
+/* —— Build badge & toast —— */
+.calc-build-badge {
+  font-variant-numeric: tabular-nums;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* —— Tour —— */
+.tour-pop {
+  border-radius: var(--radius-xl);
+  border-color: var(--rule-strong);
+}
+
+.tour-highlight {
+  outline-color: var(--brand);
+}
+
+/* —— Read-only —— */
+html.read-only-mode .page {
+  cursor: default;
+}
+
+html.read-only-mode #btn-readonly.on {
+  background: var(--brand);
+  border-color: var(--brand-deep);
+  color: #fff;
+}
+
+/* —— Scrollbars (WebKit) —— */
+.compare-pick-grid::-webkit-scrollbar,
+.pdf-export-checklist::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.compare-pick-grid::-webkit-scrollbar-thumb,
+.pdf-export-checklist::-webkit-scrollbar-thumb {
+  background: var(--rule-strong);
+  border-radius: 4px;
+}
+
+/* —— Selection —— */
+::selection {
+  background: var(--brand-pale);
+  color: var(--ink);
+}

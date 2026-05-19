@@ -1,0 +1,14 @@
+{
+  "name": "daogreen-salad-calculator",
+  "private": true,
+  "description": "Калькулятор посадки и экономики Daogreen",
+  "scripts": {
+    "build": "node _tools/build.js",
+    "check": "node _tools/smoke-check.js && node _tools/golden-scenarios.js",
+    "check:golden": "node _tools/golden-scenarios.js",
+    "serve": "npx --yes serve -p 8080"
+  },
+  "optionalDependencies": {
+    "dejavu-fonts-ttf": "^2.37.3"
+  }
+}

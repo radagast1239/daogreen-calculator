@@ -1,0 +1,8 @@
+﻿_xlsx_tmp/
+КАНАЛЫ/
+ПОДДОНЫ*/
+**/resources/
+**/*копия*/
+*.xlsx
+fix_patch.js
+_tools/_read-xlsx.js
