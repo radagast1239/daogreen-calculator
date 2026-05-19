@@ -36,6 +36,7 @@
     var fmtNum = deps.fmtNum;
     var mergeLocaleDeps = deps.mergeLocaleDeps;
     var _plantLayoutApi = null;
+    var _plantUi;
 
   var getCv, isPalletView, isVF, isVfCvId, allGhCultivars, allVfCultivars, isPalletCvId, allPalletCultivars;
   var isPalletSheetCv, getPalletCv, getVfCv, getActiveCv, getSheetCv, isSheetCv, usePlantingSheet, findCvById;

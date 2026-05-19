@@ -139,7 +139,8 @@ const prelude =
   '    var decimalsFromStep = deps.decimalsFromStep;\n' +
   '    var fmtNum = deps.fmtNum;\n' +
   '    var mergeLocaleDeps = deps.mergeLocaleDeps;\n' +
-  '    var _plantLayoutApi = null;\n\n';
+  '    var _plantLayoutApi = null;\n' +
+  '    var _plantUi;\n\n';
 
 const out =
   '/**\n * Цепочка init*: registry → calc-core.\n * DG_createPlantingRuntime(deps) → API для inline-обёрток\n */\n' +
