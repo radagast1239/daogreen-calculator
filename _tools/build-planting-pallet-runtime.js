@@ -60,6 +60,7 @@ const out =
   syncCell +
   '\n' +
   geom +
+  '\n  function plantsPerPallet(){ return plantsPerPalletCount(); }\n' +
   '\n    return {\n' +
   '      getSnapshotsStore: function(){ return plantingSnapshots; },\n' +
   '      capturePlantingViewSnapshot: capturePlantingViewSnapshot,\n' +

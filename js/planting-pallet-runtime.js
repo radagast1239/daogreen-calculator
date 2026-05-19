@@ -172,6 +172,7 @@
     const cells = effectivePalletHoleCount();
     return palletMountMode() === 'lid' ? cells : CASSETTES_PER_PALLET * cells;
   }
+  function plantsPerPallet(){ return plantsPerPalletCount(); }
   function syncPalletZoneLength(){
     const n = Math.max(1, st().palletsAlong || Math.round(st().length / PALLET_L_M) || 1);
     st().palletsAlong = n;

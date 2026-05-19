@@ -437,6 +437,11 @@ if (!initSrc.includes('function renderAll(){') || !initSrc.includes('DG_planting
 if (!/var CASSETTES_PER_PALLET = PC\.CASSETTES_PER_PALLET/.test(initSrc)) {
   fail('pallet constants missing in planting-runtime-init.js');
 } else ok('pallet constants from PC');
+if (!/function plantsPerPallet\(\)\{ return plantsPerPalletCount\(\)/.test(
+  fs.readFileSync(path.join(root, 'js/planting-pallet-runtime.js'), 'utf8')
+)) {
+  fail('plantsPerPallet missing in planting-pallet-runtime.js');
+} else ok('plantsPerPallet in pallet runtime');
 if (!fs.readFileSync(path.join(root, 'js/planting-late-init.js'), 'utf8').includes('DG_plantingRender')) {
   fail('DG_plantingRender not set in planting-late-init.js');
 } else ok('render module late bind');
