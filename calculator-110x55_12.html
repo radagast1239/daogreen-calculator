@@ -13,7 +13,7 @@
 <title>Калькулятор посадки 110×55 мм</title>
 <script id="calc-cache-guard">
 (function(){
-  var BUILD='2026-05-20-p104-useful-area-all-modes';
+  var BUILD='2026-05-20-p105-multicut-cycle-fix';
   window.CALC_BUILD_EARLY=BUILD;
   var SK='daogreen-calc-build';
   var prev=localStorage.getItem(SK);
@@ -417,7 +417,7 @@ html.georgy-active #ctrl-density,
 html.georgy-active #ctrl-extraB,
 html.georgy-active .gh-geom-only,
 html.georgy-active #block-panel-multicut,
-html.georgy-active #block-panel-multicut .collapse-body > .toggle-wrap,
+html.georgy-active #block-panel-multicut > .toggle-wrap,
 html.georgy-active #multicut-detail,
 html.georgy-active #panel-scenarios { display: none !important; }
 /* График сравнения — в «Кривая роста»; в панели сравнения остаются переключатель, чипы и таблица */
@@ -1990,11 +1990,11 @@ html.auth-preview .page { padding-top: 0 !important; }
     </div>
   </div>
 </div>
-<script src="js/preview-config.js?v=2026-05-20-p104-useful-area-all-modes"></script>
+<script src="js/preview-config.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
 <!-- ВРЕМЕННО: полный доступ без входа. Для включения входа удалите следующую строку. -->
 <script>window.DG_AUTH_DISABLED = true;</script>
 <script src="js/auth-client-config.js?v=2026-05-19-window-fix"></script>
-<script src="js/app-auth.js?v=2026-05-20-p104-useful-area-all-modes"></script>
+<script src="js/app-auth.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
 <div class="page">
   <header class="masthead">
     <div class="masthead-bar">
@@ -2197,6 +2197,74 @@ html.auth-preview .page { padding-top: 0 !important; }
             <span class="ctrl-val"><span id="day-v">21</span><span class="unit">сут</span></span>
           </div>
         </div>
+
+        <div id="block-panel-multicut" class="multicut-in-cycle" data-collapse-vf="cutInterval">
+          <p class="veg-period-head multicut-cycle-head">Многократный срез</p>
+          <div class="toggle-wrap" style="margin: 10px 0 8px">
+            <span class="toggle-label">Многократный срез</span>
+            <label class="toggle">
+              <input type="checkbox" id="multicut">
+              <span class="toggle-switch"></span>
+            </label>
+          </div>
+          <div id="multicut-detail" class="env-block-hidden">
+            <div class="ctrl ctrl-veg-sub" id="ctrl-cut-interval" data-vf-param="cutInterval">
+              <span class="ctrl-label">Интервал между срезами<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="cutInterval" id="vf-badge-cutInterval">стандарт</button></span>
+              <input type="range" id="cutInterval" min="5" max="35" step="1" value="12">
+              <span class="ctrl-val"><span id="cutInterval-v">12</span><span class="unit">сут</span></span>
+            </div>
+            <p id="cut-interval-hint" class="multicut-meta"></p>
+            <div class="ctrl-row-extra">
+              <button type="button" class="auto-btn" id="auto-cut-interval">→ Интервал из справочника</button>
+            </div>
+
+            <div id="multicut-baby-plan-wrap" class="multicut-baby-only env-block-hidden">
+              <div id="multicut-cut-preview" class="georgy-cut-preview env-block-hidden"></div>
+            </div>
+            <div class="toggle-wrap multicut-baby-only env-block-hidden" style="margin: 10px 0">
+              <span class="toggle-label" data-i18n="mc.manualCutCount">Задать число срезок вручную</span>
+              <label class="toggle">
+                <input type="checkbox" id="useManualGhCutCount">
+                <span class="toggle-switch"></span>
+              </label>
+            </div>
+            <p id="manual-gh-cut-count-hint" class="multicut-meta multicut-baby-only env-block-hidden" data-i18n="mc.manualCutCountHint"></p>
+            <div id="gh-cuts-block" class="gh-only">
+              <p style="font-size:12.5px;color:var(--ink-faint);margin:12px 0 6px">Теплица: число срезок и масса с 1 горшка на каждый срез</p>
+              <div class="cut-count-row" id="gh-cut-count-row">
+                <span style="font-size:12px;color:var(--ink-faint);margin-right:6px">Срезок:</span>
+                <button type="button" class="cut-count-btn on" data-gh-cuts="1">1</button>
+                <button type="button" class="cut-count-btn" data-gh-cuts="2">2</button>
+                <button type="button" class="cut-count-btn" data-gh-cuts="3">3</button>
+                <button type="button" class="cut-count-btn" data-gh-cuts="4">4</button>
+                <button type="button" class="cut-count-btn" data-gh-cuts="5">5</button>
+              </div>
+              <div class="gh-cut-masses-grid" id="gh-cut-masses-grid"></div>
+            </div>
+
+            <div class="toggle-wrap" style="margin: 10px 0">
+              <span class="toggle-label">Задать вес одного среза вручную</span>
+              <label class="toggle">
+                <input type="checkbox" id="useManualCutMass">
+                <span class="toggle-switch"></span>
+              </label>
+            </div>
+            <div id="manual-cut-mass-block" class="env-block-hidden">
+              <div class="ctrl">
+                <span class="ctrl-label">Вес за срез<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="cutMass" id="vf-badge-cutMass">стандарт</button></span>
+                <input type="number" id="manualCutMass" min="1" max="500" step="1" value="15" style="grid-column:2/3;width:100%;max-width:140px;padding:8px 10px;border:1px solid var(--rule-strong);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--card);color:var(--ink)">
+                <span class="ctrl-val"><span id="manualCutMass-v">15</span><span class="unit" id="manualCutMass-unit">г</span></span>
+              </div>
+              <p id="vf-yield-std-hint" class="multicut-meta env-block-hidden"></p>
+            </div>
+            <div class="ctrl-row-extra">
+              <button type="button" class="auto-btn" id="auto-cut-mass">→ Вес среза из справочника</button>
+            </div>
+            <p id="multicut-sheet-hint" class="multicut-meta env-block-hidden"></p>
+          </div>
+          <div id="cut-schedule" style="margin-top: 10px"></div>
+        </div>
+
         <div class="ctrl-row-extra">
           <button type="button" class="auto-btn" id="auto-day">→ К рекомендуемому дню съёма</button>
         </div>
@@ -2436,80 +2504,6 @@ html.auth-preview .page { padding-top: 0 !important; }
       <input type="date" id="sowDate" class="date-input" style="grid-column: 2 / 4">
     </div>
     <table class="cal-table calendar-sow-only" id="cal-table"></table>
-    </div>
-  </section>
-
-  <section class="panel collapse-block" id="block-panel-multicut">
-    <div class="collapse-head" data-collapse-target="block-panel-multicut">
-      <span>Многократный срез</span>
-      <span class="collapse-chev" aria-hidden="true">▼</span>
-    </div>
-    <div class="collapse-body" id="block-panel-multicut-body">
-    <div class="toggle-wrap" style="margin-bottom: 12px">
-      <span class="toggle-label">Многократный срез</span>
-      <label class="toggle">
-        <input type="checkbox" id="multicut">
-        <span class="toggle-switch"></span>
-      </label>
-    </div>
-
-    <div id="multicut-detail" class="env-block-hidden">
-      <div class="ctrl" id="ctrl-cut-interval" data-vf-param="cutInterval">
-        <span class="ctrl-label">Интервал между срезами<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="cutInterval" id="vf-badge-cutInterval">стандарт</button></span>
-        <input type="range" id="cutInterval" min="5" max="35" step="1" value="12">
-        <span class="ctrl-val"><span id="cutInterval-v">12</span><span class="unit">сут</span></span>
-      </div>
-      <p id="cut-interval-hint" class="multicut-meta"></p>
-      <div class="ctrl-row-extra">
-        <button type="button" class="auto-btn" id="auto-cut-interval">→ Интервал из справочника</button>
-      </div>
-
-      <div id="multicut-baby-plan-wrap" class="multicut-baby-only env-block-hidden">
-        <div id="multicut-cut-preview" class="georgy-cut-preview env-block-hidden"></div>
-      </div>
-      <div class="toggle-wrap multicut-baby-only env-block-hidden" style="margin: 10px 0">
-        <span class="toggle-label" data-i18n="mc.manualCutCount">Задать число срезок вручную</span>
-        <label class="toggle">
-          <input type="checkbox" id="useManualGhCutCount">
-          <span class="toggle-switch"></span>
-        </label>
-      </div>
-      <p id="manual-gh-cut-count-hint" class="multicut-meta multicut-baby-only env-block-hidden" data-i18n="mc.manualCutCountHint"></p>
-      <div id="gh-cuts-block" class="gh-only">
-        <p style="font-size:12.5px;color:var(--ink-faint);margin:12px 0 6px">Теплица: число срезок и масса с 1 горшка на каждый срез</p>
-        <div class="cut-count-row" id="gh-cut-count-row">
-          <span style="font-size:12px;color:var(--ink-faint);margin-right:6px">Срезок:</span>
-          <button type="button" class="cut-count-btn on" data-gh-cuts="1">1</button>
-          <button type="button" class="cut-count-btn" data-gh-cuts="2">2</button>
-          <button type="button" class="cut-count-btn" data-gh-cuts="3">3</button>
-          <button type="button" class="cut-count-btn" data-gh-cuts="4">4</button>
-          <button type="button" class="cut-count-btn" data-gh-cuts="5">5</button>
-        </div>
-        <div class="gh-cut-masses-grid" id="gh-cut-masses-grid"></div>
-      </div>
-
-      <div class="toggle-wrap" style="margin: 10px 0">
-        <span class="toggle-label">Задать вес одного среза вручную</span>
-        <label class="toggle">
-          <input type="checkbox" id="useManualCutMass">
-          <span class="toggle-switch"></span>
-        </label>
-      </div>
-      <div id="manual-cut-mass-block" class="env-block-hidden">
-        <div class="ctrl">
-          <span class="ctrl-label">Вес за срез<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="cutMass" id="vf-badge-cutMass">стандарт</button></span>
-          <input type="number" id="manualCutMass" min="1" max="500" step="1" value="15" style="grid-column:2/3;width:100%;max-width:140px;padding:8px 10px;border:1px solid var(--rule-strong);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--card);color:var(--ink)">
-          <span class="ctrl-val"><span id="manualCutMass-v">15</span><span class="unit" id="manualCutMass-unit">г</span></span>
-        </div>
-        <p id="vf-yield-std-hint" class="multicut-meta env-block-hidden"></p>
-      </div>
-      <div class="ctrl-row-extra">
-        <button type="button" class="auto-btn" id="auto-cut-mass">→ Вес среза из справочника</button>
-      </div>
-      <p id="multicut-sheet-hint" class="multicut-meta env-block-hidden"></p>
-    </div>
-
-    <div id="cut-schedule" style="margin-top: 14px"></div>
     </div>
   </section>
 
@@ -3058,76 +3052,76 @@ html.auth-preview .page { padding-top: 0 !important; }
   </div>
 </dialog>
 
-<script src="vf-cultivars.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="pallet-cultivars.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/cultivar-registry.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/growth-light-model.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-dli-light.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-growth-core.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/cut-model.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-cut-model-init.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-useful-yield.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-constants.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-state.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/calc-format.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/calc-error.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-ui-helpers.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-runtime-init.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-layout.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-gh-yield.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-geom-ui.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-pallet-runtime.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-light-energy.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-calc-core.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-render.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-rec-icons.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-late-init-deps.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-late-init.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-event-bindings.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-econ-glue.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-app-nav.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-public-api.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-snapshot.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/georgy-mode.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/canopy-density-ui.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/simple-ui-mode.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-guides.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-i18n.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/i18n-plant-dynamic.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/i18n-ui.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/i18n-econ-extras.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/i18n-recs.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/locale.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/econ-core.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/econ-ui.js?v=2026-05-20-p104-useful-area-all-modes"></script>
+<script src="vf-cultivars.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="pallet-cultivars.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/cultivar-registry.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/growth-light-model.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-dli-light.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-growth-core.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/cut-model.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-cut-model-init.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-useful-yield.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-constants.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-state.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/calc-format.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/calc-error.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-ui-helpers.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-runtime-init.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-layout.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-gh-yield.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-geom-ui.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-pallet-runtime.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-light-energy.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-calc-core.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-render.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-rec-icons.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-late-init-deps.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-late-init.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-event-bindings.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-econ-glue.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-app-nav.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-public-api.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-snapshot.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/georgy-mode.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/canopy-density-ui.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/simple-ui-mode.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-guides.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-i18n.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/i18n-plant-dynamic.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/i18n-ui.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/i18n-econ-extras.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/i18n-recs.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/locale.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/econ-core.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/econ-ui.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
 <script src="js/vendor/html2canvas.min.js"></script>
 <script src="js/vendor/jspdf.umd.min.js"></script>
-<script src="js/project-store.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/econ-presets.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/econ-csv-export.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/econ-sensitivity.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/econ-payback.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/pdf-econ-tables.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/pdf-export.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/project-summary.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/project-compare.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/onboarding-tour.js?v=2026-05-20-p104-useful-area-all-modes"></script>
+<script src="js/project-store.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/econ-presets.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/econ-csv-export.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/econ-sensitivity.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/econ-payback.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/pdf-econ-tables.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/pdf-export.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/project-summary.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/project-compare.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/onboarding-tour.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
 <script src="js/vendor/qrcode.min.js"></script>
-<script src="js/pwa-qr.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/econ-advanced.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/readonly-mode.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/pwa-register.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/calc-theme.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/pallet-load-warn.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/gh-cultivars.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/gh-cv-colors.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-cut-interval-ui.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-pallet-sheet.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-custom-cv.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-vf-standards.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-harvest-ui.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-gh-standards.js?v=2026-05-20-p104-useful-area-all-modes"></script>
-<script src="js/planting-vf-user-standards.js?v=2026-05-20-p104-useful-area-all-modes"></script>
+<script src="js/pwa-qr.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/econ-advanced.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/readonly-mode.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/pwa-register.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/calc-theme.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/pallet-load-warn.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/gh-cultivars.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/gh-cv-colors.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-cut-interval-ui.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-pallet-sheet.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-custom-cv.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-vf-standards.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-harvest-ui.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-gh-standards.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
+<script src="js/planting-vf-user-standards.js?v=2026-05-20-p105-multicut-cycle-fix"></script>
 
 <script>
 (function(){
@@ -3262,6 +3256,7 @@ html.auth-preview .page { padding-top: 0 !important; }
   function cutMassPerPlant(){ return _rt.cutMassPerPlant.apply(_rt, arguments); }
   function cutMassForMonthlyYield(){ return _rt.cutMassForMonthlyYield.apply(_rt, arguments); }
   function vfMulticutStats(){ return _rt.vfMulticutStats.apply(_rt, arguments); }
+  function multicutHorizon(){ return _rt.multicutHorizon.apply(_rt, arguments); }
   function getMulticutYieldPerPlant(){ return _rt.getMulticutYieldPerPlant.apply(_rt, arguments); }
   function syncCutIntervalSlider(){ return _rt.syncCutIntervalSlider.apply(_rt, arguments); }
   function getVfFieldStandard(){ return _rt.getVfFieldStandard.apply(_rt, arguments); }
@@ -3452,7 +3447,7 @@ html.auth-preview .page { padding-top: 0 !important; }
 
   const ICON = global.DG_PLANTING_REC_ICONS || {};
 
-  const CALC_BUILD = '2026-05-20-p104-useful-area-all-modes';
+  const CALC_BUILD = '2026-05-20-p105-multicut-cycle-fix';
 
   function plantingLateInitCtx(){
     return {
@@ -3533,7 +3528,8 @@ html.auth-preview .page { padding-top: 0 !important; }
       palletMountMode: palletMountMode, computeGhYieldTotals: computeGhYieldTotals,
       effectiveTempFactor: effectiveTempFactor, greenhouseHeatYieldLossPct: greenhouseHeatYieldLossPct,
       canopyAtTotal: canopyAtTotal, harvestChannel: harvestChannel,
-      totalAge: totalAge, preChannelDays: preChannelDays, vfMulticutStats: vfMulticutStats,
+      totalAge: totalAge, preChannelDays: preChannelDays,
+      multicutHorizon: multicutHorizon, vfMulticutStats: vfMulticutStats,
       ICON: ICON, CV_COLORS: CV_COLORS, COLLAPSE_DEFAULTS: COLLAPSE_DEFAULTS, CALC_BUILD: CALC_BUILD,
       PALLET_SECTIONS: PALLET_SECTIONS, VF_SECTIONS: VF_SECTIONS, CULTIVARS: CULTIVARS,
       addCustomGhCultivar: addCustomGhCultivar, addCustomVfCultivar: addCustomVfCultivar,

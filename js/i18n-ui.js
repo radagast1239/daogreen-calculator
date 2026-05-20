@@ -444,7 +444,7 @@
     }
     setTxt('#block-panel-calendar .collapse-head > span:first-child', 'ui.cal.title');
     setTxt('#block-panel-calendar .ctrl-label', 'ui.cal.sowDate');
-    setTxt('#block-panel-multicut .collapse-head > span:first-child', 'ui.mc.title');
+    setTxt('#block-panel-multicut .multicut-cycle-head', 'ui.mc.title');
     setTxt('#auto-cut-interval', 'ui.mc.autoInterval');
     setTxt('#auto-cut-mass', 'ui.mc.autoCutMass');
     var ghMc = document.querySelector('#gh-cuts-block > p');

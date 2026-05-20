@@ -128,7 +128,10 @@
     function preChannelDays() { return deps.preChannelDays(); }
     function effectiveCutInterval() { return deps.effectiveCutInterval(); }
     function cutMassPerPlant(cv, i) { return deps.cutMassPerPlant(cv, i); }
-    function multicutHorizon(cv) { return deps.multicutHorizon(cv); }
+    function multicutHorizon(cv) {
+      if (typeof deps.multicutHorizon === 'function') return deps.multicutHorizon(cv);
+      return null;
+    }
     function vfMulticutStats(cv) { return deps.vfMulticutStats(cv); }
     var ICON = deps.ICON || {};
     var CV_COLORS = deps.CV_COLORS || {};
@@ -992,14 +995,16 @@
       { l: pm('m.canopyGain'), v: r1(r.rgrCanopy), u: pm('u.pctDay') },
       { l: pm('m.totalAge'), v: round(r.t_total), u: pm('unit.days') },
       { l: pm('m.harvestRec'), vHtml: withRange(r.tHarvestCh, dayRange, vegU) },
-      ...((isVF() || pallet) && supportsMulticut(r.cv) && st().multicut ? (function(){
+      ...((function(){
+        if (!supportsMulticut(r.cv) || !st().multicut) return [];
+        if (georgyModeRef() && georgyModeRef().isGeorgyGh()) return [];
         const ms = vfMulticutStats(r.cv);
         return [
           { l: pm('m.cutsMonth'), v: r1(ms.cutsPerMonth), u: pm('u.pcs') },
           { l: pm('m.cutsCycle'), v: ms.cutsInCycle, u: pm('u.pcs') },
           { l: pm('m.replaceMo'), v: r1(ms.monthsToReplace), u: pm('u.mo') }
         ];
-      })() : [])
+      })())
     ];
     $('metrics-growth').innerHTML = growth.map(m => {
       const inner = m.vHtml || (m.v + '<span class="m-unit">' + m.u + '</span>');

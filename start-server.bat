@@ -8,7 +8,7 @@ echo.
 echo    http://localhost:8080/
 echo    http://localhost:8080/calculator-110x55_12.html
 echo.
-echo  В правом нижнем углу должна быть зелёная плашка: Сборка 2026-05-20-p104-useful-area-all-modes
+echo  В правом нижнем углу должна быть зелёная плашка: Сборка 2026-05-20-p105-multicut-cycle-fix
 echo  Сборка/проверка: npm run build
 echo  PWA: установка из браузера (Chrome) после открытия по http://localhost:8080
 echo  Хостинг: см. HOSTING.md
