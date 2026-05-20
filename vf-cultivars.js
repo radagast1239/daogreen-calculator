@@ -27,9 +27,9 @@
     if (wm) return Math.max(1, Math.ceil(parseInt(wm[2], 10) / 4));
     const ws = t.match(/(\d+)\s*нед/);
     if (ws) return Math.max(1, Math.ceil(parseInt(ws[1], 10) / 4));
-    const mm = t.match(/(\d+)\s*[-–]\s*(\d+)\s*мес/);
+    const mm = t.match(/(\d+)\s*[-–]\s*(\d+)\s*месяц/);
     if (mm) return parseInt(mm[2], 10);
-    const ms = t.match(/(\d+)\s*мес/);
+    const ms = t.match(/(\d+)\s*месяц/);
     if (ms) return parseInt(ms[1], 10);
     if (/^\d+$/.test(String(note || '').trim())) return parseInt(note, 10);
     return 0;

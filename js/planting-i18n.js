@@ -143,7 +143,7 @@
       'm.totalAge': 'Общий возраст',
       'm.harvestRec': 'Рекомендуемый съём',
       'm.cutsMonth': 'Срезок в месяц',
-      'm.cutsCycle': 'Срезов за цикл',
+      'm.cutsCycle': 'Срезов за срок жизни',
       'm.replaceMo': 'До замены растений',
       'm.zoneLen': 'Длина зоны',
       'm.palAlong': 'Поддонов вдоль (130 см)',
@@ -572,12 +572,11 @@
         vfSec.textContent = plantT(palOn ? 'std.vfPal' : 'std.vf');
       }
       var vfHint = vfWrap.querySelector('.gh-standards-hint');
-      if (vfHint) vfHint.innerHTML = uix('ui.std.vfHint');
+      if (vfHint) vfHint.innerHTML = uix(palOn ? 'ui.std.vfHintPal' : 'ui.std.vfHint');
     }
     var tierHint = document.getElementById('pallet-tier-hint');
     if (tierHint) tierHint.innerHTML = uix('ui.pal.tierHintHtml');
-    var locksTitle = document.querySelector('.vf-std-locks-title');
-    if (locksTitle) locksTitle.textContent = plantT('vf.stdLocks');
+    /* подпись галочек — в syncVfStdBadges по режиму канал/VF/поддоны */
 
     document.querySelectorAll('#view-planting .unit').forEach(function(u){
       var t = u.textContent.trim();

@@ -96,15 +96,64 @@
       return { val: Math.round(val), unit: u };
     }
 
-    function vfMulticutStats(cv){
+    /** Горизонт многосрезки: первый срез и последний день вегетации (из replaceNote → potHarvestMonths). */
+    function multicutHorizon(cv){
       cv = cv || deps.getActiveCv();
       var state = st();
-      var interval = Math.max(1, effectiveCutInterval());
-      var vegDays = deps.isPalletView() ? state.day : (deps.isVF() ? deps.vfEffectiveDay(cv) : state.day);
+      var interval = Math.max(5, effectiveCutInterval());
+      var firstCutCh;
+      var maxCh;
+      if (deps.isPalletView()){
+        firstCutCh = Math.max(1, state.day);
+        maxCh = Math.max(90, state.day + interval * 6);
+      } else if (deps.isVfSheetCv(cv)){
+        firstCutCh = deps.vfEffectiveDay(cv);
+        maxCh = Math.max(90, state.day + interval * 6);
+      } else if (deps.georgyPlannedCuts && deps.georgyPlannedCuts(cv)){
+        var planned = deps.georgyPlannedCuts(cv);
+        firstCutCh = planned.firstCutCh;
+        maxCh = Math.max(30, deps.boltChannel(cv) - 2);
+      } else {
+        firstCutCh = Math.max(1, Math.round(deps.harvestChannel(cv)));
+        maxCh = Math.max(30, deps.boltChannel(cv) - 2);
+      }
+      if (cv.potHarvestMonths > 0){
+        maxCh = Math.max(maxCh, firstCutCh + cv.potHarvestMonths * HARVEST_MONTH_DAYS);
+      }
+      var maxCuts = 48;
+      if (cv.potHarvestMonths > 0){
+        maxCuts = Math.min(96, Math.ceil((maxCh - firstCutCh) / interval) + 2);
+      } else if (!deps.isVF() && !deps.isPalletView() && state.multicut){
+        maxCuts = state.ghCutCount || 24;
+      }
+      return { firstCutCh: firstCutCh, maxCh: maxCh, interval: interval, maxCuts: maxCuts };
+    }
+
+    function vfMulticutStats(cv){
+      cv = cv || deps.getActiveCv();
+      var hz = multicutHorizon(cv);
+      var interval = hz.interval;
       var cutsPerMonth = HARVEST_MONTH_DAYS / interval;
-      var cutsInCycle = Math.max(1, Math.floor(vegDays / interval));
-      var monthsToReplace = vegDays / HARVEST_MONTH_DAYS;
-      return { cutsPerMonth: cutsPerMonth, cutsInCycle: cutsInCycle, monthsToReplace: monthsToReplace, interval: interval };
+      var cutsInCycle = 0;
+      var i;
+      for (i = 0; i < hz.maxCuts; i++){
+        var cutCh = hz.firstCutCh + i * interval;
+        if (cutCh > hz.maxCh) break;
+        if (deps.totalAge(cutCh) > deps.envBolt(cv)) break;
+        cutsInCycle++;
+      }
+      cutsInCycle = Math.max(1, cutsInCycle);
+      var monthsToReplace = cv.potHarvestMonths > 0
+        ? cv.potHarvestMonths
+        : hz.maxCh / HARVEST_MONTH_DAYS;
+      return {
+        cutsPerMonth: cutsPerMonth,
+        cutsInCycle: cutsInCycle,
+        monthsToReplace: monthsToReplace,
+        interval: interval,
+        potHarvestMonths: cv.potHarvestMonths || 0,
+        replaceNote: cv.replaceNote || ''
+      };
     }
 
   /** Сумма срезок за жизнь растения — метрики и UI; для режима Георгия (беби) — норматив без bolt. */
@@ -125,9 +174,10 @@
         }
         return total > 0 ? { total: total, unit: unit } : null;
       }
-      var firstCutCh = deps.isVfSheetCv(cv) ? deps.vfEffectiveDay(cv) : Math.max(1, Math.round(deps.harvestChannel(cv)));
-      var maxCh = deps.isVfSheetCv(cv) ? Math.max(90, state.day + interval * 6) : Math.max(30, deps.boltChannel(cv) - 2);
-      var maxCuts = ghPlanned ? state.ghCutCount : 24;
+      var hz = multicutHorizon(cv);
+      var firstCutCh = hz.firstCutCh;
+      var maxCh = hz.maxCh;
+      var maxCuts = ghPlanned ? state.ghCutCount : hz.maxCuts;
       for (i = 0; i < maxCuts; i++){
         var cutCh = firstCutCh + i * interval;
         if (cutCh < 1 || cutCh > maxCh) break;
@@ -150,6 +200,7 @@
       supportsMulticut: supportsMulticut,
       effectiveCutInterval: effectiveCutInterval,
       cutMassPerPlant: cutMassPerPlant,
+      multicutHorizon: multicutHorizon,
       vfMulticutStats: vfMulticutStats,
       getMulticutYieldPerPlant: getMulticutYieldPerPlant
     };

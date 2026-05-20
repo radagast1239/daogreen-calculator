@@ -111,6 +111,9 @@ const dlg = $('cv-add-dialog');
     function getCv() { return deps.getCv.apply(deps, arguments); }
     function getDefaultEconState() { return deps.getDefaultEconState.apply(deps, arguments); }
     function getVfCv() { return deps.getVfCv.apply(deps, arguments); }
+    function getPalletCv() { return deps.getPalletCv.apply(deps, arguments); }
+    function getVfCvStandards() { return deps.getVfCvStandards.apply(deps, arguments); }
+    function applyVfUserStandardsToState() { return deps.applyVfUserStandardsToState.apply(deps, arguments); }
     function ghCutCountMax() { return deps.ghCutCountMax.apply(deps, arguments); }
     function harvestChannel() { return deps.harvestChannel.apply(deps, arguments); }
     function isGeorgyProfiled() { return deps.isGeorgyProfiled.apply(deps, arguments); }
@@ -460,14 +463,24 @@ const dlg = $('cv-add-dialog');
   const vfStdApply = $('vf-std-apply');
   if (vfStdApply){
     vfStdApply.addEventListener('click', () => {
-      applyVfStandardFromStore(getVfCv());
+      const cv = isPalletView() ? getPalletCv() : getVfCv();
+      if (isPalletView()){
+        applyVfUserStandardsToState(getVfCvStandards(cv));
+        state.palletStd = {
+          germination: false, day: false, density: false, mass: false,
+          cutInterval: false, cutMass: false, cells: false
+        };
+        deps.renderVfStdGrid();
+      } else {
+        applyVfStandardFromStore(cv);
+      }
       renderAll();
     });
   }
   const vfStdSave = $('vf-std-save');
   if (vfStdSave){
     vfStdSave.addEventListener('click', () => {
-      const cv = getVfCv();
+      const cv = isPalletView() ? getPalletCv() : getVfCv();
       state.vfUserStandards[cv.id] = readVfStandardsFromState();
       saveVfStandardsStore();
       renderVfStandardsPanel();
@@ -476,9 +489,11 @@ const dlg = $('cv-add-dialog');
   const vfStdReset = $('vf-std-reset-model');
   if (vfStdReset){
     vfStdReset.addEventListener('click', () => {
-      const cv = getVfCv();
-      state.vfUserStandards[cv.id] = buildDefaultVfStandards(cv);
-      saveVfStandardsStore();
+      const cv = isPalletView() ? getPalletCv() : getVfCv();
+      if (!isPalletView()){
+        state.vfUserStandards[cv.id] = buildDefaultVfStandards(cv);
+        saveVfStandardsStore();
+      }
       if (isPalletView()) resetPalletStdToSheetDefaults();
       else resetVfStdToSheetDefaults();
       renderVfStandardsPanel();
@@ -686,6 +701,43 @@ const dlg = $('cv-add-dialog');
       }
       saveEconStore();
       renderEconomics();
+    });
+  }
+
+  var cultivarsEl = $('cultivars');
+  if (cultivarsEl && !cultivarsEl.dataset.cvDelegated) {
+    cultivarsEl.dataset.cvDelegated = '1';
+    cultivarsEl.addEventListener('click', function (e) {
+      var delBtn = e.target.closest('.cv-del[data-cv-del]');
+      if (delBtn) {
+        e.stopPropagation();
+        var id = delBtn.dataset.cvDel;
+        if (!id || !confirm(ui('ui.cv.delConfirm', { name: (deps.findCvById && deps.findCvById(id) || {}).name || id }))) return;
+        if (deps.removeCustomCultivar) deps.removeCustomCultivar(id);
+        renderCultivars();
+        renderVfStandardsPanel();
+        renderGhStandardsPanel();
+        renderAll();
+        return;
+      }
+      var btn = e.target.closest('.cv-btn[data-pl-id], .cv-btn[data-vf-id], .cv-btn[data-id]');
+      if (!btn) return;
+      if (btn.dataset.plId) {
+        state.palletCv = btn.dataset.plId;
+        resetPalletStdToSheetDefaults();
+      } else if (btn.dataset.vfId) {
+        state.vfCv = btn.dataset.vfId;
+        if (!state.vfUserStandards[state.vfCv]) state.vfUserStandards[state.vfCv] = buildDefaultVfStandards(getVfCv());
+        resetVfStdToSheetDefaults();
+      } else if (btn.dataset.id) {
+        state.cv = btn.dataset.id;
+        if (georgyMode && georgyMode.isGeorgyGh && georgyMode.isGeorgyGh()) state.georgyDensityFitted = false;
+        if (!state.ghStandards[state.cv]) state.ghStandards[state.cv] = buildDefaultGhStandards(getCv());
+      }
+      renderCultivars();
+      if (btn.dataset.plId || btn.dataset.vfId) renderVfStandardsPanel();
+      else renderGhStandardsPanel();
+      renderAll();
     });
   }
     }

@@ -140,6 +140,7 @@
   function supportsMulticut(cv){ return _cutModel ? _cutModel.supportsMulticut(cv) : false; }
   function effectiveCutInterval(){ return _cutModel ? _cutModel.effectiveCutInterval() : deps.getState().cutInterval; }
   function cutMassPerPlant(cv, cutIndex){ return _cutModel ? _cutModel.cutMassPerPlant(cv, cutIndex) : { val: 0, unit: 'г' }; }
+  function multicutHorizon(cv){ return _cutModel ? _cutModel.multicutHorizon(cv) : null; }
   function vfMulticutStats(cv){ return _cutModel ? _cutModel.vfMulticutStats(cv) : { cutsPerMonth: 0, cutsInCycle: 1, monthsToReplace: 0, interval: 12 }; }
   function getMulticutYieldPerPlant(cv){ return _cutModel ? _cutModel.getMulticutYieldPerPlant(cv) : null; }
 
@@ -254,6 +255,7 @@
     applyPalletStandardsFromSheet: function(cv, opts){ return _palletSheet.applyPalletStandardsFromSheet(cv, opts); },
     manualHarvestMass: manualHarvestMass,
     supportsMulticut: function(cv){ return supportsMulticut(cv); },
+    multicutHorizon: function(cv){ return multicutHorizon(cv); },
     vfMulticutStats: function(cv){ return vfMulticutStats(cv); },
     catalogPhrase: catalogPhrase,
     plantLayout: plantLayout,
@@ -699,6 +701,7 @@
       supportsMulticut: supportsMulticut,
       effectiveCutInterval: effectiveCutInterval,
       cutMassPerPlant: cutMassPerPlant,
+      multicutHorizon: multicutHorizon,
       vfMulticutStats: vfMulticutStats,
       getMulticutYieldPerPlant: getMulticutYieldPerPlant,
       syncCutIntervalSlider: syncCutIntervalSlider,

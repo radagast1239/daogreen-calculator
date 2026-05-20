@@ -128,6 +128,7 @@
     function preChannelDays() { return deps.preChannelDays(); }
     function effectiveCutInterval() { return deps.effectiveCutInterval(); }
     function cutMassPerPlant(cv, i) { return deps.cutMassPerPlant(cv, i); }
+    function multicutHorizon(cv) { return deps.multicutHorizon(cv); }
     function vfMulticutStats(cv) { return deps.vfMulticutStats(cv); }
     var ICON = deps.ICON || {};
     var CV_COLORS = deps.CV_COLORS || {};
@@ -702,15 +703,6 @@
         html += list.map(plBtn).join('');
       });
       $('cultivars').innerHTML = html;
-      document.querySelectorAll('#cultivars .cv-btn[data-pl-id]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          st().palletCv = btn.dataset.plId;
-          resetPalletStdToSheetDefaults();
-          renderCultivars();
-          renderVfStandardsPanel();
-          deps.renderAll();
-        });
-      });
       renderVfStdGrid();
       syncVfStdControls();
     } else if (isVF() && allVfCultivars().length){
@@ -733,27 +725,6 @@
         html += customVf.map(vfBtn).join('');
       }
       $('cultivars').innerHTML = html;
-      document.querySelectorAll('#cultivars .cv-btn[data-vf-id]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          st().vfCv = btn.dataset.vfId;
-          if (!st().vfUserStandards[st().vfCv]) st().vfUserStandards[st().vfCv] = buildDefaultVfStandards(getVfCv());
-          resetVfStdToSheetDefaults();
-          renderCultivars();
-          renderVfStandardsPanel();
-          deps.renderAll();
-        });
-      });
-      document.querySelectorAll('#cultivars .cv-del[data-cv-del]').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          const id = btn.dataset.cvDel;
-          if (!id || !confirm(ui('ui.cv.delConfirm', { name: findCvById(id)?.name || id }))) return;
-          removeCustomCultivar(id);
-          renderCultivars();
-          renderVfStandardsPanel();
-          deps.renderAll();
-        });
-      });
       renderVfStdGrid();
       syncVfStdControls();
     } else {
@@ -783,27 +754,6 @@
     if (customBaby.length) html += customBaby.map(cvBtn).join('');
     $('cultivars').innerHTML = html;
     }
-    document.querySelectorAll('#cultivars .cv-btn[data-id]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        st().cv = btn.dataset.id;
-        if (georgyModeRef() && georgyModeRef().isGeorgyGh()) st().georgyDensityFitted = false;
-        if (!st().ghStandards[st().cv]) st().ghStandards[st().cv] = buildDefaultGhStandards(getCv());
-        renderCultivars();
-        renderGhStandardsPanel();
-        deps.renderAll();
-      });
-    });
-    document.querySelectorAll('#cultivars .cv-del[data-cv-del]').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const id = btn.dataset.cvDel;
-        if (!id || !confirm(ui('ui.cv.delConfirm', { name: findCvById(id)?.name || id }))) return;
-        removeCustomCultivar(id);
-        renderCultivars();
-        renderGhStandardsPanel();
-        deps.renderAll();
-      });
-    });
     }
 
     const bWrap = $('cultivars-B');
@@ -1013,7 +963,6 @@
     const geom = pallet ? [
       { l: pm('m.zoneLen'), v: ((r.zoneLenMm || 0) / 1000).toFixed(1), u: ui('ui.metrics.zoneLen', { along: r.alongLength || 0 }) },
       { l: pm('m.palAlong'), v: r.alongLength, u: pm('u.pcs') },
-      { l: pm('m.palAcross'), v: r.acrossPallets, u: pm('u.pcs') },
       { l: pm('m.palTotal'), v: r.totalPallets, u: pm('u.pcs') },
       ...(r.mountMode === 'cassette' ? [
         { l: pm('m.cassPerPal'), v: CASSETTES_PER_PALLET, u: pm('u.pcs') + ' ' + ui('ui.pal.cassetteDims') },
@@ -1327,22 +1276,13 @@
     const interval = Math.max(5, effectiveCutInterval());
     const intervalMods = cutIntervalMods(cv);
 
-    let firstCutCh;
-    if (isPalletView()){
-      firstCutCh = Math.max(1, st().day);
-    } else if (isVfSheetCv(cv)){
-      firstCutCh = vfEffectiveDay(cv);
-    } else if (st().georgyFirstCutCh > 0 && georgyModeRef() && georgyModeRef().isGeorgyProfiled(cv)){
-      firstCutCh = st().georgyFirstCutCh;
-    } else {
-      firstCutCh = Math.max(1, Math.round(harvestChannel(cv)));
-    }
-
-    const maxCh = (isPalletView() || isVfSheetCv(cv)) ? Math.max(90, st().day + interval * 6) : Math.max(30, boltChannel(cv) - 2);
+    const hz = multicutHorizon(cv);
+    const firstCutCh = hz ? hz.firstCutCh : Math.max(1, st().day);
+    const maxCh = hz ? hz.maxCh : Math.max(90, st().day + interval * 6);
     const sow = new Date(st().sowDate);
     const cuts = [];
     const ghPlanned = !isVF() && !isPalletView() && st().multicut;
-    const maxCuts = ghPlanned ? st().ghCutCount : 24;
+    const maxCuts = hz ? hz.maxCuts : (ghPlanned ? st().ghCutCount : 24);
     for (let i = 0; i < maxCuts; i++){
       const cutCh = firstCutCh + i * interval;
       if (cutCh < 1) continue;
@@ -1396,8 +1336,12 @@
     const yieldSqmCalc = r.rhoA > 0 ? (perPlantCycle * r.rhoA / 1000) : 0;
     const calcSqm = unit === 'шт' ? totalYield * r.rhoA : yieldSqmCalc * 1000;
 
+    const mcStats = vfMulticutStats(cv);
     html += '<div class="multicut-meta">' +
       ui('ui.cut.meta', { interval: interval, dUnit: pm('unit.days'), rec: intervalMods.rec, slack: CUT_INTERVAL_SLACK, n: cuts.length, total: totalLabel });
+    if (mcStats.potHarvestMonths > 0 && cv.replaceNote){
+      html += '<br>' + ui('ui.cut.lifeNote', { note: cv.replaceNote, months: mcStats.potHarvestMonths });
+    }
     if (intervalMods.delta !== 0){
       html += ui('ui.cut.metaAdj', { pct: (intervalMods.massPct >= 0 ? '+' : '') + intervalMods.massPct });
     }
@@ -1535,13 +1479,13 @@
       const spanW = mount === 'cassette' ? CASSETTE_W_MM : PALLET_W_MM;
       svg += '<rect x="' + cx0.toFixed(1) + '" y="' + cy0.toFixed(1) + '" width="' + cw.toFixed(1) + '" height="' + casH.toFixed(1) + '" class="svg-cassette" rx="3"/>';
       if (mount === 'cassette'){
-        svg += '<text x="' + (cx0 + cw / 2).toFixed(1) + '" y="' + (cy0 + casH + 14).toFixed(1) + '" text-anchor="middle" class="svg-dim-t" font-size="9">' + ui('ui.schema.cassetteN', { n: c + 1, cells: cells }) + '</text>';
+        svg += '<text x="' + (cx0 + cw / 2).toFixed(1) + '" y="' + (cy0 + casH + 24).toFixed(1) + '" text-anchor="middle" class="svg-dim-t" font-size="9">' + ui('ui.schema.cassetteN', { n: c + 1, cells: cells }) + '</text>';
         if (c < nCas - 1){
           const divX = cx0 + cw;
           svg += '<line x1="' + divX.toFixed(1) + '" y1="' + cy0.toFixed(1) + '" x2="' + divX.toFixed(1) + '" y2="' + (cy0 + casH).toFixed(1) + '" stroke="var(--olive)" stroke-width="1.2" stroke-dasharray="3 2" opacity="0.7"/>';
         }
       } else {
-        svg += '<text x="' + (cx0 + cw / 2).toFixed(1) + '" y="' + (cy0 + casH + 14).toFixed(1) + '" text-anchor="middle" class="svg-dim-t" font-size="9">' + ui('ui.schema.lidCraft', { cells: cells }) + '</text>';
+        svg += '<text x="' + (cx0 + cw / 2).toFixed(1) + '" y="' + (cy0 + casH + 24).toFixed(1) + '" text-anchor="middle" class="svg-dim-t" font-size="9">' + ui('ui.schema.lidCraft', { cells: cells }) + '</text>';
       }
       cellPts.forEach((pt, idx) => {
         const hx = cx0 + (pt.u / spanL) * cw;
@@ -1552,6 +1496,8 @@
     }
     svg += '<g class="pallet-schema-plants">' + plantsSvg + '</g>';
     $('schema').innerHTML = svg;
+    var schemaPanel = $('panel-schema');
+    if (schemaPanel) schemaPanel.classList.add('is-pallet-schema');
     syncSchemaCanopyLegend(canopyMm);
     const ml = mount === 'lid' ? ui('ui.schema.mountLid', { cells: cells }) : ui('ui.schema.mountCas', { cells: cells });
     const staggerNote = (cells === 6 || cells === 14) ? ui('ui.schema.stagger') : '';
@@ -1560,6 +1506,8 @@
 
   function renderSchema(r){
     if (isPalletView()){ renderSchemaPallet(r); return; }
+    var schemaPanel = $('panel-schema');
+    if (schemaPanel) schemaPanel.classList.remove('is-pallet-schema');
     const W = 640, H = 340;
     const padL = 70, padR = 40, padT = 35, padB = 45;
     const dW = W - padL - padR;
@@ -2134,10 +2082,15 @@
     renderCvCompare();
     if (st().appView === 'economics') renderEconomics();
     syncMoneySliderDisplays();
+    if (isPlantingView()) renderCultivars();
     if (typeof DG_applyUiI18n === 'function') DG_applyUiI18n();
     else if (typeof DG_applyPlantingI18n === 'function') DG_applyPlantingI18n();
     syncVfStdControls();
     updatePageSub();
+  }
+
+  function isPlantingView(){
+    return st().appView === 'channels' || st().appView === 'pallets';
   }
 
     /* Публичный API — только то, что вызывается из HTML / runtime-init */

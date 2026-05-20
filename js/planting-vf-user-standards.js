@@ -33,8 +33,12 @@
       } catch (_) {}
     }
 
+    function sheetCv() {
+      return deps.getSheetCv ? deps.getSheetCv() : deps.getVfCv();
+    }
+
     function buildDefaultVfStandards(cv) {
-      cv = cv || deps.getVfCv();
+      cv = cv || sheetCv();
       if (!cv) return {};
       var y = Math.round(cv.yieldPerCutG) || 10;
       var canopy = Math.round(deps.modelCanopyFromMass(cv, y));
@@ -56,7 +60,7 @@
 
     function getVfCvStandards(cv) {
       var state = st();
-      cv = cv || deps.getVfCv();
+      cv = cv || sheetCv();
       if (!cv) return buildDefaultVfStandards(cv);
       if (!state.vfUserStandards[cv.id]) {
         state.vfUserStandards[cv.id] = buildDefaultVfStandards(cv);
@@ -83,7 +87,7 @@
 
     function applyVfProfileToStateOnly(s, cv) {
       var state = st();
-      cv = cv || deps.getVfCv();
+      cv = cv || sheetCv();
       state.germination = deps.clamp(s.germination, 1, 21);
       state.nursery = deps.clamp(s.nursery, 7, 28);
       state.day = deps.clamp(s.day, 1, 70);
@@ -99,12 +103,18 @@
         20,
         600
       );
-      state.vfStd.germination = false;
-      state.vfStd.day = false;
-      state.vfStd.density = false;
-      state.vfStd.mass = false;
-      state.vfStd.cutInterval = false;
-      state.vfStd.cutMass = false;
+      if (deps.isPalletView && deps.isPalletView()) {
+        ['germination', 'day', 'density', 'mass', 'cutInterval', 'cutMass', 'cells'].forEach(function (k) {
+          if (state.palletStd[k] !== undefined) state.palletStd[k] = false;
+        });
+      } else {
+        state.vfStd.germination = false;
+        state.vfStd.day = false;
+        state.vfStd.density = false;
+        state.vfStd.mass = false;
+        state.vfStd.cutInterval = false;
+        state.vfStd.cutMass = false;
+      }
     }
 
     function applyVfUserStandardsToState(s) {
@@ -135,9 +145,11 @@
     }
 
     function renderVfStandardsPanel() {
-      if (deps.isPalletView()) return;
-      if (!deps.isVF() || !deps.VF_CULTIVARS.length) return;
-      var cv = deps.getVfCv();
+      var pallet = deps.isPalletView();
+      if (pallet){
+        if (!deps.PALLET_CULTIVARS || !deps.PALLET_CULTIVARS.length) return;
+      } else if (!deps.isVF() || !deps.VF_CULTIVARS.length) return;
+      var cv = sheetCv();
       var s = getVfCvStandards(cv);
       var grid = deps.$('vf-standards-grid');
       if (!grid) return;
@@ -182,7 +194,7 @@
       grid.addEventListener('change', function (e) {
         var inp = e.target;
         if (!inp.dataset.vfStdField) return;
-        var cv2 = deps.getVfCv();
+        var cv2 = sheetCv();
         var st2 = getVfCvStandards(cv2);
         st2[inp.dataset.vfStdField] = parseFloat(inp.value);
         if (inp.dataset.vfStdField === 'manualCanopy') st2.useManualCanopy = true;

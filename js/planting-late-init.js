@@ -172,7 +172,10 @@
     var gDay = $('georgy-day');
     if (gDay){
       gDay.addEventListener('input', function(){
-        deps.getState().day = clamp(parseInt(gDay.value, 10) || 21, 14, 40);
+        var cv = getCv();
+        var gp = georgyMode.getGeorgyProfile(cv);
+        var dMin = gp ? 8 : 14;
+        deps.getState().day = clamp(parseInt(gDay.value, 10) || 21, dMin, 40);
         if (georgyMode.onGeorgyDayChanged) georgyMode.onGeorgyDayChanged();
         if ($('georgy-day-v')) $('georgy-day-v').textContent = String(deps.getState().day);
         if ($('day')) $('day').value = deps.getState().day;
@@ -261,6 +264,25 @@
       renderCultivars();
       renderAll();
     });
+    var gGeorgyPanel = $('panel-georgy-simple');
+    if (gGeorgyPanel){
+      gGeorgyPanel.addEventListener('input', function (e){
+        var t = e.target;
+        if (!t || !t.getAttribute || t.getAttribute('data-georgy-cut-mass-i') == null) return;
+        var idx = parseInt(t.getAttribute('data-georgy-cut-mass-i'), 10);
+        if (!isFinite(idx) || idx < 0) return;
+        deps.getState().ghCutMasses[idx] = clamp(parseFloat(t.value) || 0, 1, 500);
+        deps.getState().georgyManualCutMasses = true;
+        renderAll();
+      });
+      gGeorgyPanel.addEventListener('click', function (e){
+        var btn = e.target && e.target.closest && e.target.closest('.georgy-reset-cut-masses');
+        if (!btn || !gGeorgyPanel.contains(btn)) return;
+        e.preventDefault();
+        georgyMode.resetGeorgyBabyCutMassesNorm();
+        renderAll();
+      });
+    }
   }
 
     function createRenderModule() {
@@ -331,6 +353,7 @@
         massAtTotal: deps.massAtTotal, canopyAtTotal: deps.canopyAtTotal, harvestChannel: deps.harvestChannel,
         boltChannel: deps.boltChannel, totalAge: deps.totalAge, preChannelDays: deps.preChannelDays,
         effectiveCutInterval: deps.effectiveCutInterval, cutMassPerPlant: deps.cutMassPerPlant,
+        multicutHorizon: deps.multicutHorizon,
         vfMulticutStats: deps.vfMulticutStats,
         ICON: deps.ICON, CV_COLORS: deps.CV_COLORS, COLLAPSE_DEFAULTS: deps.COLLAPSE_DEFAULTS,
         CALC_BUILD: deps.CALC_BUILD, PALLET_SECTIONS: deps.PALLET_SECTIONS, VF_SECTIONS: deps.VF_SECTIONS,

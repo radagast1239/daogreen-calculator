@@ -282,9 +282,15 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var
 .bio-margin-ctrl.env-block-hidden { display: none !important; }
 
 /* Режим «Расчёт для Георгия» */
+#panel-georgy-simple.georgy-panel {
+  border-color: rgba(39, 109, 92, 0.22);
+  background: linear-gradient(165deg, var(--brand-pale) 0%, var(--card) 55%);
+}
+.georgy-panel > .section-h { color: var(--olive-deep); }
+.georgy-btn-row { margin-bottom: 10px; flex-wrap: wrap; gap: 8px; align-items: center; }
 .georgy-mode-btn.on { background: var(--olive-pale); border-color: var(--olive-deep); color: var(--olive-text); font-weight: 600; }
 .georgy-mode-intro { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; margin: 0 0 14px; max-width: 72ch; }
-.georgy-auto-strip { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 10px 0 14px; font-size: 12.5px; color: var(--ink-soft); }
+.georgy-auto-strip { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 10px 0 14px; padding: 10px 12px; font-size: 12.5px; color: var(--ink-soft); background: var(--paper-deep); border-radius: var(--radius); border: 1px solid var(--rule); }
 .georgy-auto-strip strong { color: var(--ink); font-variant-numeric: tabular-nums; }
 .georgy-density-hint { font-size: 12px; color: var(--ink-faint); margin-left: 8px; display: block; margin: 6px 0 0; }
 .georgy-step-label { font-size: 12px; font-weight: 600; color: var(--olive-text); margin: 14px 0 8px; letter-spacing: 0.02em; }
@@ -316,6 +322,17 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var
 .georgy-cut-preview-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .georgy-cut-preview-table th, .georgy-cut-preview-table td { border: 1px solid var(--rule); padding: 5px 8px; text-align: left; }
 .georgy-cut-preview-table th { background: var(--paper); font-weight: 600; }
+.georgy-cut-mass-inp { width: 4.25rem; max-width: 100%; padding: 3px 6px; font-size: 13px; font-variant-numeric: tabular-nums; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); }
+#panel-georgy-guide.georgy-guide-wrap { margin-top: 12px; border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; }
+#panel-georgy-guide.georgy-guide-wrap > .collapse-head { background: var(--paper-deep); }
+#georgy-rucola-std.on,
+#georgy-lettuce-std.on {
+  background: var(--olive-pale);
+  border-color: var(--olive-deep);
+  color: var(--olive-text);
+  font-weight: 600;
+}
+
 html.georgy-active .georgy-hide { display: none !important; }
 html.georgy-active .georgy-only { display: block; }
 .georgy-only { display: none; }
@@ -324,7 +341,6 @@ html.georgy-active .facility-env-wrap.georgy-facility-dim .facility-env-label { 
 html.georgy-active #block-grow-time,
 html.georgy-active #block-mass,
 html.georgy-active #block-panel-standards,
-html.georgy-active #block-panel-growth,
 html.georgy-active #block-panel-calendar .calendar-sow-only,
 html.georgy-active #panel-scenarios,
 html.georgy-active .cv-custom-bar,
@@ -1085,6 +1101,13 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .chart-legend .swatch.mass { background: #6B7B2E; }
 .chart-legend .swatch.canopy { background: #3F6896; }
 .viz-caption { margin-top: 10px; font-size: 12.5px; color: var(--ink-faint); line-height: 1.5; }
+#panel-schema.is-pallet-schema .viz-frame { display: flex; flex-direction: column; gap: 4px; }
+#panel-schema.is-pallet-schema .viz-caption { margin-top: 14px; order: 2; }
+#panel-schema.is-pallet-schema #schema { order: 1; }
+#panel-pallet-geom .ctrl { margin-bottom: 14px; }
+#panel-pallet-geom .pallet-cell-row,
+#panel-pallet-geom .pallet-mount-row { grid-column: 1 / -1; }
+#user-standards-vf-wrap .vf-std-grid { margin-bottom: 10px; }
 
 .compare-pick-wrap { margin: 12px 0 14px; }
 .compare-pick-actions {
@@ -1741,7 +1764,9 @@ html.auth-preview #panel-georgy-guide,
 html.auth-preview .gh-yield-georgy-compare { display: none !important; }
 html.auth-preview.georgy-active .georgy-hide { display: block !important; }
 html.auth-preview.georgy-active .georgy-only { display: none !important; }
-html.auth-preview .page { padding-top: 52px; }
+/* Публичный режим: без верхней плашки предпросмотра с кнопкой «Войти». */
+#app-auth-preview-banner { display: none !important; visibility: hidden !important; }
+html.auth-preview .page { padding-top: 0 !important; }
 
 .compare-lead, .compare-meta { font-size: 13px; color: var(--ink-soft); line-height: 1.45; }
 .compare-meta { margin-top: 12px; font-size: 12px; color: var(--ink-faint); }
@@ -1907,11 +1932,11 @@ html.auth-preview .page { padding-top: 52px; }
     </div>
   </section>
 
-  <section class="panel georgy-only" id="panel-georgy-simple">
+  <section class="panel georgy-only georgy-panel" id="panel-georgy-simple">
     <div class="section-h" data-i18n="georgy.panel.title">Расчёт для Георгия</div>
     <p class="georgy-mode-intro" data-i18n="georgy.panel.lead">Салаты — один срез и подбор по шапке. Руккола и салат беби — стаканы, 2 ряда, многосрезка 80–110&nbsp;шт/м².</p>
     <p class="georgy-step-label georgy-baby-only" data-i18n="georgy.baby.params">Беби в стаканах (руккола / салат)</p>
-    <div id="georgy-baby-actions" class="ctrl-row-extra georgy-baby-only" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <div id="georgy-baby-actions" class="ctrl-row-extra georgy-btn-row georgy-baby-only">
       <button type="button" class="auto-btn" id="georgy-rucola-std" data-i18n="georgy.rucola.stdBtn">Стандарт рукколы</button>
       <button type="button" class="auto-btn" id="georgy-lettuce-std" data-i18n="georgy.lettuce.stdBtn">Стандарт салата беби</button>
     </div>
@@ -1934,12 +1959,12 @@ html.auth-preview .page { padding-top: 52px; }
     <p class="georgy-density-hint georgy-baby-only" id="georgy-cut-interval-hint" style="margin-top:0"></p>
     <p class="georgy-step-label" data-i18n="georgy.step2">2. Масса и шапка на срез (модель)</p>
     <div class="georgy-harvest-preview" id="georgy-harvest-preview">
-      <div class="ghp-item"><div class="ghp-label" data-i18n="georgy.preview.mass">Масса</div><div class="ghp-val" id="georgy-preview-mass">—</div></div>
+      <div class="ghp-item"><div class="ghp-label" id="georgy-preview-mass-lbl">Масса</div><div class="ghp-val" id="georgy-preview-mass">—</div></div>
       <div class="ghp-item"><div class="ghp-label" data-i18n="georgy.preview.canopy">Шапка ⌀</div><div class="ghp-val" id="georgy-preview-canopy">—</div></div>
     </div>
     <p class="georgy-step-label" data-i18n="georgy.step3">3. Плотность стояния</p>
     <div class="georgy-density-block is-locked" id="georgy-density-block">
-      <div class="ctrl-row-extra georgy-only" style="margin-bottom:10px">
+      <div class="ctrl-row-extra georgy-btn-row georgy-only">
         <button type="button" class="auto-btn" id="georgy-density-auto" data-i18n="georgy.densityAutoBtn">Подобрать по шапке (≤20 мм)</button>
         <span class="georgy-density-hint" id="georgy-density-hint" data-i18n="georgy.densityHintBefore">Сначала настройте дни роста выше, затем нажмите кнопку.</span>
       </div>
@@ -1958,7 +1983,7 @@ html.auth-preview .page { padding-top: 52px; }
       <span data-i18n="georgy.auto.gap">Зазор листьев:</span> <strong id="georgy-auto-leafgap">—</strong>
     </div>
 
-    <section class="collapse-block georgy-guide-wrap" id="panel-georgy-guide" style="margin-top:16px">
+    <section class="collapse-block georgy-guide-wrap" id="panel-georgy-guide">
       <div class="collapse-head" data-collapse-target="panel-georgy-guide">
         <span data-i18n="georgy.guide.title">Подробный гайд</span>
         <span class="collapse-chev" aria-hidden="true">▼</span>
@@ -2329,10 +2354,12 @@ html.auth-preview .page { padding-top: 52px; }
       <span class="ctrl-val"><span id="length-v">12.0</span><span class="unit">м</span></span>
     </div>
 
-<div class="ctrl">
+<div id="nch-host-channel">
+      <div class="ctrl" id="ctrl-nch-wrap">
       <span class="ctrl-label" id="nch-label">Количество каналов</span>
       <input type="range" id="nch" min="1" max="20" step="1" value="13">
       <span class="ctrl-val"><span id="nch-v">13</span><span class="unit">шт</span></span>
+    </div>
     </div>
     <div class="ctrl-row-extra sys-channel-only">
       <button class="auto-btn" id="auto-nch">→ Максимум каналов в 2 м ширины</button>
@@ -2485,6 +2512,7 @@ html.auth-preview .page { padding-top: 52px; }
       <input type="range" id="palletsAlong" min="1" max="12" step="1" value="3">
       <span class="ctrl-val"><span id="palletsAlong-v">3</span><span class="unit">шт</span> · <span id="pallet-zone-len">3,9</span><span class="unit">м</span></span>
     </div>
+    <div id="nch-host-pallet" class="sys-pallet-only env-block-hidden"></div>
 
         <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallet-cells">
       <span class="ctrl-label" id="pallet-cells-label">Ячеек в кассете (400×600)</span>
@@ -2510,7 +2538,7 @@ html.auth-preview .page { padding-top: 52px; }
         <button type="button" class="pallet-mount-btn" data-mount="lid">Крышка-крафт 1300×650 мм</button>
       </div>
         </div>
-    <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-tier-hint">Высота стеллажа (ориентир): <strong id="pallet-rack-height">—</strong> мм · посевная площадь: <strong id="pallet-useful-area">—</strong> м² <span class="pallet-area-footprint">(отпечаток <strong id="pallet-footprint-area">—</strong> м² × <span id="pallet-tier-count-hint">—</span> яр.)</span></p>
+    <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-tier-hint">Высота стеллажа (ориентир): <strong id="pallet-rack-height">—</strong> мм · посевная площадь: <strong id="pallet-useful-area">—</strong> м² <span class="pallet-area-footprint">(площадь пола <strong id="pallet-footprint-area">—</strong> м² × <span id="pallet-tier-count-hint">—</span> яр.)</span></p>
 <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-plants-hint"><span id="pallet-plants-prefix">На поддон:</span> <strong id="pallet-plants-per">162</strong> <span id="pallet-plants-mid">раст.</span> (<span id="pallet-plants-formula">3×54</span>)</p>
 
     <div class="ctrl sys-pallet-only env-block-hidden">

@@ -4,7 +4,7 @@
   "description": "Калькулятор посадки и экономики Daogreen",
   "scripts": {
     "build": "node _tools/build.js",
-    "check": "node _tools/smoke-check.js && node _tools/planting-modules-audit.js && node _tools/bootstrap-runtime-smoke.js && node _tools/golden-scenarios.js",
+    "check": "node _tools/smoke-check.js && node _tools/planting-modules-audit.js && node _tools/bootstrap-runtime-smoke.js && node _tools/verify-pallet-life.js && node _tools/golden-scenarios.js",
     "check:golden": "node _tools/golden-scenarios.js",
     "serve": "npx --yes serve -p 8080",
     "serve:auth": "node _tools/serve-auth.js",

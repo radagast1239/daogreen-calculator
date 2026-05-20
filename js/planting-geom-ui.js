@@ -46,6 +46,12 @@
       if (nchLbl) nchLbl.textContent = pallet ? pt('nchPal') : pt('nchCh');
       var nchEl = $('nch');
       if (nchEl) nchEl.max = pallet ? '99' : '20';
+      var nchWrap = $('ctrl-nch-wrap');
+      var hostCh = $('nch-host-channel');
+      var hostPal = $('nch-host-pallet');
+      if (nchWrap && hostCh && hostPal) {
+        (pallet ? hostPal : hostCh).appendChild(nchWrap);
+      }
       var extraCtrl = $('ctrl-extraB');
       if (extraCtrl) extraCtrl.classList.toggle('env-block-hidden', pallet);
       if (pallet) {

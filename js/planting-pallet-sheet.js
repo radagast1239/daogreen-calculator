@@ -88,6 +88,7 @@
       state.useManualCutMass = false;
       applyPalletStandardsFromSheet(deps.getPalletCv());
       deps.renderVfStdGrid();
+      if (deps.renderVfStandardsPanel) deps.renderVfStandardsPanel();
       deps.syncPalletCellButtons();
       deps.syncManualMassUI();
       deps.syncCutMassUI();

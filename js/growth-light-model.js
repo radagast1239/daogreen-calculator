@@ -44,22 +44,46 @@
     return clamp(1 + perHour * opts.eveningH, 1, 1.12);
   }
 
+  /** S-кривая на [0,1]: производные по краям равны 0 — без «ступеньки» на шагах 0,5 °C. */
+  function smoothstep01(u){
+    u = clamp(u, 0, 1);
+    return u * u * (3 - 2 * u);
+  }
+
   /**
-   * Жара: 26→30 °C линейно до −20% урожая; выше 30 °C — дальнейшее снижение до ~15% при T_max.
-   * Единая кривая для теплицы, VF, поддонов и режима Георгия.
+   * Жара после T_opt…26 °C: плавный рост стресса без линейного «пилообразного» приращения каждые 0,5 °C.
+   * 26→T_hot: −20% к коэффициенту через smoothstep к T_hot (обычно 30 °C);
+   * Выше T_hot: тот же низкий предел урожая, но на более длинном участке (~8 °C до T_stress_end)
+   * вместо 4 °C раньше — меньше скачок «каждые полградуса −8 п.п.» в интерфейсе.
    */
   function heatYieldFactor(temp, cv){
     cv = cv || {};
     var t0 = cv.tempWarmStart != null ? cv.tempWarmStart : 26;
     var t1 = cv.tempHot != null ? cv.tempHot : 30;
     var lossAt30 = cv.yieldLossMax != null ? cv.yieldLossMax : 0.20;
-    var tMax = cv.t_max != null ? cv.t_max : 34;
+    var spanDeg = cv.heatStressSpanDeg != null ? cv.heatStressSpanDeg : 8;
+    var tStressEnd =
+      cv.tempStressEnd != null ? cv.tempStressEnd : Math.max(cv.t_max != null ? cv.t_max : 34, t1 + spanDeg);
     var fMin = 0.15;
     if (temp <= t0) return 1;
-    if (temp <= t1) return 1 - lossAt30 * (temp - t0) / Math.max(0.1, t1 - t0);
-    if (temp >= tMax) return fMin;
-    var f30 = 1 - lossAt30;
-    return f30 - (f30 - fMin) * (temp - t1) / Math.max(0.1, tMax - t1);
+    var fHot = 1 - lossAt30;
+    if (temp <= t1){
+      var uWarm = (temp - t0) / Math.max(0.1, t1 - t0);
+      return fHot + (1 - fHot) * (1 - smoothstep01(uWarm));
+    }
+    if (temp >= tStressEnd) return fMin;
+    var uStress = (temp - t1) / Math.max(0.1, tStressEnd - t1);
+    return fMin + (fHot - fMin) * (1 - smoothstep01(uStress));
+  }
+
+  /** Потолок вегетации по календарю температур: ниже этого вызывают heatYieldFactor; после — режим экстремального стресса. */
+  function growthTempCeiling(cv){
+    cv = cv || {};
+    var span = cv.heatStressSpanDeg != null ? cv.heatStressSpanDeg : 8;
+    var hot = cv.tempHot != null ? cv.tempHot : 30;
+    var stress =
+      cv.tempStressEnd != null ? cv.tempStressEnd : Math.max(cv.t_max != null ? cv.t_max : 34, hot + span);
+    return cv.t_growth_abs_max != null ? cv.t_growth_abs_max : stress + Math.max(2, span / 8);
   }
 
   function heatYieldLossPct(temp, cv){
@@ -71,8 +95,8 @@
     cv = cv || {};
     var tBase = cv.t_base != null ? cv.t_base : 5;
     var tOpt = cv.t_opt != null ? cv.t_opt : 20;
-    var tMax = cv.t_max != null ? cv.t_max : 34;
-    if (temp <= tBase || temp >= tMax) return 0.15;
+    var tTop = growthTempCeiling(cv);
+    if (temp <= tBase || temp >= tTop) return 0.15;
     if (temp <= tOpt) return clamp((temp - tBase) / (tOpt - tBase), 0.15, 1);
     if (temp < 26) return 1;
     return heatYieldFactor(temp, cv);
@@ -107,8 +131,10 @@
     EVENING_DLI_PER_HOUR: EVENING_DLI_PER_H,
     dliResponseFactor: dliResponseFactor,
     photoperiodExtensionFactor: photoperiodExtensionFactor,
+    smoothstep01: smoothstep01,
     heatYieldFactor: heatYieldFactor,
     heatYieldLossPct: heatYieldLossPct,
+    growthTempCeiling: growthTempCeiling,
     tempResponseFactor: tempResponseFactor,
     canopyCoeff: canopyCoeff,
     canopyFromMass: canopyFromMass,

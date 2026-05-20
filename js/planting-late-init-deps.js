@@ -162,6 +162,7 @@
       harvestChannel: ctx.harvestChannel,
       totalAge: ctx.totalAge,
       preChannelDays: ctx.preChannelDays,
+      multicutHorizon: ctx.multicutHorizon,
       vfMulticutStats: ctx.vfMulticutStats,
       ICON: ctx.ICON,
       CV_COLORS: ctx.CV_COLORS,

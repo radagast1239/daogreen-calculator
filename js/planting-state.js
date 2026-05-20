@@ -99,7 +99,9 @@
       georgyTargetDensity: null,
       georgyAutoDensity: null,
       georgyDensityFitted: false,
-      georgyChannel2Rows: false
+      georgyChannel2Rows: false,
+      /** В режиме Георгия: не перезатирать ghCutMasses нормативом при каждой перерасчёте (правки по срезкам у беби). */
+      georgyManualCutMasses: false
     };
   }
 

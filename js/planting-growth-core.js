@@ -60,13 +60,19 @@
       var t0 = 26;
       var t1 = 30;
       var lossMax = 0.2;
-      var tMax = 34;
+      var span = 8;
+      var tStressEnd = Math.max(34, t1 + span);
       var fMin = 0.15;
+      function sm(u){ u = deps.clamp(u, 0, 1); return u * u * (3 - 2 * u); }
+      var fHot = 1 - lossMax;
       if (temp <= t0) return 1;
-      if (temp <= t1) return 1 - (lossMax * (temp - t0)) / (t1 - t0);
-      if (temp >= tMax) return fMin;
-      var f30 = 1 - lossMax;
-      return f30 - ((f30 - fMin) * (temp - t1)) / (tMax - t1);
+      if (temp <= t1){
+        var uw = (temp - t0) / Math.max(0.1, t1 - t0);
+        return fHot + (1 - fHot) * (1 - sm(uw));
+      }
+      if (temp >= tStressEnd) return fMin;
+      var us = (temp - t1) / Math.max(0.1, tStressEnd - t1);
+      return fMin + (fHot - fMin) * (1 - sm(us));
     }
 
     function greenhouseHeatYieldLossPct(temp) {
