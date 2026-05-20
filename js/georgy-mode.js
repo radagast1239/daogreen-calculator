@@ -835,6 +835,7 @@
       'georgy.guide.step3',
       'georgy.guide.env',
       'georgy.guide.margin',
+      'georgy.guide.yield',
       'georgy.guide.read',
       'georgy.guide.sources'
     ];
