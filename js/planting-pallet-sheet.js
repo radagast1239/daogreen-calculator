@@ -106,7 +106,7 @@
       if ((force || state.palletStd.cells) && cv.palletCells) state.palletCells = cv.palletCells;
       if (force || state.palletStd.mass) {
         state.manualMass = Math.round(cv.yieldPerCutG) || 10;
-        state.useManualMass = true;
+        state.useManualMass = false;
         if (!state.useManualCanopy) {
           state.manualCanopy = Math.round(deps.modelCanopyFromMass(cv, state.manualMass));
         }
@@ -140,22 +140,23 @@
       if (densityEl) densityEl.max = dMax;
       if (dayEl) dayEl.max = 70;
       applyPalletStandardsToStateOnly(cv, opts);
-      if (state.palletStd.germination) {
-        $('germination').value = state.germination;
-        $('germination-v').textContent = state.germination;
+      function setPair(id, val) {
+        var el = $(id);
+        var lab = $(id + '-v');
+        if (el) el.value = val;
+        if (lab) lab.textContent = val;
       }
-      if (state.palletStd.day) {
-        $('day').value = state.day;
-        $('day-v').textContent = state.day;
-      }
-      if (state.palletStd.density) {
-        $('density').value = state.density;
-        $('density-v').textContent = state.density;
-      }
+      if (state.palletStd.germination) setPair('germination', state.germination);
+      if (state.palletStd.day) setPair('day', state.day);
+      if (state.palletStd.density) setPair('density', state.density);
       if (state.palletStd.cells && cv.palletCells) deps.syncPalletCellButtons();
       if (state.palletStd.mass) {
-        $('manualMass').value = state.manualMass;
-        if (!state.useManualCanopy && $('manualCanopy')) $('manualCanopy').value = state.manualCanopy;
+        var massInp = $('manualMass');
+        if (massInp) massInp.value = state.manualMass;
+        if (!state.useManualCanopy) {
+          var canopyInp = $('manualCanopy');
+          if (canopyInp) canopyInp.value = state.manualCanopy;
+        }
       }
       deps.applyCutStandardsFromSheet(cv);
       if ($('multicut')) $('multicut').checked = state.multicut;

@@ -50,7 +50,8 @@ function isVfFieldAtStandard(key, cv){
   const std = getVfFieldStandard(cv, key);
   if (std == null) return true;
   if (key === 'mass'){
-    if (!stateRef().useManualMass) return !!deps.getPlantingStd().mass;
+    if (pStd[key] && !stateRef().useManualMass) return true;
+    if (!stateRef().useManualMass) return false;
     return Math.round(stateRef().manualMass) === Math.round(std);
   }
   if (key === 'cutMass'){
@@ -77,34 +78,43 @@ function applyVfStandardField(key){
   pStd[key] = true;
   if (key === 'germination'){
     stateRef().germination = deps.clamp(std, 1, 21);
-    deps.$('germination').value = stateRef().germination;
-    deps.$('germination-v').textContent = stateRef().germination;
+    var germEl = deps.$('germination');
+    var germV = deps.$('germination-v');
+    if (germEl) germEl.value = stateRef().germination;
+    if (germV) germV.textContent = stateRef().germination;
   } else if (key === 'day'){
     stateRef().day = deps.clamp(std, 1, 70);
-    deps.$('day').value = stateRef().day;
-    deps.$('day-v').textContent = stateRef().day;
+    var dayEl = deps.$('day');
+    var dayV = deps.$('day-v');
+    if (dayEl) dayEl.value = stateRef().day;
+    if (dayV) dayV.textContent = stateRef().day;
   } else if (key === 'density'){
     const dMax = densityMax(cv);
-    deps.$('density').max = dMax;
+    var densEl = deps.$('density');
+    var densV = deps.$('density-v');
+    if (densEl) densEl.max = dMax;
     stateRef().density = deps.clamp(std, 15, dMax);
-    deps.$('density').value = stateRef().density;
-    deps.$('density-v').textContent = stateRef().density;
+    if (densEl) densEl.value = stateRef().density;
+    if (densV) densV.textContent = stateRef().density;
   } else if (key === 'mass'){
     stateRef().manualMass = std;
-    stateRef().useManualMass = true;
-    deps.$('manualMass').value = stateRef().manualMass;
+    /* Эталон с листа: VF — vfStd.mass; поддоны — palletStd.mass при useManualMass=false */
+    stateRef().useManualMass = false;
+    var massInp = deps.$('manualMass');
+    if (massInp) massInp.value = stateRef().manualMass;
     if (!stateRef().useManualCanopy){
       stateRef().manualCanopy = Math.round(deps.modelCanopyFromMass(cv, stateRef().manualMass));
-      if (deps.$('manualCanopy')) deps.$('manualCanopy').value = stateRef().manualCanopy;
+      var canopyInp = deps.$('manualCanopy');
+      if (canopyInp) canopyInp.value = stateRef().manualCanopy;
     }
     deps.syncManualMassUI();
   } else if (key === 'cutInterval'){
-    stateRef().cutInterval = deps.cutIntervalRange(cv).mid;
+    stateRef().cutInterval = std;
     deps.syncCutIntervalSlider(cv);
   } else if (key === 'cutMass'){
     stateRef().useManualCutMass = false;
     stateRef().manualCutMass = std;
-    deps.syncCutMassUI();
+    syncCutMassUI();
   }
   syncVfStdBadges();
   renderVfStdGrid();
@@ -257,7 +267,7 @@ function applyCutStandardsFromSheet(cv){
   if ((pStd.cutMass || pStd.mass) && cv.yieldPerCutG > 0){
     stateRef().manualCutMass = Math.round(cv.yieldPerCutG) || 1;
     stateRef().useManualCutMass = false;
-    deps.syncCutMassUI();
+    syncCutMassUI();
   }
 }
 
@@ -344,7 +354,7 @@ function resetVfStdToSheetDefaults(){
   applyVfStandardsFromSheet(deps.getVfCv());
   renderVfStdGrid();
   deps.syncManualMassUI();
-  deps.syncCutMassUI();
+  syncCutMassUI();
   syncMulticutDetailUI();
 }
 
@@ -352,37 +362,46 @@ function applyVfStandardsFromSheet(cv){
   cv = cv || deps.getVfCv();
   if (!cv || !deps.isVF()) return;
   const dMax = densityMax(cv);
-  deps.$('density').max = dMax;
-  deps.$('day').max = 70;
-  deps.$('nursery').min = 7;
-  deps.$('nursery').max = 28;
+  const $ = deps.$;
+  const densEl = $('density');
+  const dayEl = $('day');
+  const nurseryEl = $('nursery');
+  if (densEl) densEl.max = dMax;
+  if (dayEl) dayEl.max = 70;
+  if (nurseryEl){ nurseryEl.min = 7; nurseryEl.max = 28; }
+  function setPair(id, val){
+    const el = $(id);
+    const lab = $(id + '-v');
+    if (el) el.value = val;
+    if (lab) lab.textContent = val;
+  }
   if (stateRef().vfStd.germination){
     stateRef().germination = deps.clamp(cv.germination, 1, 21);
-    deps.$('germination').value = stateRef().germination;
-    deps.$('germination-v').textContent = stateRef().germination;
+    setPair('germination', stateRef().germination);
   }
   if (stateRef().vfStd.day){
     stateRef().day = deps.clamp(cv.channelDays, 1, 70);
-    deps.$('day').value = stateRef().day;
-    deps.$('day-v').textContent = stateRef().day;
+    setPair('day', stateRef().day);
   }
   if (stateRef().vfStd.density){
     stateRef().density = deps.clamp(cv.density, 15, dMax);
-    deps.$('density').value = stateRef().density;
-    deps.$('density-v').textContent = stateRef().density;
+    setPair('density', stateRef().density);
   }
   if (stateRef().vfStd.mass){
     stateRef().manualMass = Math.round(cv.yieldPerCutG) || 10;
-    stateRef().useManualMass = true;
-    deps.$('manualMass').value = stateRef().manualMass;
+    stateRef().useManualMass = false;
+    var massInp = deps.$('manualMass');
+    if (massInp) massInp.value = stateRef().manualMass;
     if (!stateRef().useManualCanopy){
       stateRef().manualCanopy = Math.round(deps.modelCanopyFromMass(cv, stateRef().manualMass));
-      if (deps.$('manualCanopy')) deps.$('manualCanopy').value = stateRef().manualCanopy;
+      var canopyInp = deps.$('manualCanopy');
+      if (canopyInp) canopyInp.value = stateRef().manualCanopy;
     }
   }
   applyCutStandardsFromSheet(cv);
   stateRef().multicut = !!cv.multicut;
-  deps.$('multicut').checked = stateRef().multicut;
+  const multicutEl = deps.$('multicut');
+  if (multicutEl) multicutEl.checked = stateRef().multicut;
   deps.syncManualMassUI();
   syncVfStdControls();
 }

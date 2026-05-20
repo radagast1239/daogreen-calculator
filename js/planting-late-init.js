@@ -26,6 +26,7 @@
     var getMulticutYieldPerPlant = deps.getMulticutYieldPerPlant;
     var isVfSheetCv = deps.isVfSheetCv;
     var isPalletView = deps.isPalletView;
+    var isChannelGreenhouse = deps.isChannelGreenhouse;
     var isVF = deps.isVF;
     var lightingMolForEnergy = deps.lightingMolForEnergy;
     var kwhPerSqmPerDayFromDli = deps.kwhPerSqmPerDayFromDli;
@@ -72,6 +73,17 @@
   function initPlantingSnapshot(){
     if (!window.DG_createPlantingSnapshot){
       console.warn('planting-snapshot.js не загружен — импорт в экономику недоступен');
+      function snapUnavailable(){ return null; }
+      function snapSliceUnavailable(){ return {}; }
+      plantingHarvestYieldParams = function(){ return {}; };
+      buildPlantingSnapshot = snapUnavailable;
+      getPlantingSnapshot = snapUnavailable;
+      getPlantingStateEconSlice = snapSliceUnavailable;
+      restorePlantingStateEconSlice = function(){};
+      plantingCvIdMatchesLiveState = function(){ return false; };
+      getPlantingSnapshotForCvId = snapUnavailable;
+      averageSnapshots = snapUnavailable;
+      getSaladMixSnapshot = snapUnavailable;
       return;
     }
     var ps = window.DG_createPlantingSnapshot({
@@ -263,6 +275,7 @@
         getCv: deps.getCv, getActiveCv: deps.getActiveCv, getVfCv: deps.getVfCv, getPalletCv: deps.getPalletCv,
         isVF: deps.isVF, isPalletView: deps.isPalletView, isGreenhousePlanting: deps.isGreenhousePlanting,
         isChannelGreenhouse: deps.isChannelGreenhouse, isVfSheetCv: deps.isVfSheetCv,
+        vfEffectiveDay: deps.vfEffectiveDay,
         usePlantingSheet: deps.usePlantingSheet, getPlantingStd: deps.getPlantingStd,
         getGhUsefulAreaM2: deps.getGhUsefulAreaM2, ghYieldWithMargin: deps.ghYieldWithMargin,
         ghYieldKgSqmYear: deps.ghYieldKgSqmYear, calcForGhYieldCompareCv: function(cv){ return _render.calcForGhYieldCompareCv(cv); },
@@ -274,8 +287,10 @@
         getPlantingStateEconSlice: getPlantingStateEconSlice,
         restorePlantingStateEconSlice: restorePlantingStateEconSlice,
         initPalletValuesFromSheet: deps.initPalletValuesFromSheet,
+        resetPalletStdToSheetDefaults: deps.resetPalletStdToSheetDefaults,
         resetVfStdToSheetDefaults: deps.resetVfStdToSheetDefaults,
         applyVfStandardsFromSheet: deps.applyVfStandardsFromSheet,
+        applyPalletStandardsFromSheet: applyPalletStandardsFromSheet,
         syncVfStdControls: deps.syncVfStdControls,
         renderGhStandardsPanel: deps.renderGhStandardsPanel, renderVfStandardsPanel: deps.renderVfStandardsPanel,
         renderVfStdGrid: deps.renderVfStdGrid, updatePlantingGeomUI: deps.updatePlantingGeomUI,
@@ -289,6 +304,28 @@
         palletCellGeometry: deps.palletCellGeometry, getCellCenters: deps.getCellCenters,
         effectiveDLI: deps.effectiveDLI, naturalDLI: deps.naturalDLI, supplementDLI: deps.supplementDLI,
         effectivePhotoperiod: deps.effectivePhotoperiod, photoperiod: deps.photoperiod, eveningHours: deps.eveningHours,
+        daySupplement: deps.daySupplement, eveningSupplement: deps.eveningSupplement,
+        photoperiodFactor: deps.photoperiodFactor, envMultiplier: deps.envMultiplier,
+        kwhPerSqmPerDayFromDli: deps.kwhPerSqmPerDayFromDli, ppfdFromDli: deps.ppfdFromDli, ledEfficacy: deps.ledEfficacy,
+        findCvById: deps.findCvById, buildDefaultVfStandards: deps.buildDefaultVfStandards,
+        buildDefaultGhStandards: deps.buildDefaultGhStandards,
+        envBolt: deps.envBolt, harvestTotal: deps.harvestTotal, vegContextLabel: deps.vegContextLabel,
+        showAsPalletCalc: deps.showAsPalletCalc, syncMulticutBabyUi: deps.syncMulticutBabyUi,
+        calcScenario: deps.calcScenario, calcScenarioVf: deps.calcScenarioVf, calcScenarioPallet: deps.calcScenarioPallet,
+        addDays: deps.addDays, fmtDate: deps.fmtDate,
+        NATURAL_DLI: deps.NATURAL_DLI, VF_CULTIVARS: deps.VF_CULTIVARS, PALLET_CULTIVARS: deps.PALLET_CULTIVARS,
+        CASSETTES_PER_PALLET: deps.CASSETTES_PER_PALLET,
+        CUT_INTERVAL_SLACK: deps.CUT_INTERVAL_SLACK,
+        CH_W: deps.CH_W, MAX_WIDTH: deps.MAX_WIDTH, HOLE_D_VF: deps.HOLE_D_VF,
+        PALLET_L_MM: deps.PALLET_L_MM, PALLET_W_MM: deps.PALLET_W_MM,
+        CASSETTE_L_MM: deps.CASSETTE_L_MM, CASSETTE_W_MM: deps.CASSETTE_W_MM,
+        palletCellsForLayout: deps.palletCellsForLayout,
+        FACILITY_KEY: deps.FACILITY_KEY, showToast: deps.showToast,
+        LED_VF_MIN: deps.LED_VF_MIN, LED_VF_MAX: deps.LED_VF_MAX,
+        syncHarvestBlockUI: deps.syncHarvestBlockUI, updateMassModelHint: deps.updateMassModelHint,
+        modelCanopyFromMass: deps.modelCanopyFromMass, syncMulticutDetailUI: deps.syncMulticutDetailUI,
+        cutIntervalMods: deps.cutIntervalMods, vegContextLabelCap: deps.vegContextLabelCap,
+        palletMountMode: deps.palletMountMode, computeGhYieldTotals: deps.computeGhYieldTotals,
         dliFactor: deps.dliFactor, tempFactor: deps.tempFactor, effectiveTempFactor: deps.effectiveTempFactor,
         boltShift: deps.boltShift, greenhouseHeatYieldLossPct: deps.greenhouseHeatYieldLossPct,
         massAtTotal: deps.massAtTotal, canopyAtTotal: deps.canopyAtTotal, harvestChannel: deps.harvestChannel,

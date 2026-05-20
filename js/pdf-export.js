@@ -434,18 +434,23 @@
       }
     }
 
+    function pdfTextArg(v){
+      if (v == null || v === '') return '—';
+      return String(v);
+    }
+
     function addPdfFooters(pdf, metaTitle){
       var pageCount = pdf.internal.getNumberOfPages();
       var pageW = pdf.internal.pageSize.getWidth();
       var pageH = pdf.internal.pageSize.getHeight();
-      var footer = (metaTitle ? metaTitle + ' · ' : '') + 'Daogreen';
+      var footer = pdfTextArg(metaTitle) + ' · Daogreen';
       if (pdf.__dgDejaVu) pdf.setFont('DejaVu', 'normal');
       for (var p = 1; p <= pageCount; p++){
         pdf.setPage(p);
         pdf.setFontSize(8);
         pdf.setTextColor(130);
         pdf.text(footer, PDF_MARGIN_MM, pageH - 5);
-        pdf.text((global.DG_tFmt ? global.DG_tFmt('pdf.page', { p: p, total: pageCount }) : ('p. ' + p + ' / ' + pageCount)), pageW - PDF_MARGIN_MM, pageH - 5, { align: 'right' });
+        pdf.text(pdfTextArg(global.DG_tFmt ? global.DG_tFmt('pdf.page', { p: p, total: pageCount }) : ('p. ' + p + ' / ' + pageCount)), pageW - PDF_MARGIN_MM, pageH - 5, { align: 'right' });
       }
     }
 
@@ -467,7 +472,7 @@
         if (!sec) continue;
 
         if (useVector && DG_isVectorEconPdfSection(id)){
-          await DG_renderVectorEconPdfSection(pdf, pdfCtx, id, sec.label);
+          await DG_renderVectorEconPdfSection(pdf, pdfCtx, id, secLabel(sec.id));
           if (id === 'econ-payback') await appendPaybackChartRaster(pdf, pdfCtx, apis);
           hasContent = true;
           continue;
@@ -475,7 +480,7 @@
 
         var block = blockForSection(sec);
         if (!block) continue;
-        var wrapped = wrapWithSectionTitle(block, sec.label);
+        var wrapped = wrapWithSectionTitle(block, secLabel(sec.id));
         var stagingOne = document.createElement('div');
         stagingOne.className = 'pdf-staging';
         applyStagingLayout(stagingOne);

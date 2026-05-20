@@ -97,6 +97,7 @@ const scripts = [
   'js/planting-cut-model-init.js',
   'js/planting-gh-standards.js',
   'js/planting-vf-user-standards.js',
+  'js/planting-vf-standards.js',
   'js/planting-harvest-ui.js',
   'js/planting-custom-cv.js'
 ];
@@ -313,6 +314,63 @@ vf.applyVfProfileToStateOnly(vfs, cv);
 if (state.vfStd.mass === false) ok('applyVfProfileToStateOnly vfStd flags');
 else fail('applyVfProfileToStateOnly');
 
+var palCv = {
+  id: 'pl-test',
+  name: 'Pal',
+  palletSheet: true,
+  yieldPerCutG: 40,
+  germination: 5,
+  channelDays: 20,
+  density: 80,
+  cutInterval: 12
+};
+state.appView = 'pallets';
+state.facility = 'vertical';
+state.palletStd = { germination: true, day: true, density: true, mass: false, cutInterval: true, cutMass: true, cells: true };
+state.useManualMass = true;
+state.manualMass = 5;
+if (!sandbox.document) {
+  sandbox.document = {
+    querySelectorAll: function () { return []; },
+    querySelector: function () { return null; }
+  };
+}
+var vfStdMod = sandbox.DG_createPlantingVfStandards({
+  getState: function () { return state; },
+  $: function () { return null; },
+  constants: sandbox.DG_PLANTING_CONSTANTS,
+  vfStdFields: sandbox.DG_VF_STD_FIELDS || [],
+  getGeorgyMode: function () { return null; },
+  isSheetCv: function (c) { return !!(c && c.palletSheet); },
+  isPalletSheetCv: function (c) { return !!(c && c.palletSheet); },
+  getSheetCv: function () { return palCv; },
+  getPlantingStd: function () { return state.palletStd; },
+  usePlantingSheet: function () { return true; },
+  isPalletView: function () { return true; },
+  isVF: function () { return false; },
+  clamp: clamp,
+  cutIntervalRange: function () { return cutModel.cutIntervalRange(palCv); },
+  vfCutIntervalFromCv: function () { return 12; },
+  syncPalletCellButtons: function () {},
+  syncCutIntervalSlider: function () {},
+  syncManualMassUI: function () {},
+  modelCanopyFromMass: function () { return 50; },
+  renderAll: function () {},
+  manualHarvestMass: function (m) { return m; },
+  supportsMulticut: function () { return false; },
+  ui: function (k) { return k; },
+  pt: function (k) { return k; },
+  pm: function (k) { return k; }
+});
+vfStdMod.applyVfStandardField('mass');
+if (!state.useManualMass && state.manualMass === 40 && state.palletStd.mass === true) {
+  ok('applyVfStandardField mass pallet uses sheet mode');
+} else {
+  fail('applyVfStandardField mass pallet: useManualMass=' + state.useManualMass + ' mass=' + state.manualMass);
+}
+state.appView = 'channels';
+state.facility = 'greenhouse';
+
 var natDli = sandbox.DG_PLANTING_CONSTANTS.NATURAL_DLI;
 var dliLight = sandbox.DG_createPlantingDliLight({
   getState: function () {
@@ -445,6 +503,82 @@ if (!/function plantsPerPallet\(\)\{ return plantsPerPalletCount\(\)/.test(
 if (!fs.readFileSync(path.join(root, 'js/planting-late-init.js'), 'utf8').includes('DG_plantingRender')) {
   fail('DG_plantingRender not set in planting-late-init.js');
 } else ok('render module late bind');
+var lateInitSrc = fs.readFileSync(path.join(root, 'js/planting-late-init.js'), 'utf8');
+if (!/var isChannelGreenhouse = deps\.isChannelGreenhouse/.test(lateInitSrc)) {
+  fail('isChannelGreenhouse missing in planting-late-init.js');
+} else ok('isChannelGreenhouse in late init');
+var renderSrc = fs.readFileSync(path.join(root, 'js/planting-render.js'), 'utf8');
+if (/cvDelBtn:\s*cvDelBtn/.test(renderSrc)) {
+  fail('cvDelBtn exported from render factory but scoped inside renderCultivars');
+} else ok('render export scope ok');
+if (/pillClass:\s*pillClass/.test(renderSrc)) {
+  fail('pillClass exported from render factory but scoped inside renderEnvSummary');
+} else ok('render nested helpers not exported');
+var calcCoreSrc = fs.readFileSync(path.join(root, 'js/planting-calc-core.js'), 'utf8');
+if (/function st\(\)/.test(calcCoreSrc) && /const st = stageOf/.test(calcCoreSrc)) {
+  fail('calc() shadows st() with const st (TDZ)');
+} else ok('calc st() not shadowed');
+if (!/function daySupplement\(\) \{ return deps\.daySupplement/.test(renderSrc)) {
+  fail('daySupplement missing in planting-render.js deps');
+} else ok('render dli deps wired');
+if (!/function syncHarvestBlockUI\(r\) \{ return deps\.syncHarvestBlockUI/.test(renderSrc)) {
+  fail('syncHarvestBlockUI missing in planting-render.js deps');
+} else ok('render harvest deps wired');
+if (/st\(\)\.georgyModeRef/.test(renderSrc)) {
+  fail('st().georgyModeRef in planting-render.js — use georgyModeRef() helper');
+} else ok('render georgyModeRef not on state');
+if (!/function showToast\(msg\) \{ return deps\.showToast/.test(renderSrc)) {
+  fail('showToast missing in planting-render.js deps');
+} else ok('render setFacility deps wired');
+var vfStdSrc = fs.readFileSync(path.join(root, 'js/planting-vf-standards.js'), 'utf8');
+if (/deps\.syncCutMassUI/.test(vfStdSrc)) {
+  fail('planting-vf-standards.js calls deps.syncCutMassUI — use local syncCutMassUI()');
+} else ok('vf-standards syncCutMassUI local');
+if (!/function vfEffectiveDay\(cv\) \{ return deps\.vfEffectiveDay/.test(renderSrc)) {
+  fail('vfEffectiveDay missing in planting-render.js deps');
+} else ok('render vfEffectiveDay wired');
+if (!/var CUT_INTERVAL_SLACK = deps\.CUT_INTERVAL_SLACK/.test(renderSrc)) {
+  fail('CUT_INTERVAL_SLACK missing in planting-render.js deps');
+} else ok('render CUT_INTERVAL_SLACK wired');
+if (!/var CH_W = deps\.CH_W/.test(renderSrc)) {
+  fail('CH_W missing in planting-render.js deps');
+} else ok('render geom constants wired');
+var econCoreSrc = fs.readFileSync(path.join(root, 'js/econ-core.js'), 'utf8');
+if (/Math\.round\(snap\.yieldPerPotCycle/.test(econCoreSrc)) {
+  fail('econ-core.js reads snap.yieldPerPotCycle without null guard');
+} else ok('econ yield null-safe');
+if (!/function snapDensity\(snap, fallback\)/.test(econCoreSrc)) {
+  fail('snapDensity helper missing in econ-core.js');
+} else ok('econ snap density null-safe');
+if (!/function parseNumInput\(s\) \{ return deps\.parseNumInput/.test(eventBindingsSrc)) {
+  fail('parseNumInput missing in planting-event-bindings.js bindEvents');
+} else ok('event bindings parseNumInput wired');
+if (!/function palletCellsForLayout\(cv\) \{ return deps\.palletCellsForLayout/.test(renderSrc)) {
+  fail('palletCellsForLayout missing in planting-render.js deps');
+} else ok('render palletCellsForLayout wired');
+var pdfExportSrc = fs.readFileSync(path.join(root, 'js/pdf-export.js'), 'utf8');
+if (/sec\.label/.test(pdfExportSrc)) {
+  fail('pdf-export.js uses undefined sec.label — use secLabel(sec.id)');
+} else ok('pdf export section labels ok');
+if (!/function applyProjectState\(\) \{ return deps\.applyProjectState/.test(eventBindingsSrc)) {
+  fail('applyProjectState missing in planting-event-bindings.js');
+} else ok('event bindings project store wired');
+var appNavSrc = fs.readFileSync(path.join(root, 'js/planting-app-nav.js'), 'utf8');
+if (/palletStd\s*=\s*\{\s*germination:\s*false/.test(appNavSrc)) {
+  fail('setAppView pallets unlocks all palletStd — use resetPalletStdToSheetDefaults');
+} else ok('app nav pallet std reset');
+if (!/function resetPalletStdToSheetDefaults/.test(eventBindingsSrc)) {
+  fail('resetPalletStdToSheetDefaults missing in event-bindings');
+} else ok('event bindings resetPalletStd wired');
+if (!/applyVfStandardField\('cutMass'\)/.test(eventBindingsSrc)) {
+  fail('auto-cut-mass should call applyVfStandardField(cutMass)');
+} else ok('auto-cut-mass uses applyVfStandardField');
+if (!/function resetPalletStdToSheetDefaults/.test(renderSrc)) {
+  fail('resetPalletStdToSheetDefaults missing in planting-render.js');
+} else ok('render resetPalletStd wired');
+if (/deps\.\$\('germination'\)\.value/.test(vfStdSrc)) {
+  fail('applyVfStandardsFromSheet unsafe DOM — use null checks');
+} else ok('vf-standards applyVfStandards DOM safe');
 if (!html.includes('DG_createPlantingLateInit')) fail('late init factory missing');
 else ok('late init wired');
 if (/function initCultivarRegistry\(\)\{[\s\S]{0,80}window\.DG_createCultivarRegistry/.test(html)) {

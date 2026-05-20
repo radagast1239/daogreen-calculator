@@ -35,6 +35,7 @@
     function restorePlantingViewSnapshot() { return deps.restorePlantingViewSnapshot.apply(deps, arguments); }
     function allPalletCultivars() { return deps.allPalletCultivars.apply(deps, arguments); }
     function initPalletValuesFromSheet() { return deps.initPalletValuesFromSheet.apply(deps, arguments); }
+    function resetPalletStdToSheetDefaults() { return deps.resetPalletStdToSheetDefaults.apply(deps, arguments); }
     function getPalletCv() { return deps.getPalletCv.apply(deps, arguments); }
     function syncCycleSlidersFromState() { return deps.syncCycleSlidersFromState.apply(deps, arguments); }
     function isVF() { return deps.isVF.apply(deps, arguments); }
@@ -137,10 +138,9 @@
     if (isPlanting){
       restorePlantingViewSnapshot(view, plantingSnapshots[view]);
       if (view === 'pallets'){
-        st().palletStd = { germination: false, day: false, density: false, mass: false, cutInterval: false, cutMass: false, cells: false };
         if (allPalletCultivars().length){
           if (!allPalletCultivars().find(c => c.id === st().cvB)) st().cvB = st().palletCv;
-          if (!plantingSnapshots.pallets) initPalletValuesFromSheet(getPalletCv());
+          if (!plantingSnapshots.pallets) resetPalletStdToSheetDefaults();
           else syncCycleSlidersFromState();
         }
         syncPalletLoadWarn();

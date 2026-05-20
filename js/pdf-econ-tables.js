@@ -210,7 +210,7 @@
     if (!ctx.firstContent) ctx.y += 2;
     pdf.setFontSize(13);
     pdf.setTextColor(60, 70, 30);
-    pdf.text(title, ctx.margin, ctx.y);
+    pdf.text(title == null || title === '' ? '—' : String(title), ctx.margin, ctx.y);
     ctx.y += 7;
     pdf.setTextColor(0, 0, 0);
     ctx.firstContent = false;

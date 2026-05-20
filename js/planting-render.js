@@ -34,6 +34,7 @@
     function isGreenhousePlanting() { return deps.isGreenhousePlanting(); }
     function isChannelGreenhouse() { return deps.isChannelGreenhouse(); }
     function isVfSheetCv(cv) { return deps.isVfSheetCv(cv); }
+    function vfEffectiveDay(cv) { return deps.vfEffectiveDay(cv); }
     function usePlantingSheet() { return deps.usePlantingSheet(); }
     function calc() { return deps.calc(); }
     function getPlantingStd() { return deps.getPlantingStd(); }
@@ -55,6 +56,7 @@
     function restorePlantingStateEconSlice(s) { return deps.restorePlantingStateEconSlice(s); }
     function initPalletValuesFromSheet(cv) { return deps.initPalletValuesFromSheet(cv); }
     function resetVfStdToSheetDefaults() { return deps.resetVfStdToSheetDefaults(); }
+    function resetPalletStdToSheetDefaults() { return deps.resetPalletStdToSheetDefaults(); }
     function applyVfStandardsFromSheet() { return deps.applyVfStandardsFromSheet(); }
     function syncVfStdControls() { return deps.syncVfStdControls(); }
     function renderGhStandardsPanel() { return deps.renderGhStandardsPanel(); }
@@ -77,6 +79,7 @@
     function schemaCanopyMm(r) { return deps.schemaCanopyMm(r); }
     function syncSchemaCanopyLegend(mm) { return deps.syncSchemaCanopyLegend(mm); }
     function palletCellGeometry(c, m) { return deps.palletCellGeometry(c, m); }
+    function palletCellsForLayout(cv) { return deps.palletCellsForLayout(cv); }
     function getCellCenters(n, l, w) { return deps.getCellCenters(n, l, w); }
     function effectiveDLI() { return deps.effectiveDLI(); }
     function naturalDLI() { return deps.naturalDLI(); }
@@ -84,6 +87,34 @@
     function effectivePhotoperiod() { return deps.effectivePhotoperiod(); }
     function photoperiod() { return deps.photoperiod(); }
     function eveningHours() { return deps.eveningHours(); }
+    function daySupplement() { return deps.daySupplement(); }
+    function eveningSupplement() { return deps.eveningSupplement(); }
+    function photoperiodFactor() { return deps.photoperiodFactor(); }
+    function envMultiplier(cv) { return deps.envMultiplier(cv); }
+    function kwhPerSqmPerDayFromDli(d) { return deps.kwhPerSqmPerDayFromDli(d); }
+    function ppfdFromDli(d, ph) { return deps.ppfdFromDli(d, ph); }
+    function ledEfficacy() { return deps.ledEfficacy(); }
+    function findCvById(id) { return deps.findCvById(id); }
+    function buildDefaultVfStandards(cv) { return deps.buildDefaultVfStandards(cv); }
+    function buildDefaultGhStandards(cv) { return deps.buildDefaultGhStandards(cv); }
+    function envBolt(cv) { return deps.envBolt(cv); }
+    function harvestTotal(cv) { return deps.harvestTotal(cv); }
+    function vegContextLabel() { return deps.vegContextLabel(); }
+    function showAsPalletCalc(r) { return deps.showAsPalletCalc(r); }
+    function syncMulticutBabyUi(cv) { return deps.syncMulticutBabyUi(cv); }
+    function calcScenario(o) { return deps.calcScenario(o); }
+    function calcScenarioVf(id, o) { return deps.calcScenarioVf(id, o); }
+    function calcScenarioPallet(id, o) { return deps.calcScenarioPallet(id, o); }
+    function addDays(d, n) { return deps.addDays(d, n); }
+    function fmtDate(d) { return deps.fmtDate(d); }
+    function syncHarvestBlockUI(r) { return deps.syncHarvestBlockUI(r); }
+    function updateMassModelHint(a, m, ca, c) { return deps.updateMassModelHint(a, m, ca, c); }
+    function modelCanopyFromMass(cv, mass) { return deps.modelCanopyFromMass(cv, mass); }
+    function syncMulticutDetailUI() { return deps.syncMulticutDetailUI(); }
+    function cutIntervalMods(cv) { return deps.cutIntervalMods(cv); }
+    function vegContextLabelCap() { return deps.vegContextLabelCap(); }
+    function palletMountMode() { return deps.palletMountMode(); }
+    function computeGhYieldTotals(r) { return deps.computeGhYieldTotals(r); }
     function dliFactor() { return deps.dliFactor(); }
     function tempFactor(cv) { return deps.tempFactor(cv); }
     function effectiveTempFactor(cv) { return deps.effectiveTempFactor(cv); }
@@ -105,6 +136,23 @@
     var PALLET_SECTIONS = deps.PALLET_SECTIONS || [];
     var VF_SECTIONS = deps.VF_SECTIONS || [];
     var CULTIVARS = deps.CULTIVARS || [];
+    var NATURAL_DLI = deps.NATURAL_DLI || [];
+    var VF_CULTIVARS = deps.VF_CULTIVARS || [];
+    var PALLET_CULTIVARS = deps.PALLET_CULTIVARS || [];
+    var CASSETTES_PER_PALLET = deps.CASSETTES_PER_PALLET != null ? deps.CASSETTES_PER_PALLET : 3;
+    var CUT_INTERVAL_SLACK = deps.CUT_INTERVAL_SLACK != null ? deps.CUT_INTERVAL_SLACK : 6;
+    var CH_W = deps.CH_W != null ? deps.CH_W : 110;
+    var MAX_WIDTH = deps.MAX_WIDTH != null ? deps.MAX_WIDTH : 2000;
+    var HOLE_D_VF = deps.HOLE_D_VF != null ? deps.HOLE_D_VF : 25;
+    var PALLET_L_MM = deps.PALLET_L_MM != null ? deps.PALLET_L_MM : 1300;
+    var PALLET_W_MM = deps.PALLET_W_MM != null ? deps.PALLET_W_MM : 650;
+    var CASSETTE_L_MM = deps.CASSETTE_L_MM != null ? deps.CASSETTE_L_MM : 400;
+    var CASSETTE_W_MM = deps.CASSETTE_W_MM != null ? deps.CASSETTE_W_MM : 600;
+    var FACILITY_KEY = deps.FACILITY_KEY;
+    var LED_VF_MIN = deps.LED_VF_MIN != null ? deps.LED_VF_MIN : 2.3;
+    var LED_VF_MAX = deps.LED_VF_MAX != null ? deps.LED_VF_MAX : 2.5;
+    function showToast(msg) { return deps.showToast(msg); }
+    var lightSync = false;
     function allGhCultivars() { return deps.allGhCultivars(); }
     function allVfCultivars() { return deps.allVfCultivars(); }
     function allPalletCultivars() { return deps.allPalletCultivars(); }
@@ -545,7 +593,7 @@
       if (!btn) return;
       if (isPalletView()){
         st().palletCv = btn.dataset.id;
-        initPalletValuesFromSheet(getPalletCv());
+        resetPalletStdToSheetDefaults();
       } else if (isVF()){
         st().vfCv = btn.dataset.id;
         resetVfStdToSheetDefaults();
@@ -604,11 +652,12 @@
       const chev = head.querySelector('.collapse-chev');
       if (chev) chev.textContent = collapsed ? '▶' : '▼';
     }
-    if (collapsed && block && usePlantingSheet() && isVF()){
+    if (collapsed && block && usePlantingSheet()){
       const keys = (block.dataset.collapseVf || '').split(',').filter(Boolean);
       const pStd = getPlantingStd();
       keys.forEach(k => { if (pStd[k] !== undefined) pStd[k] = true; });
-      applyVfStandardsFromSheet();
+      if (isPalletView()) deps.applyPalletStandardsFromSheet();
+      else if (isVF()) applyVfStandardsFromSheet();
       syncVfStdControls();
     }
   }
@@ -656,7 +705,7 @@
       document.querySelectorAll('#cultivars .cv-btn[data-pl-id]').forEach(btn => {
         btn.addEventListener('click', () => {
           st().palletCv = btn.dataset.plId;
-          initPalletValuesFromSheet(getPalletCv());
+          resetPalletStdToSheetDefaults();
           renderCultivars();
           renderVfStandardsPanel();
           deps.renderAll();
@@ -1986,7 +2035,7 @@
   }
 
   function setFacility(mode){
-    if (st().georgyModeRef() && mode === 'vertical'){
+    if (georgyModeRef() && georgyModeRef().isGeorgyGh && georgyModeRef().isGeorgyGh() && mode === 'vertical'){
       showToast(ui('georgy.toast.ghOnly') || 'Режим Георгия — только теплица');
       return;
     }
@@ -2091,72 +2140,22 @@
     updatePageSub();
   }
 
+    /* Публичный API — только то, что вызывается из HTML / runtime-init */
     return {
-      renderGhYieldCultivarCompare: renderGhYieldCultivarCompare,
-      renderGhYieldTotals: renderGhYieldTotals,
+      renderAll: renderAll,
+      renderCultivars: renderCultivars,
+      renderMonths: renderMonths,
+      renderCvCompare: renderCvCompare,
+      initCollapseBlocks: initCollapseBlocks,
+      setFacility: setFacility,
       withRange: withRange,
       rangeText: rangeText,
       calcForGhYieldCompareCv: calcForGhYieldCompareCv,
-      bindGhYieldComparePick: bindGhYieldComparePick,
-      stageLabel: stageLabel,
-      cvColor: cvColor,
+      renderGhYieldTotals: renderGhYieldTotals,
       getCompareList: getCompareList,
-      ensureComparePick: ensureComparePick,
-      getCompareSelected: getCompareSelected,
       comparePickActiveId: comparePickActiveId,
-      compareChipHtml: compareChipHtml,
-      catalogSectionTitle: catalogSectionTitle,
-      buildComparePickHtml: buildComparePickHtml,
-      bindComparePickGrid: bindComparePickGrid,
-      renderComparePickGrid: renderComparePickGrid,
-      calcForCompareCv: calcForCompareCv,
-      fmtCompareRange: fmtCompareRange,
-      formatCvCompareCell: formatCvCompareCell,
-      renderCvCompareTable: renderCvCompareTable,
-      setGrowthChartSvg: setGrowthChartSvg,
-      setGrowthChartLegendHtml: setGrowthChartLegendHtml,
-      bindCompareLegendPills: bindCompareLegendPills,
-      fillCompareLegend: fillCompareLegend,
-      syncCompareMarginUI: syncCompareMarginUI,
-      renderCvCompare: renderCvCompare,
-      setCollapseBlock: setCollapseBlock,
-      initCollapseBlocks: initCollapseBlocks,
-      renderCultivars: renderCultivars,
-      cvDelBtn: cvDelBtn,
-      plBtn: plBtn,
-      vfBtn: vfBtn,
-      cvBtn: cvBtn,
-      renderMonths: renderMonths,
-      renderStage: renderStage,
-      renderEnvSummary: renderEnvSummary,
-      pillClass: pillClass,
-      pct: pct,
-      sign: sign,
-      dliPill: dliPill,
-      tempPill: tempPill,
-      renderMetrics: renderMetrics,
-      renderChart: renderChart,
-      renderCalendar: renderCalendar,
-      renderMulticut: renderMulticut,
-      collectSchemaHoleCenters: collectSchemaHoleCenters,
-      nearestHoleCenterPair: nearestHoleCenterPair,
-      schemaPalletLayout: schemaPalletLayout,
-      palletSchemaHoleRadiusPx: palletSchemaHoleRadiusPx,
-      palletSchemaCanopyRadiusPx: palletSchemaCanopyRadiusPx,
-      palletSchemaPlantSvg: palletSchemaPlantSvg,
-      renderSchemaPallet: renderSchemaPallet,
-      renderSchema: renderSchema,
-      renderScenarios: renderScenarios,
-      fmt: fmt,
-      delta: delta,
-      deltaMoney: deltaMoney,
-      fmtMoney: fmtMoney,
-      lightInfo: lightInfo,
-      renderRecs: renderRecs,
-      syncVfSlidersFromState: syncVfSlidersFromState,
-      setFacility: setFacility,
-      renderColophonLight: renderColophonLight,
-      renderAll: renderAll
+      ensureComparePick: ensureComparePick,
+      syncVfSlidersFromState: syncVfSlidersFromState
     };
   }
 

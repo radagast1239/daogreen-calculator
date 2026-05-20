@@ -132,16 +132,18 @@
     function applyGhStandardsToState(s) {
       var $ = deps.$;
       applyGhProfileToStateOnly(s);
-      $('germination').value = st().germination;
-      $('germination-v').textContent = st().germination;
-      $('nursery').value = st().nursery;
-      $('nursery-v').textContent = st().nursery;
-      $('day').value = st().day;
-      $('day-v').textContent = st().day;
-      $('density').value = st().density;
-      $('density-v').textContent = st().density;
-      $('cutInterval').value = st().cutInterval;
-      $('cutInterval-v').textContent = st().cutInterval;
+      var state = st();
+      function setPair(id, val) {
+        var el = $(id);
+        var lab = $(id + '-v');
+        if (el) el.value = val;
+        if (lab) lab.textContent = val;
+      }
+      setPair('germination', state.germination);
+      setPair('nursery', state.nursery);
+      setPair('day', state.day);
+      setPair('density', state.density);
+      setPair('cutInterval', state.cutInterval);
       deps.syncCanopyUI();
       syncGhCutsUI();
       deps.syncVegPeriodTotal();

@@ -21,28 +21,35 @@
     var CULTIVARS = deps.CULTIVARS;
     var PALLET_CULTIVARS = deps.PALLET_CULTIVARS;
     var HARVEST_MONTH_DAYS = deps.HARVEST_MONTH_DAYS;
-    function getActivePlantingCvId() { return deps.getActivePlantingCvId.apply(deps, arguments); }
-    function r1() { return deps.r1.apply(deps, arguments); }
-    function r2() { return deps.r2.apply(deps, arguments); }
-    function r3() { return deps.r3.apply(deps, arguments); }
-    function fmtNum() { return deps.fmtNum.apply(deps, arguments); }
-    function getPlantingSnapshotForCvId() { return deps.getPlantingSnapshotForCvId.apply(deps, arguments); }
-    function getPlantingSnapshot() { return deps.getPlantingSnapshot.apply(deps, arguments); }
-    function plantingCvIdMatchesLiveState() { return deps.plantingCvIdMatchesLiveState.apply(deps, arguments); }
-    function findCvById() { return deps.findCvById.apply(deps, arguments); }
-    function isPalletCvId() { return deps.isPalletCvId.apply(deps, arguments); }
-    function isVfCvId() { return deps.isVfCvId.apply(deps, arguments); }
-    function allPalletCultivars() { return deps.allPalletCultivars.apply(deps, arguments); }
-    function allVfCultivars() { return deps.allVfCultivars.apply(deps, arguments); }
-    function allGhCultivars() { return deps.allGhCultivars.apply(deps, arguments); }
-    function supportsMulticut() { return deps.supportsMulticut.apply(deps, arguments); }
-    function cutIntervalRange() { return deps.cutIntervalRange.apply(deps, arguments); }
-    function getGhCvStandards() { return deps.getGhCvStandards.apply(deps, arguments); }
-    function buildDefaultVfStandards() { return deps.buildDefaultVfStandards.apply(deps, arguments); }
-    function parseNumInput() { return deps.parseNumInput.apply(deps, arguments); }
-    function formatInputValue() { return deps.formatInputValue.apply(deps, arguments); }
-    function decimalsFromStep() { return deps.decimalsFromStep.apply(deps, arguments); }
-    function round() { return deps.round.apply(deps, arguments); }
+    function depCall(name, fallback) {
+      return function () {
+        var fn = deps[name];
+        if (typeof fn !== 'function') return fallback;
+        return fn.apply(deps, arguments);
+      };
+    }
+    var getActivePlantingCvId = depCall('getActivePlantingCvId', '');
+    var r1 = depCall('r1', 0);
+    var r2 = depCall('r2', 0);
+    var r3 = depCall('r3', 0);
+    var fmtNum = depCall('fmtNum', '');
+    var getPlantingSnapshotForCvId = depCall('getPlantingSnapshotForCvId', null);
+    var getPlantingSnapshot = depCall('getPlantingSnapshot', null);
+    var plantingCvIdMatchesLiveState = depCall('plantingCvIdMatchesLiveState', false);
+    var findCvById = depCall('findCvById', null);
+    var isPalletCvId = depCall('isPalletCvId', false);
+    var isVfCvId = depCall('isVfCvId', false);
+    var allPalletCultivars = depCall('allPalletCultivars', []);
+    var allVfCultivars = depCall('allVfCultivars', []);
+    var allGhCultivars = depCall('allGhCultivars', []);
+    var supportsMulticut = depCall('supportsMulticut', false);
+    var cutIntervalRange = depCall('cutIntervalRange', { min: 8, mid: 12, max: 18 });
+    var getGhCvStandards = depCall('getGhCvStandards', null);
+    var buildDefaultVfStandards = depCall('buildDefaultVfStandards', null);
+    var parseNumInput = depCall('parseNumInput', 0);
+    var formatInputValue = depCall('formatInputValue', '');
+    var decimalsFromStep = depCall('decimalsFromStep', 0);
+    var round = depCall('round', 0);
 
     var defaultEconState, defaultEconEquipment, defaultEconCultureRow, defaultEconCultures;
     var getEquipmentGroups;

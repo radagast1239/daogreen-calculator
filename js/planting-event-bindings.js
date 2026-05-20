@@ -22,6 +22,7 @@
     function renderGhStandardsPanel() { return deps.renderGhStandardsPanel.apply(deps, arguments); }
     function renderVfStandardsPanel() { return deps.renderVfStandardsPanel.apply(deps, arguments); }
     function resetVfStdToSheetDefaults() { return deps.resetVfStdToSheetDefaults.apply(deps, arguments); }
+    function resetPalletStdToSheetDefaults() { return deps.resetPalletStdToSheetDefaults.apply(deps, arguments); }
 const dlg = $('cv-add-dialog');
     const form = $('cv-add-form');
     const addBtn = $('cv-add-custom');
@@ -78,6 +79,7 @@ const dlg = $('cv-add-dialog');
     var georgyMode = typeof deps.getGeorgyMode === "function" ? deps.getGeorgyMode() : deps.georgyMode;
     var canopyDensityUi = deps.canopyDensityUi;
     function clamp(v, lo, hi) { return deps.clamp(v, lo, hi); }
+    function parseNumInput(s) { return deps.parseNumInput(s); }
     function DG_applyEconPreset() { return deps.DG_applyEconPreset.apply(deps, arguments); }
     function DG_econPresetLabel() { return deps.DG_econPresetLabel.apply(deps, arguments); }
     function DG_exportEconCsv() { return deps.DG_exportEconCsv.apply(deps, arguments); }
@@ -85,6 +87,8 @@ const dlg = $('cv-add-dialog');
     function DG_initProjectStore() { return deps.DG_initProjectStore.apply(deps, arguments); }
     function addCustomGhCultivar() { return deps.addCustomGhCultivar.apply(deps, arguments); }
     function addCustomVfCultivar() { return deps.addCustomVfCultivar.apply(deps, arguments); }
+    function applyProjectState() { return deps.applyProjectState.apply(deps, arguments); }
+    function initPdfExport() { return deps.initPdfExport && deps.initPdfExport.apply(deps, arguments); }
     function applyCanopyStandard() { return deps.applyCanopyStandard.apply(deps, arguments); }
     function applyGhStandardFromStore() { return deps.applyGhStandardFromStore.apply(deps, arguments); }
     function applyVfStandardField() { return deps.applyVfStandardField.apply(deps, arguments); }
@@ -129,6 +133,7 @@ const dlg = $('cv-add-dialog');
     function renderGhYieldTotals() { return deps.renderGhYieldTotals.apply(deps, arguments); }
     function renderVfStandardsPanel() { return deps.renderVfStandardsPanel.apply(deps, arguments); }
     function resetVfStdToSheetDefaults() { return deps.resetVfStdToSheetDefaults.apply(deps, arguments); }
+    function resetPalletStdToSheetDefaults() { return deps.resetPalletStdToSheetDefaults.apply(deps, arguments); }
     function runPlantingEconImport() { return deps.runPlantingEconImport.apply(deps, arguments); }
     function saveEconStore() { return deps.saveEconStore.apply(deps, arguments); }
     function saveGhStandardsStore() { return deps.saveGhStandardsStore.apply(deps, arguments); }
@@ -239,19 +244,15 @@ const dlg = $('cv-add-dialog');
     syncVfStdBadges();
     if (state.useManualCutMass) renderAll();
   });
-  $('auto-cut-interval').addEventListener('click', () => {
-    if (!isVF()) return;
+  var autoCutInterval = $('auto-cut-interval');
+  if (autoCutInterval) autoCutInterval.addEventListener('click', () => {
+    if (!isVF() && !isPalletView()) return;
     applyVfStandardField('cutInterval');
   });
-  $('auto-cut-mass').addEventListener('click', () => {
-    const cv = getActiveCv();
-    if (cv && cv.yieldPerCutG > 0){
-      state.useManualCutMass = false;
-      state.vfStd.cutMass = true;
-      state.manualCutMass = Math.round(cv.yieldPerCutG);
-      syncCutMassUI();
-      renderAll();
-    }
+  var autoCutMass = $('auto-cut-mass');
+  if (autoCutMass) autoCutMass.addEventListener('click', () => {
+    if (!isVF() && !isPalletView()) return;
+    applyVfStandardField('cutMass');
   });
 
   $('useManualMass').addEventListener('change', e => {
@@ -300,7 +301,8 @@ const dlg = $('cv-add-dialog');
     if (state.useManualMass) renderAll();
   });
 
-  $('auto-mass').addEventListener('click', () => {
+  var autoMass = $('auto-mass');
+  if (autoMass) autoMass.addEventListener('click', () => {
     const wasManual = state.useManualMass;
     state.useManualMass = false;
     const r = calc();
@@ -435,17 +437,20 @@ const dlg = $('cv-add-dialog');
     }
   });
 
-  $('gh-std-apply').addEventListener('click', () => {
+  var ghStdApply = $('gh-std-apply');
+  if (ghStdApply) ghStdApply.addEventListener('click', () => {
     applyGhStandardFromStore(getCv());
     renderAll();
   });
-  $('gh-std-save').addEventListener('click', () => {
+  var ghStdSave = $('gh-std-save');
+  if (ghStdSave) ghStdSave.addEventListener('click', () => {
     const cv = getCv();
     state.ghStandards[cv.id] = readGhStandardsFromState(cv);
     saveGhStandardsStore();
     renderGhStandardsPanel();
   });
-  $('gh-std-reset-model').addEventListener('click', () => {
+  var ghStdReset = $('gh-std-reset-model');
+  if (ghStdReset) ghStdReset.addEventListener('click', () => {
     const cv = getCv();
     state.ghStandards[cv.id] = buildDefaultGhStandards(cv);
     saveGhStandardsStore();
@@ -474,7 +479,8 @@ const dlg = $('cv-add-dialog');
       const cv = getVfCv();
       state.vfUserStandards[cv.id] = buildDefaultVfStandards(cv);
       saveVfStandardsStore();
-      resetVfStdToSheetDefaults();
+      if (isPalletView()) resetPalletStdToSheetDefaults();
+      else resetVfStdToSheetDefaults();
       renderVfStandardsPanel();
       renderAll();
     });
@@ -754,6 +760,7 @@ const dlg = $('cv-add-dialog');
         deps.bindVfStdBadges();
         if (deps.VF_CULTIVARS.length){ deps.renderVfStdGrid(); }
         if (deps.VF_CULTIVARS.length && state.facility === 'vertical' && state.appView === 'channels') deps.resetVfStdToSheetDefaults();
+        if (deps.PALLET_CULTIVARS && deps.PALLET_CULTIVARS.length && state.appView === 'pallets') deps.resetPalletStdToSheetDefaults();
         deps.renderAll();
         try {
           var savedView = localStorage.getItem(deps.APP_VIEW_KEY);

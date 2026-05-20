@@ -207,7 +207,7 @@
     const rgrCanopy = rgrMass / 2;
     const tHarvestCh = harvestChannel(cv);
     const tBoltCh = boltChannel(cv);
-    const st = stageOf(t_ch, mass, tBoltCh, cv);
+    const growthStage = stageOf(t_ch, mass, tBoltCh, cv);
 
     const edgeGap = nearest - holeDiameter(cv);
     const leafGap = nearest - canopy;
@@ -224,7 +224,7 @@
     const yieldPerSqmYear = yieldPerSqmCycle * cyclesPerYear;
 
     return { cv, t_ch, t_total, mass, massAuto, canopy, massRaw, canopyRaw, crowdF,
-             rgrMass, rgrCanopy, tHarvestCh, tBoltCh, st,
+             rgrMass, rgrCanopy, tHarvestCh, tBoltCh, st: growthStage,
              a, b, diag, nearest, edgeGap, offMm, constrained,
              rhoT, rhoA, leafGap,
              perChan, perRow, total, sysWmm, sysArea, vfMode,

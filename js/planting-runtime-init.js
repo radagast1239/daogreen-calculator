@@ -663,7 +663,8 @@
     naturalDLI: naturalDLI, effectiveDLI: effectiveDLI, boltShift: boltShift,
     calcFromVfSheet: calcFromVfSheet, calcFromPalletSheet: calcFromPalletSheet,
     applyPalletStandardsFromSheet: applyPalletStandardsFromSheet,
-    getPlantingStateEconSlice: getPlantingStateEconSlice, restorePlantingStateEconSlice: restorePlantingStateEconSlice,
+    getPlantingStateEconSlice: function(){ return deps.getPlantingStateEconSlice(); },
+    restorePlantingStateEconSlice: function(s){ return deps.restorePlantingStateEconSlice(s); },
     canopyAtTotal: canopyAtTotal, applyCutIntervalHarvestMods: applyCutIntervalHarvestMods,
     rgrAtTotal: rgrAtTotal, boltChannel: boltChannel, stageOf: stageOf, holeDiameter: holeDiameter,
     harvestCanopy: harvestCanopy, MAX_WIDTH: MAX_WIDTH, CH_W: CH_W
@@ -841,7 +842,7 @@
       clamp: clamp,
       FACILITY_KEY: FACILITY_KEY,
       APP_VIEW_KEY: APP_VIEW_KEY,
-      ICON: ICON,
+      ICON: global.DG_PLANTING_REC_ICONS || {},
       COLLAPSE_DEFAULTS: COLLAPSE_DEFAULTS,
       lightSync: lightSync,
       plantingSnapshots: plantingSnapshots,

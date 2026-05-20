@@ -111,16 +111,17 @@
       var $ = deps.$;
       applyVfProfileToStateOnly(s);
       var state = st();
-      $('germination').value = state.germination;
-      $('germination-v').textContent = state.germination;
-      $('nursery').value = state.nursery;
-      $('nursery-v').textContent = state.nursery;
-      $('day').value = state.day;
-      $('day-v').textContent = state.day;
-      $('density').value = state.density;
-      $('density-v').textContent = state.density;
-      $('cutInterval').value = state.cutInterval;
-      $('cutInterval-v').textContent = state.cutInterval;
+      function setPair(id, val) {
+        var el = $(id);
+        var lab = $(id + '-v');
+        if (el) el.value = val;
+        if (lab) lab.textContent = val;
+      }
+      setPair('germination', state.germination);
+      setPair('nursery', state.nursery);
+      setPair('day', state.day);
+      setPair('density', state.density);
+      setPair('cutInterval', state.cutInterval);
       deps.syncManualMassUI();
       deps.syncCutMassUI();
       deps.syncCanopyUI();

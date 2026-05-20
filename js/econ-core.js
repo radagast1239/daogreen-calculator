@@ -183,6 +183,11 @@
     return Math.max(1, econCvTotalCycleDays(cv, snap));
   }
 
+  function snapDensity(snap, fallback){
+    var d = snap && snap.rhoA;
+    return Math.round((d > 0 ? d : fallback) || 80);
+  }
+
   function econSheetYieldPerCut(cv, snap){
     if (snap && snap.multicutHarvest && snap.harvestYieldPerCut > 0){
       return Math.round(snap.harvestYieldPerCut * 10) / 10;
@@ -219,8 +224,8 @@
         };
       }
       return {
-        yieldPerCut: Math.round(snap.yieldPerPotCycle * 10) / 10,
-        cutIntervalDays: Math.max(1, snap.totalCycleDays || std.cutInterval || deps.cutIntervalRange(gh).mid)
+        yieldPerCut: econSheetYieldPerCut(cv, snap),
+        cutIntervalDays: Math.max(1, (snap && snap.totalCycleDays) || std.cutInterval || deps.cutIntervalRange(gh).mid)
       };
     }
     if (deps.isVfCvId(cvId) && cv){
@@ -230,8 +235,8 @@
       };
     }
     return {
-      yieldPerCut: Math.round(snap.yieldPerPotCycle * 10) / 10,
-      cutIntervalDays: Math.max(1, snap.totalCycleDays || 15)
+      yieldPerCut: econSheetYieldPerCut(cv, snap),
+      cutIntervalDays: Math.max(1, (snap && snap.totalCycleDays) || 15)
     };
   }
 
@@ -258,10 +263,10 @@
       const snap = deps.getPlantingSnapshotForCvId(cvId);
       const yp = econYieldParamsForCvId(cvId, snap);
       return Object.assign({
-        density: Math.round(snap.rhoA || cv.density),
+        density: snapDensity(snap, cv.density),
         yieldPerCut: yp.yieldPerCut,
         cutIntervalDays: yp.cutIntervalDays,
-        unitIsPieces: snap.unitIsPieces,
+        unitIsPieces: !!(snap && snap.unitIsPieces),
         potHarvestMonths: parsePotHarvestMonthsFromCv(cv, snap),
         consumablesPerPot: ECON_DEFAULT_CONSUMABLES_PER_POT
       }, light);
@@ -273,7 +278,7 @@
       const yp = econYieldParamsForCvId(cvId, snap);
       const std = deps.buildDefaultVfStandards(cv);
       return Object.assign({
-        density: Math.round(snap.rhoA || std.density),
+        density: snapDensity(snap, std.density),
         yieldPerCut: yp.yieldPerCut,
         cutIntervalDays: yp.cutIntervalDays,
         unitIsPieces: cv.countUnit === 'шт',
@@ -508,13 +513,15 @@
     const cv = deps.findCvById(cvId);
     const snap = deps.getPlantingSnapshotForCvId(cvId);
     const yp = econYieldParamsForCvId(cvId, snap);
-    row.density = Math.round(snap.rhoA);
     row.yieldPerCut = yp.yieldPerCut;
     row.cutIntervalDays = yp.cutIntervalDays;
-    row.kwhPerM2Hour = Math.round(snap.kwhPerM2Hour * 1000) / 1000;
-    row.lightHoursDay = Math.round(snap.lightHoursDay * 10) / 10;
-    row.unitIsPieces = !!snap.unitIsPieces;
-    if (cv) row.potHarvestMonths = parsePotHarvestMonthsFromCv(cv, snap);
+    if (snap){
+      row.density = snapDensity(snap, row.density);
+      row.kwhPerM2Hour = Math.round(snap.kwhPerM2Hour * 1000) / 1000;
+      row.lightHoursDay = Math.round(snap.lightHoursDay * 10) / 10;
+      row.unitIsPieces = !!snap.unitIsPieces;
+      if (cv) row.potHarvestMonths = parsePotHarvestMonthsFromCv(cv, snap);
+    }
     if (!(parseFloat(row.consumablesPerPot) > 0)) row.consumablesPerPot = ECON_DEFAULT_CONSUMABLES_PER_POT;
     return normalizeEconCultureRow(row);
   }
