@@ -197,7 +197,9 @@
     const dataRows = getCompareSelected().map(function(cv){
       const rc = calcForGhYieldCompareCv(cv);
       const kgSqmYear = ghYieldKgSqmYear(rc, cv);
+      const kgSqmMo = kgSqmYear / 12;
       const kgYear = kgSqmYear * area;
+      const kgFarmMo = kgSqmMo * area;
       const rhoRec = (showRhoRec && georgyModeRef() && georgyModeRef().canUseCanopyDensityPick(cv))
         ? georgyModeRef().densityFromCanopy(cv) : null;
       return {
@@ -206,7 +208,8 @@
         rhoRec: rhoRec,
         rhoA: rc.rhoA,
         kgSqmYear: kgSqmYear,
-        kgMonth: kgSqmYear / 12,
+        kgSqmMo: kgSqmMo,
+        kgFarmMo: kgFarmMo,
         kgYear: kgYear,
         isActive: cv.id === activeId
       };
@@ -219,7 +222,8 @@
       (showRhoRec ? '<th>' + ui('gh.yield.compareColRho') + '</th>' : '') +
       '<th>' + ui('gh.yield.compareColRhoA') + '</th>' +
       '<th>' + ui('gh.yield.compareColKgSqmY') + '</th>' +
-      '<th>' + ui('gh.yield.compareColMonth') + '</th>' +
+      '<th>' + ui('gh.yield.compareColKgSqmMo') + '</th>' +
+      '<th>' + ui('gh.yield.compareColFarmMo') + '</th>' +
       '<th>' + ui('gh.yield.compareColYear') + '</th>' +
       '</tr></thead>';
 
@@ -231,7 +235,8 @@
         (showRhoRec ? '<td>' + (row.rhoRec != null ? Math.round(row.rhoRec) : '—') + ' ' + pm('ui.unit.pcsSqm') + '</td>' : '') +
         '<td>' + Math.round(row.rhoA) + ' ' + pm('ui.unit.pcsSqm') + '</td>' +
         '<td>' + ghYieldWithMargin(row.kgSqmYear, 1) + ' kg/m²</td>' +
-        '<td>' + ghYieldWithMargin(row.kgMonth, 1) + ' ' + ui('gh.yield.unitKgMo') + '</td>' +
+        '<td>' + ghYieldWithMargin(row.kgSqmMo, 1) + ' kg/m²</td>' +
+        '<td>' + ghYieldWithMargin(row.kgFarmMo, 1) + ' ' + ui('gh.yield.unitKgMo') + '</td>' +
         '<td><strong>' + ghYieldWithMargin(row.kgYear, 1) + '</strong> ' + ui('gh.yield.unitKgYear') + '</td>' +
         '</tr>';
     }).join('');
@@ -264,10 +269,40 @@
       rows.push({ l: ui('gh.yield.totalMonth'), v: ghYieldWithMargin(t.kgMonth, 1), u: ui('gh.yield.unitKgMo'), cls: 'hl' });
       rows.push({ l: ui('gh.yield.totalYear'), v: ghYieldWithMargin(t.kgYear, 1), u: ui('gh.yield.unitKgYear'), cls: 'hl' });
     }
+    const basicUplift = 0.125;
+    const optimisticUplift = 0.175;
+    var scenariosHtml = '';
+    if (t.unitIsPieces && t.pcsMonth > 0){
+      var bMoP = t.pcsMonth * (1 + basicUplift);
+      var bYrP = t.pcsYear * (1 + basicUplift);
+      var oMoP = t.pcsMonth * (1 + optimisticUplift);
+      var oYrP = t.pcsYear * (1 + optimisticUplift);
+      scenariosHtml =
+        '<div class="gh-yield-scenarios">' +
+        '<div class="gh-yield-scenarios-title">' + ui('gh.yield.scenariosTitle') + '</div>' +
+        '<div class="gh-yield-scenario-row"><span class="gh-yield-scenario-lbl">' + ui('gh.yield.scenarioBasic') + '</span>' +
+        '<span class="gh-yield-scenario-val">' + r1(bMoP) + ' ' + ui('gh.yield.unitPcsMo') + ' · ' + r1(bYrP) + ' ' + ui('gh.yield.unitPcsYear') + '</span></div>' +
+        '<div class="gh-yield-scenario-row"><span class="gh-yield-scenario-lbl">' + ui('gh.yield.scenarioOptimistic') + '</span>' +
+        '<span class="gh-yield-scenario-val">' + r1(oMoP) + ' ' + ui('gh.yield.unitPcsMo') + ' · ' + r1(oYrP) + ' ' + ui('gh.yield.unitPcsYear') + '</span></div>' +
+        '</div>';
+    } else {
+      var bMo = t.kgMonth * (1 + basicUplift);
+      var bYr = t.kgYear * (1 + basicUplift);
+      var oMo = t.kgMonth * (1 + optimisticUplift);
+      var oYr = t.kgYear * (1 + optimisticUplift);
+      scenariosHtml =
+        '<div class="gh-yield-scenarios">' +
+        '<div class="gh-yield-scenarios-title">' + ui('gh.yield.scenariosTitle') + '</div>' +
+        '<div class="gh-yield-scenario-row"><span class="gh-yield-scenario-lbl">' + ui('gh.yield.scenarioBasic') + '</span>' +
+        '<span class="gh-yield-scenario-val">' + r1(bMo) + ' ' + ui('gh.yield.unitKgMo') + ' · ' + r1(bYr) + ' ' + ui('gh.yield.unitKgYear') + '</span></div>' +
+        '<div class="gh-yield-scenario-row"><span class="gh-yield-scenario-lbl">' + ui('gh.yield.scenarioOptimistic') + '</span>' +
+        '<span class="gh-yield-scenario-val">' + r1(oMo) + ' ' + ui('gh.yield.unitKgMo') + ' · ' + r1(oYr) + ' ' + ui('gh.yield.unitKgYear') + '</span></div>' +
+        '</div>';
+    }
     box.innerHTML = rows.map(function(m){
       return '<div class="m ' + (m.cls || '') + '"><div class="m-label">' + m.l +
         '</div><div class="m-val has-range">' + m.v + '<span class="m-unit">' + m.u + '</span></div></div>';
-    }).join('');
+    }).join('') + scenariosHtml;
     const noteEl = $('gh-yield-note');
     if (noteEl){
       const cv = r.cv || getCv();
@@ -629,7 +664,8 @@
     if (chk) chk.checked = !!st().showRange;
     const mainRange = $('showRange');
     if (mainRange && document.activeElement !== mainRange) mainRange.checked = !!st().showRange;
-    const v = clamp(Math.round(st().errorPct) || 12, 1, 20);
+    const epRaw = Number(st().errorPct);
+    const v = clamp(Math.round(Number.isFinite(epRaw) ? epRaw : 12), 0, 20);
     st().errorPct = v;
     const slider = $('compareErrorPct');
     if (slider && document.activeElement !== slider) slider.value = v;

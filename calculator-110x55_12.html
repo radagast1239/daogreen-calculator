@@ -274,6 +274,31 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var
 .gh-yield-margin input[type=range] { grid-column: 1 / -1; }
 .gh-yield-results { margin-top: 4px; }
 .gh-yield-results .m.hl .m-val { font-size: 1.15rem; }
+.gh-yield-scenarios {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.gh-yield-scenarios-title {
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.gh-yield-scenario-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--rule);
+}
+.gh-yield-scenario-row:last-child { border-bottom: none; padding-bottom: 0; }
+.gh-yield-scenario-lbl { flex: 1 1 12rem; max-width: 42ch; }
+.gh-yield-scenario-val { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--olive-deep); text-align: right; }
 .gh-yield-note { font-size: 11.5px; color: var(--ink-faint); margin-top: 10px; line-height: 1.45; }
 .gh-yield-georgy-compare { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--rule); }
 .gh-yield-georgy-compare .gh-yield-compare-pick { margin: 10px 0 12px; }
@@ -289,6 +314,15 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var
 .georgy-panel > .section-h { color: var(--olive-deep); }
 .georgy-btn-row { margin-bottom: 10px; flex-wrap: wrap; gap: 8px; align-items: center; }
 .georgy-mode-btn.on { background: var(--olive-pale); border-color: var(--olive-deep); color: var(--olive-text); font-weight: 600; }
+.georgy-conservative-note {
+  font-size: 12px;
+  color: var(--ink-faint);
+  line-height: 1.45;
+  margin: 6px 0 0;
+  max-width: 56ch;
+}
+.facility-env-wrap > .georgy-conservative-note { margin-top: 8px; }
+#panel-georgy-simple > .georgy-conservative-note { margin: 0 0 12px; }
 .georgy-mode-intro { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; margin: 0 0 14px; max-width: 72ch; }
 .georgy-auto-strip { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 10px 0 14px; padding: 10px 12px; font-size: 12.5px; color: var(--ink-soft); background: var(--paper-deep); border-radius: var(--radius); border: 1px solid var(--rule); }
 .georgy-auto-strip strong { color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -385,8 +419,9 @@ html.georgy-active .gh-geom-only,
 html.georgy-active #block-panel-multicut,
 html.georgy-active #block-panel-multicut .collapse-body > .toggle-wrap,
 html.georgy-active #multicut-detail,
-html.georgy-active #panel-cv-compare,
 html.georgy-active #panel-scenarios { display: none !important; }
+/* График сравнения — в «Кривая роста»; в панели сравнения остаются переключатель, чипы и таблица */
+html.georgy-active #cv-compare-chart-wrap { display: none !important; }
 html.georgy-active #block-panel-calendar { display: none !important; }
 html.georgy-active #block-env-gh-season .collapse-head { display: none; }
 html.georgy-active #block-env-gh-season .collapse-body { display: block !important; padding-top: 0; }
@@ -1583,6 +1618,17 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .compare-pick-item input { accent-color: var(--olive); margin: 0; flex-shrink: 0; }
 .compare-pick-item:hover { color: var(--ink); }
 .cv-compare-intro { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; margin: 0 0 12px; max-width: 72ch; }
+.cv-compare-georgy-note {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  line-height: 1.55;
+  margin: -6px 0 14px;
+  max-width: 72ch;
+  padding: 10px 12px;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
 .cv-compare-table-wrap { margin-top: 12px; }
 .cv-compare-scroll { overflow-x: auto; margin: 0 -4px; padding: 2px 4px; }
 .cv-compare-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 480px; }
@@ -1816,6 +1862,7 @@ html.auth-preview .page { user-select: text; }
 html.auth-preview #btn-readonly,
 html.auth-preview #btn-logout { display: none !important; }
 html.auth-preview #btn-georgy-mode,
+html.auth-preview .facility-env-wrap > .georgy-conservative-note,
 html.auth-preview #georgy-mode-intro,
 html.auth-preview #panel-georgy-simple,
 html.auth-preview #panel-georgy-guide,
@@ -1972,6 +2019,7 @@ html.auth-preview .page { padding-top: 0 !important; }
     </div>
     <p id="simple-ui-hint" class="georgy-mode-intro" data-i18n="ui.simple.hint">Скрыты второстепенные панели. Основной расчёт доступен.</p>
     <button type="button" class="auto-btn georgy-mode-btn" id="btn-georgy-mode" data-i18n="georgy.btn" style="margin-top:10px;width:100%;max-width:420px">Расчёт для Георгия</button>
+    <p class="georgy-conservative-note" data-i18n="georgy.conservativeScenario">Консервативный сценарий: расчёт даёт ориентир при стабильном питании и климате — при планировании закладывайте запас к реальной партии.</p>
     <p class="georgy-mode-intro georgy-only" id="georgy-mode-intro" data-i18n="georgy.intro">Упрощённый режим теплицы: сроки, плотность, свет и срезки подставляются автоматически.</p>
   </div>
 
@@ -1992,6 +2040,7 @@ html.auth-preview .page { padding-top: 0 !important; }
 
   <section class="panel georgy-only georgy-panel" id="panel-georgy-simple">
     <div class="section-h" data-i18n="georgy.panel.title">Расчёт для Георгия</div>
+    <p class="georgy-conservative-note" data-i18n="georgy.conservativeScenario">Консервативный сценарий: расчёт даёт ориентир при стабильном питании и климате — при планировании закладывайте запас к реальной партии.</p>
     <p class="georgy-mode-intro" data-i18n="georgy.panel.lead">Салаты — один срез и подбор по шапке. Руккола и салат беби — стаканы, 2 ряда, многосрезка 80–110&nbsp;шт/м².</p>
     <p class="georgy-step-label georgy-baby-only" data-i18n="georgy.baby.params">Беби в стаканах (руккола / салат)</p>
     <div id="georgy-baby-actions" class="ctrl-row-extra georgy-btn-row georgy-baby-only">
@@ -2290,7 +2339,7 @@ html.auth-preview .page { padding-top: 0 !important; }
 
     <div class="ctrl bio-margin-ctrl">
       <span class="ctrl-label">Разброс по партии</span>
-      <input type="range" id="errorPct" min="1" max="20" step="1" value="12">
+      <input type="range" id="errorPct" min="0" max="20" step="1" value="12">
       <span class="ctrl-val">±<span id="errorPct-v">12</span><span class="unit">%</span></span>
     </div>
 
@@ -2486,7 +2535,7 @@ html.auth-preview .page { padding-top: 0 !important; }
       </div>
       <div class="gh-yield-margin">
         <span class="ctrl-label" data-i18n="gh.yield.margin">Погрешность</span>
-        <input type="range" id="errorPctGh" min="1" max="20" step="1" value="12">
+        <input type="range" id="errorPctGh" min="0" max="20" step="1" value="12">
         <span class="ctrl-val">±<span id="errorPctGh-v">12</span><span class="unit">%</span></span>
       </div>
     </div>
@@ -2514,6 +2563,7 @@ html.auth-preview .page { padding-top: 0 !important; }
   <section class="panel" id="panel-cv-compare">
     <div class="section-h" data-i18n="cvCompare.title">Сравнение сортов</div>
     <p class="cv-compare-intro" data-i18n="cvCompare.intro">Выберите несколько сортов при одинаковых настройках (свет, температура, плотность, срок). Таблица и график обновляются сразу. Выделенная колонка — текущий сорт.</p>
+    <p class="cv-compare-georgy-note georgy-only" data-i18n="georgy.cvCompare.hint">В режиме Георгия кривые нескольких сортов отображаются в блоке «Кривая роста» выше. Включите сравнение и отметьте сорта — легенду с переключением текущего сорта см. под графиком.</p>
     <div class="toggle-wrap" style="margin-bottom: 12px">
       <span class="toggle-label" data-i18n="cvCompare.toggle">Сравнить сорта</span>
       <label class="toggle">
@@ -2541,7 +2591,7 @@ html.auth-preview .page { padding-top: 0 !important; }
       </label>
       <div class="ctrl" style="margin:0">
         <span class="ctrl-label" data-i18n="cvCompare.errorPct">Погрешность</span>
-        <input type="range" id="compareErrorPct" min="1" max="20" step="1" value="12">
+        <input type="range" id="compareErrorPct" min="0" max="20" step="1" value="12">
         <span class="ctrl-val">±<span id="compareErrorPct-v">12</span><span class="unit">%</span></span>
       </div>
     </div>

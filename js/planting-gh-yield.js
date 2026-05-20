@@ -129,7 +129,9 @@
     }
 
     function syncGhYieldMarginSliders() {
-      var v = clamp(Math.round(st().errorPct) || 12, 1, 20);
+      var ep = Number(st().errorPct);
+      if (!Number.isFinite(ep)) ep = 12;
+      var v = clamp(Math.round(ep), 0, 20);
       st().errorPct = v;
       ['errorPct', 'errorPctGh', 'compareErrorPct'].forEach(function (id) {
         var el = $(id);

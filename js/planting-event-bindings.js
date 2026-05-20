@@ -179,6 +179,7 @@ const dlg = $('cv-add-dialog');
       } else {
         state[key] = v;
       }
+      if (id === 'errorPct') state.errorPct = clamp(Math.round(Number(state.errorPct)), 0, 20);
       if (id === 'day'){
         if (georgyMode && georgyMode.onGeorgyDayChanged) georgyMode.onGeorgyDayChanged();
         else if (canopyDensityUi && canopyDensityUi.onDayChanged) canopyDensityUi.onDayChanged();
@@ -332,7 +333,10 @@ const dlg = $('cv-add-dialog');
   const compareErrorPctEl = $('compareErrorPct');
   if (compareErrorPctEl){
     compareErrorPctEl.addEventListener('input', e => {
-      state.errorPct = clamp(parseInt(e.target.value, 10) || 12, 1, 20);
+      state.errorPct = (function(){
+        var n = parseInt(e.target.value, 10);
+        return clamp(Number.isFinite(n) ? n : 12, 0, 20);
+      })();
       syncGhYieldMarginSliders();
       renderAll();
     });
@@ -595,7 +599,10 @@ const dlg = $('cv-add-dialog');
   const errorPctGhEl = $('errorPctGh');
   if (errorPctGhEl){
     errorPctGhEl.addEventListener('input', function(e){
-      state.errorPct = clamp(parseInt(e.target.value, 10) || 12, 1, 20);
+      state.errorPct = (function(){
+        var n = parseInt(e.target.value, 10);
+        return clamp(Number.isFinite(n) ? n : 12, 0, 20);
+      })();
       syncGhYieldMarginSliders();
       try { renderAll(); } catch (err) { showError('errorPctGh', err); }
     });
