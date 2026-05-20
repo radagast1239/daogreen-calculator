@@ -12,6 +12,7 @@
   ];
   var ECON_MONTH_DAYS = (global.DG_CUT && global.DG_CUT.HARVEST_MONTH_DAYS) || 30.5;
   const ECON_MAX_CULTURES = 6;
+  const ECON_ELEC_CAT_IDS = ['pumps', 'fans', 'heating', 'equipment', 'misc'];
 
   const ECON_EQUIPMENT_GROUPS_RAW = [
     { titleKey: 'econ.eq.grp.prod', items: [
@@ -48,6 +49,7 @@
     ECON_SALAD_MIX_CV_IDS: ECON_SALAD_MIX_CV_IDS,
     ECON_MONTH_DAYS: ECON_MONTH_DAYS,
     ECON_MAX_CULTURES: ECON_MAX_CULTURES,
+    ECON_ELEC_CAT_IDS: ECON_ELEC_CAT_IDS,
     ECON_EQUIPMENT_GROUPS_RAW: ECON_EQUIPMENT_GROUPS_RAW
   };
 
@@ -94,6 +96,27 @@
     return o;
   }
 
+  function newEconRowId(prefix){
+    return (prefix || 'row') + '_' + Math.random().toString(36).slice(2, 10);
+  }
+
+  function defaultElecCats(){
+    return {
+      pumps: { kw: 0.35, h: 24 },
+      fans: { kw: 0.45, h: 24 },
+      heating: { kw: 0.25, h: 12 },
+      equipment: { kw: 0.15, h: 16 },
+      misc: { kw: 0.1, h: 24 }
+    };
+  }
+
+  function defaultStaffLines(){
+    return [
+      { id: newEconRowId('staff'), label: T('econ.staff.default1', 'Оператор'), salary: 55000 },
+      { id: newEconRowId('staff'), label: T('econ.staff.default2', 'Агроном'), salary: 55000 }
+    ];
+  }
+
   function defaultEconCultureRow(cvId, opts){
     opts = opts || {};
     const row = {
@@ -126,9 +149,10 @@
     return {
       priceKwh: 5,
       rentMonth: 0,
-      staffCount: 2,
-      staffSalary: 55000,
       payrollTax: true,
+      staffLines: defaultStaffLines(),
+      payrollCustom: [],
+      accountingMonth: 15000,
       logisticsMonth: 0,
       floorArea: 200,
       plantingArea: 150,
@@ -136,12 +160,15 @@
       salePrice: 800,
       kwhPerM2Hour: 0.08,
       lightHoursDay: 16,
-      otherElecKw: 1.1,
-      otherElecHoursDay: 24,
+      elecCats: defaultElecCats(),
       otherMonth: 15000,
       consumablesPerKg: 0,
       wastePct: 0,
       usnTax: false,
+      vatTax: false,
+      vatPct: 12,
+      profitTax: false,
+      profitTaxPct: 15,
       amortMonths: 60,
       equipmentEnabled: true,
       equipment: defaultEconEquipment(),
@@ -571,29 +598,126 @@
     return { activeId: activeId, snap: liveSnap, cvName: liveSnap && liveSnap.cvName ? liveSnap.cvName : '' };
   }
 
-  function calcOtherElecMonthly(e){
-    const kw = parseFloat(e.otherElecKw) || 0;
-    const h = parseFloat(e.otherElecHoursDay) || 0;
-    const kwh = kw * h * ECON_MONTH_DAYS;
-    const price = parseFloat(e.priceKwh) || 0;
-    return { kw: kw, hoursDay: h, kwh: kwh, cost: kwh * price };
+  function migrateEconElecCats(e){
+    if (e == null) return;
+    if (!e.elecCats || typeof e.elecCats !== 'object'){
+      e.elecCats = defaultElecCats();
+    }
+    ECON_ELEC_CAT_IDS.forEach(function(id){
+      if (!e.elecCats[id] || typeof e.elecCats[id] !== 'object') e.elecCats[id] = { kw: 0, h: 24 };
+      if (e.elecCats[id].h == null || isNaN(parseFloat(e.elecCats[id].h))) e.elecCats[id].h = 24;
+      if (e.elecCats[id].kw == null || isNaN(parseFloat(e.elecCats[id].kw))) e.elecCats[id].kw = 0;
+    });
+    const legacyKw = parseFloat(e.otherElecKw);
+    if (!isNaN(legacyKw) && legacyKw > 0){
+      const misc = e.elecCats.misc || {};
+      if ((parseFloat(misc.kw) || 0) <= 0){
+        const h = parseFloat(e.otherElecHoursDay) || parseFloat(misc.h) || 24;
+        e.elecCats.misc = { kw: legacyKw, h: h };
+      }
+    } else {
+      const legacyKwh = parseFloat(e.otherKwhMonth);
+      if (!isNaN(legacyKwh) && legacyKwh > 0){
+        const h = parseFloat(e.otherElecHoursDay) || 24;
+        const kw = Math.round((legacyKwh / (h * ECON_MONTH_DAYS)) * 100) / 100;
+        if ((parseFloat((e.elecCats.misc || {}).kw) || 0) <= 0){
+          e.elecCats.misc = { kw: kw, h: h };
+        }
+      }
+    }
+  }
+
+  function migrateEconPayroll(e){
+    if (e == null) return;
+    if (!Array.isArray(e.staffLines) || !e.staffLines.length){
+      const n = Math.max(1, parseInt(e.staffCount, 10) || 2);
+      const sal = parseFloat(e.staffSalary);
+      const salary = !isNaN(sal) && sal > 0 ? sal : 55000;
+      e.staffLines = [];
+      for (let i = 0; i < n; i++){
+        e.staffLines.push({
+          id: newEconRowId('staff'),
+          label: TF('econ.staff.n', { n: i + 1 }, 'Сотрудник {n}'),
+          salary: salary
+        });
+      }
+    }
+    e.staffLines = e.staffLines.map(function(row){
+      return {
+        id: row.id || newEconRowId('staff'),
+        label: row.label != null ? String(row.label) : '',
+        salary: parseFloat(row.salary) || 0
+      };
+    });
+    if (!Array.isArray(e.payrollCustom)) e.payrollCustom = [];
+    e.payrollCustom = e.payrollCustom.map(function(row){
+      return {
+        id: row.id || newEconRowId('pc'),
+        label: row.label != null ? String(row.label) : '',
+        amount: parseFloat(row.amount) || 0
+      };
+    });
+    if (e.accountingMonth == null || isNaN(parseFloat(e.accountingMonth))) e.accountingMonth = 15000;
+    if (e.vatPct == null || isNaN(parseFloat(e.vatPct))) e.vatPct = 12;
+    if (e.profitTaxPct == null || isNaN(parseFloat(e.profitTaxPct))) e.profitTaxPct = 15;
+    if (e.vatTax == null) e.vatTax = false;
+    if (e.profitTax == null) e.profitTax = false;
   }
 
   function migrateEconOtherElectricity(e){
-    if (e == null) return;
-    if (e.otherElecKw == null || isNaN(parseFloat(e.otherElecKw))){
-      const legacy = parseFloat(e.otherKwhMonth);
-      if (!isNaN(legacy) && legacy > 0){
-        const h = parseFloat(e.otherElecHoursDay) || 24;
-        e.otherElecHoursDay = h;
-        e.otherElecKw = Math.round((legacy / (h * ECON_MONTH_DAYS)) * 100) / 100;
-      } else if (e.otherElecKw == null){
-        e.otherElecKw = 1.1;
-      }
-    }
-    if (e.otherElecHoursDay == null || isNaN(parseFloat(e.otherElecHoursDay))){
-      e.otherElecHoursDay = 24;
-    }
+    migrateEconElecCats(e);
+    migrateEconPayroll(e);
+  }
+
+  function calcOtherElecMonthly(e){
+    migrateEconElecCats(e);
+    const price = parseFloat(e.priceKwh) || 0;
+    let kwh = 0;
+    let cost = 0;
+    let kwSum = 0;
+    ECON_ELEC_CAT_IDS.forEach(function(id){
+      const c = e.elecCats[id] || {};
+      const kw = parseFloat(c.kw) || 0;
+      const h = parseFloat(c.h) || 0;
+      kwh += kw * h * ECON_MONTH_DAYS;
+      cost += kw * h * ECON_MONTH_DAYS * price;
+      kwSum += kw;
+    });
+    return { kw: kwSum, hoursDay: 24, kwh: kwh, cost: cost };
+  }
+
+  function calcFarmElecBreakdown(e, lightKwh, lightCost){
+    migrateEconElecCats(e);
+    const price = parseFloat(e.priceKwh) || 0;
+    const rows = [{ id: 'light', kw: null, h: null, kwh: lightKwh || 0, cost: lightCost || 0 }];
+    ECON_ELEC_CAT_IDS.forEach(function(id){
+      const c = e.elecCats[id] || {};
+      const kw = parseFloat(c.kw) || 0;
+      const h = parseFloat(c.h) || 0;
+      const kwh = kw * h * ECON_MONTH_DAYS;
+      rows.push({ id: id, kw: kw, h: h, kwh: kwh, cost: kwh * price });
+    });
+    return rows;
+  }
+
+  function calcPayrollMonthly(e){
+    migrateEconPayroll(e);
+    const gross = (e.staffLines || []).reduce(function(s, row){
+      return s + Math.max(0, parseFloat(row.salary) || 0);
+    }, 0);
+    const payrollTax = e.payrollTax ? gross * 0.425 : 0;
+    const custom = (e.payrollCustom || []).reduce(function(s, row){
+      return s + Math.max(0, parseFloat(row.amount) || 0);
+    }, 0);
+    const accounting = Math.max(0, parseFloat(e.accountingMonth) || 0);
+    return {
+      gross: gross,
+      payrollTax: payrollTax,
+      custom: custom,
+      accounting: accounting,
+      headcount: (e.staffLines || []).length,
+      total: gross + payrollTax + custom + accounting
+    };
   }
 
   function ensureEconCultures(){
@@ -750,9 +874,12 @@
       };
     }).filter(p => p.pct > 0);
 
-    const staffGross = Math.max(0, e.staffCount) * Math.max(0, e.staffSalary);
-    const payrollTax = e.payrollTax ? staffGross * 0.425 : 0;
-    const staffTotal = staffGross + payrollTax;
+    const payroll = calcPayrollMonthly(e);
+    const staffGross = payroll.gross;
+    const payrollTax = payroll.payrollTax;
+    const payrollCustom = payroll.custom;
+    const accountingMonth = payroll.accounting;
+    const staffTotal = payroll.total;
     const equipTotal = deps.sumEconEquipment();
     const amortMonths = Math.max(1, parseFloat(e.amortMonths) || 60);
     const equipAmort = equipTotal / amortMonths;
@@ -793,7 +920,13 @@
     const revenue = revKg + revPcs;
     const monthlyOpex = fixedOpex + lightCost + consumablesCost;
     const usnTaxAmt = e.usnTax ? revenue * 0.06 : 0;
-    const margin = revenue - monthlyOpex - usnTaxAmt;
+    const vatPct = deps.clamp(parseFloat(e.vatPct) || 12, 0, 30);
+    const profitTaxPct = deps.clamp(parseFloat(e.profitTaxPct) || 15, 0, 30);
+    const vatTaxAmt = e.vatTax ? revenue * (vatPct / 100) : 0;
+    const profitBeforeTax = revenue - monthlyOpex - usnTaxAmt - vatTaxAmt;
+    const profitTaxAmt = e.profitTax ? Math.max(0, profitBeforeTax) * (profitTaxPct / 100) : 0;
+    const margin = profitBeforeTax - profitTaxAmt;
+    const taxTotal = usnTaxAmt + vatTaxAmt + profitTaxAmt;
 
     const fixedKg = areaUsed > 0 ? fixedOpex * (areaKg / areaUsed) : (outKg > 0 ? fixedOpex : 0);
     const fixedPcs = fixedOpex - fixedKg;
@@ -803,13 +936,16 @@
     const consPcs = consumablesCost - consKg;
 
     const lightKwhMonth = parts.reduce((s, p) => s + (p.slice.lightKwhMonth || 0), 0);
-    const totalElecKwhMonth = lightKwhMonth + otherElec.kwh;
-    const totalElecCost = lightCost + otherElecCost;
+    const elecBreakdown = calcFarmElecBreakdown(e, lightKwhMonth, lightCost);
+    const totalElecKwhMonth = elecBreakdown.reduce(function(s, row){ return s + (row.kwh || 0); }, 0);
+    const totalElecCost = elecBreakdown.reduce(function(s, row){ return s + (row.cost || 0); }, 0);
 
     const unitCostKg = sellKg > 0 ? (fixedKg + lightKg + consKg) / sellKg : 0;
     const unitCostPcs = sellPcs > 0 ? (fixedPcs + lightPcs + consPcs) / sellPcs : 0;
-    const marginKg = revKg - (fixedKg + lightKg + consKg) - (e.usnTax && revenue > 0 ? usnTaxAmt * (revKg / revenue) : 0);
-    const marginPcs = revPcs - (fixedPcs + lightPcs + consPcs) - (e.usnTax && revenue > 0 ? usnTaxAmt * (revPcs / revenue) : 0);
+    const taxShareKg = revenue > 0 ? taxTotal * (revKg / revenue) : 0;
+    const taxSharePcs = revenue > 0 ? taxTotal * (revPcs / revenue) : 0;
+    const marginKg = revKg - (fixedKg + lightKg + consKg) - taxShareKg;
+    const marginPcs = revPcs - (fixedPcs + lightPcs + consPcs) - taxSharePcs;
 
     parts.forEach(p => {
       const isPcs = p.slice.outputUnit === 'шт';
@@ -819,8 +955,8 @@
       p.slice.monthlyOpex = shareFixed + p.slice.lightCost + p.slice.consumablesCost;
       p.slice.unitCostFull = sell > 0 ? p.slice.monthlyOpex / sell : 0;
       const revNet = p.slice.revenue * wasteFactor;
-      const usnPart = e.usnTax ? revNet * 0.06 : 0;
-      p.slice.margin = revNet - p.slice.monthlyOpex - usnPart;
+      const taxShare = revenue > 0 ? taxTotal * (revNet / revenue) : 0;
+      p.slice.margin = revNet - p.slice.monthlyOpex - taxShare;
     });
 
     const farm = {
@@ -847,9 +983,20 @@
       marginPct: revenue > 0 ? (margin / revenue) * 100 : 0,
       monthlyOpex: monthlyOpex,
       usnTaxAmt: usnTaxAmt,
+      vatTaxAmt: vatTaxAmt,
+      vatPct: vatPct,
+      profitTaxAmt: profitTaxAmt,
+      profitTaxPct: profitTaxPct,
+      profitBeforeTax: profitBeforeTax,
+      taxTotal: taxTotal,
       rent: rent,
       staffTotal: staffTotal,
+      staffGross: staffGross,
       payrollTax: payrollTax,
+      payrollCustom: payrollCustom,
+      accountingMonth: accountingMonth,
+      payroll: payroll,
+      elecBreakdown: elecBreakdown,
       logistics: logistics,
       lightCost: lightCost,
       lightKwhMonth: lightKwhMonth,
@@ -895,7 +1042,12 @@
       importEconRowFromPlanting: importEconRowFromPlanting,
       importAllEconFromPlanting: importAllEconFromPlanting,
       calcOtherElecMonthly: calcOtherElecMonthly,
+      calcFarmElecBreakdown: calcFarmElecBreakdown,
+      calcPayrollMonthly: calcPayrollMonthly,
+      migrateEconElecCats: migrateEconElecCats,
+      migrateEconPayroll: migrateEconPayroll,
       migrateEconOtherElectricity: migrateEconOtherElectricity,
+      ECON_ELEC_CAT_IDS: ECON_ELEC_CAT_IDS,
       ensureEconCultures: ensureEconCultures,
       econCulturesTotalPct: econCulturesTotalPct,
       calcCultureSliceFromRow: calcCultureSliceFromRow,

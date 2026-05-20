@@ -56,7 +56,9 @@
       var yieldPerPotCycle = r.mass;
       var yieldUnit = unitIsPieces ? 'шт' : 'г';
       if (unitIsPieces && deps.isVfSheetCv(cv) && cv.yieldPerCutG > 0) yieldPerPotCycle = cv.yieldPerCutG;
-      var cyclesPerMonth = r.totalCycleDays > 0 ? HMD / r.totalCycleDays : 0;
+      var cyclesPerMonth = r.harvestCyclesPerMonth != null
+        ? r.harvestCyclesPerMonth
+        : (r.totalCycleDays > 0 ? HMD / r.totalCycleDays : 0);
       var yieldPerPotMonth = yieldPerPotCycle * cyclesPerMonth;
       var yieldPerSqmMonthKg2 = 0;
       var yieldPerSqmMonthPcs2 = 0;

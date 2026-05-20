@@ -34,6 +34,7 @@
       return L(baseKey) + ', ' + moneySym() + L(perKey);
     }
     var ECON_MONTH_DAYS = deps.ECON_MONTH_DAYS;
+    var ECON_ELEC_CAT_IDS = deps.ECON_ELEC_CAT_IDS || ['pumps', 'fans', 'heating', 'equipment', 'misc'];
     var ECON_MAX_CULTURES = deps.ECON_MAX_CULTURES;
     var ECON_SALAD_MIX_ID = deps.ECON_SALAD_MIX_ID;
     var ECON_SALAD_MIX_CV_IDS = deps.ECON_SALAD_MIX_CV_IDS;
@@ -113,10 +114,25 @@
       } else if (inp.dataset.econCulturePct != null){
         const i = parseInt(inp.dataset.econCulturePct, 10);
         if (st().econ.cultures[i]) v = st().econ.cultures[i].pct;
+      } else if (inp.dataset.econStaffSalary != null){
+        const sid = inp.dataset.econStaffSalary;
+        const row = (st().econ.staffLines || []).find(function(x){ return x.id === sid; });
+        if (row) v = row.salary;
+      } else if (inp.dataset.econPayrollCustom != null){
+        const cid = inp.dataset.econPayrollCustom;
+        const row = (st().econ.payrollCustom || []).find(function(x){ return x.id === cid; });
+        if (row) v = row.amount;
+      } else if (inp.dataset.econCatKw != null){
+        const cat = inp.dataset.econCatKw;
+        if (st().econ.elecCats && st().econ.elecCats[cat]) v = st().econ.elecCats[cat].kw;
+      } else if (inp.dataset.econCatH != null){
+        const cat = inp.dataset.econCatH;
+        if (st().econ.elecCats && st().econ.elecCats[cat]) v = st().econ.elecCats[cat].h;
       }
       if (!isNaN(v) && (
         (k != null && isMoneyKey(k)) || inp.dataset.econEq != null || inp.dataset.econCustomAmount != null ||
-        inp.dataset.econCulturePrice != null || (inp.dataset.econCultField != null && isMoneyCult(inp.dataset.econCultField))
+        inp.dataset.econCulturePrice != null || inp.dataset.econStaffSalary != null || inp.dataset.econPayrollCustom != null ||
+        (inp.dataset.econCultField != null && isMoneyCult(inp.dataset.econCultField))
       )) v = deps.rubToDisplay ? deps.rubToDisplay(v) : v;
       inp.value = (v == null || v === '' || isNaN(v)) ? '' : deps.formatInputValue(v, dec);
     });
@@ -256,19 +272,198 @@
     }
   }
 
+  function elecCatLabel(id){
+    return L('econ.elec.cat.' + id);
+  }
+
+  function renderElecCatsInputs(){
+    deps.migrateEconOtherElectricity(st().econ);
+    const wrap = deps.$('econ-elec-cats-inputs');
+    if (!wrap) return;
+    var ft = formToken();
+    if (wrap.dataset.built === ft) return;
+    wrap.dataset.built = ft;
+    let html = '<p class="econ-elec-cats-intro">' + L('econ.elec.catsIntro') + '</p><div class="econ-elec-cats-grid">';
+    ECON_ELEC_CAT_IDS.forEach(function(id){
+      const c = (st().econ.elecCats && st().econ.elecCats[id]) || { kw: 0, h: 24 };
+      const kw = c.kw != null ? c.kw : 0;
+      const h = c.h != null ? c.h : 24;
+      html += '<div class="econ-elec-cat-card"><div class="econ-elec-cat-title">' + elecCatLabel(id) + '</div>' +
+        '<div class="econ-field"><label>' + L('econ.elec.kw') + '</label>' +
+        '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="2" data-econ-cat-kw="' + id + '" value="' + deps.formatInputValue(kw, 2) + '"></div>' +
+        '<div class="econ-field"><label>' + L('econ.elec.hDay') + '</label>' +
+        '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-cat-h="' + id + '" value="' + deps.formatInputValue(h, 1) + '"></div></div>';
+    });
+    html += '</div>';
+    wrap.innerHTML = html;
+  }
+
+  function renderPayrollStaffRow(row){
+    const sal = parseFloat(row.salary) || 0;
+    return '<div class="econ-payroll-row" data-econ-staff-id="' + row.id + '">' +
+      '<input type="text" class="econ-payroll-label-inp" data-econ-staff-label="' + row.id + '" value="' + econEscAttr(row.label || '') + '" placeholder="' + L('econ.staff.role') + '">' +
+      '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-staff-salary="' + row.id + '" value="' + deps.formatInputValue(sal, 0) + '">' +
+      '<button type="button" class="econ-rm" data-econ-staff-rm="' + row.id + '" title="' + L('econ.btn.remove') + '">×</button></div>';
+  }
+
+  function renderPayrollCustomRow(row){
+    const amt = parseFloat(row.amount) || 0;
+    return '<div class="econ-payroll-row econ-payroll-row--custom" data-econ-pc-id="' + row.id + '">' +
+      '<input type="text" class="econ-payroll-label-inp" data-econ-pc-label="' + row.id + '" value="' + econEscAttr(row.label || '') + '" placeholder="' + L('econ.payroll.customPh') + '">' +
+      '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-payroll-custom="' + row.id + '" value="' + deps.formatInputValue(amt, 0) + '">' +
+      '<button type="button" class="econ-rm" data-econ-pc-rm="' + row.id + '" title="' + L('econ.btn.remove') + '">×</button></div>';
+  }
+
+  function renderPayrollSection(){
+    deps.migrateEconOtherElectricity(st().econ);
+    const wrap = deps.$('econ-payroll-body');
+    if (!wrap) return;
+    var ft = formToken();
+    if (wrap.dataset.built === ft) return;
+    wrap.dataset.built = ft;
+    const head = '<div class="econ-payroll-row econ-payroll-row--head"><span>' + L('econ.staff.role') + '</span><span>' + L('econ.staff.salary') + ', ' + moneySym() + '</span><span></span></div>';
+    let staffHtml = head;
+    (st().econ.staffLines || []).forEach(function(row){ staffHtml += renderPayrollStaffRow(row); });
+    let customHtml = '';
+    if ((st().econ.payrollCustom || []).length) customHtml += head;
+    (st().econ.payrollCustom || []).forEach(function(row){ customHtml += renderPayrollCustomRow(row); });
+    wrap.innerHTML =
+      '<div class="econ-payroll-block"><h4 class="econ-payroll-h4">' + L('econ.section.staff') + '</h4>' +
+      '<div class="econ-payroll-items" id="econ-staff-list">' + staffHtml + '</div>' +
+      '<button type="button" class="auto-btn" id="econ-staff-add">+ ' + L('econ.staff.add') + '</button></div>' +
+      '<div class="econ-payroll-block"><h4 class="econ-payroll-h4">' + L('econ.section.accounting') + '</h4>' +
+      '<div class="econ-grid econ-grid--tight">' + econNumInput('accountingMonth', moneyLabel('econ.accountingMonth', 'econ.perMonth'), { step: 1000 }) + '</div></div>' +
+      '<div class="econ-payroll-block"><h4 class="econ-payroll-h4">' + L('econ.section.payrollCustom') + '</h4>' +
+      '<div class="econ-payroll-items" id="econ-payroll-custom-list">' + (customHtml || '<p class="econ-hint" style="margin:0">' + L('econ.payroll.customEmpty') + '</p>') + '</div>' +
+      '<button type="button" class="auto-btn" id="econ-payroll-custom-add">+ ' + L('econ.payroll.customAdd') + '</button></div>';
+  }
+
   function bindEconomicsInputs(){
-    document.querySelectorAll('[data-econ-key]').forEach(inp => {
-      if (inp.dataset.econBound) return;
-      inp.dataset.econBound = '1';
-      inp.addEventListener('input', () => {
+    const root = deps.$('view-economics');
+    if (!root || root.dataset.econInpBound) return;
+    root.dataset.econInpBound = '1';
+    root.addEventListener('input', function(e){
+      const inp = e.target.closest('[data-econ-key]');
+      if (inp){
         const k = inp.dataset.econKey;
         if (k === 'payrollTax') return;
         const v = isMoneyKey(k) ? parseMoney(inp.value) : deps.parseNumInput(inp.value);
         st().econ[k] = isNaN(v) ? 0 : v;
         deps.saveEconStore();
         renderEconomics();
-      });
+        return;
+      }
+      const catKw = e.target.closest('[data-econ-cat-kw]');
+      const catH = e.target.closest('[data-econ-cat-h]');
+      const catInp = catKw || catH;
+      if (catInp){
+        deps.migrateEconOtherElectricity(st().econ);
+        const id = catInp.dataset.econCatKw || catInp.dataset.econCatH;
+        if (!id || !st().econ.elecCats[id]) return;
+        const v = deps.parseNumInput(catInp.value);
+        if (catKw) st().econ.elecCats[id].kw = isNaN(v) ? 0 : v;
+        else st().econ.elecCats[id].h = isNaN(v) ? 0 : v;
+        deps.saveEconStore();
+        renderEconomics();
+      }
     });
+  }
+
+  function bindEconomicsPayroll(){
+    const root = deps.$('view-economics');
+    if (!root || root.dataset.payrollBound) return;
+    root.dataset.payrollBound = '1';
+    root.addEventListener('click', function(e){
+      if (e.target.id === 'econ-staff-add'){
+        deps.migrateEconOtherElectricity(st().econ);
+        st().econ.staffLines.push({ id: 'staff_' + Math.random().toString(36).slice(2, 10), label: '', salary: 55000 });
+        deps.saveEconStore();
+        const list = deps.$('econ-staff-list');
+        if (list) list.insertAdjacentHTML('beforeend', renderPayrollStaffRow(st().econ.staffLines[st().econ.staffLines.length - 1]));
+        renderEconomics();
+        return;
+      }
+      if (e.target.id === 'econ-payroll-custom-add'){
+        deps.migrateEconOtherElectricity(st().econ);
+        st().econ.payrollCustom.push({ id: 'pc_' + Math.random().toString(36).slice(2, 10), label: '', amount: 0 });
+        deps.saveEconStore();
+        const list = deps.$('econ-payroll-custom-list');
+        if (list){
+          if (!list.querySelector('.econ-payroll-row--head')){
+            list.innerHTML = '<div class="econ-payroll-row econ-payroll-row--head"><span>' + L('econ.staff.role') + '</span><span>' + moneySym() + '</span><span></span></div>';
+          }
+          list.insertAdjacentHTML('beforeend', renderPayrollCustomRow(st().econ.payrollCustom[st().econ.payrollCustom.length - 1]));
+        }
+        renderEconomics();
+        return;
+      }
+      const rmStaff = e.target.closest('[data-econ-staff-rm]');
+      if (rmStaff){
+        const id = rmStaff.dataset.econStaffRm;
+        st().econ.staffLines = (st().econ.staffLines || []).filter(function(x){ return x.id !== id; });
+        if (!st().econ.staffLines.length) st().econ.staffLines.push({ id: 'staff_' + Math.random().toString(36).slice(2, 10), label: '', salary: 0 });
+        deps.saveEconStore();
+        const pw = deps.$('econ-payroll-body');
+        if (pw) pw.dataset.built = '';
+        renderPayrollSection();
+        renderEconomics();
+        return;
+      }
+      const rmPc = e.target.closest('[data-econ-pc-rm]');
+      if (rmPc){
+        const id = rmPc.dataset.econPcRm;
+        st().econ.payrollCustom = (st().econ.payrollCustom || []).filter(function(x){ return x.id !== id; });
+        deps.saveEconStore();
+        const pw2 = deps.$('econ-payroll-body');
+        if (pw2) pw2.dataset.built = '';
+        renderPayrollSection();
+        renderEconomics();
+      }
+    });
+    root.addEventListener('input', function(e){
+      const t = e.target;
+      const sid = t.dataset.econStaffSalary;
+      if (sid){
+        const row = (st().econ.staffLines || []).find(function(x){ return x.id === sid; });
+        if (row){ row.salary = parseMoney(t.value) || 0; deps.saveEconStore(); renderEconomics(); }
+        return;
+      }
+      const lbl = t.dataset.econStaffLabel;
+      if (lbl){
+        const row = (st().econ.staffLines || []).find(function(x){ return x.id === lbl; });
+        if (row){ row.label = t.value; deps.saveEconStore(); }
+        return;
+      }
+      const cid = t.dataset.econPayrollCustom;
+      if (cid){
+        const row = (st().econ.payrollCustom || []).find(function(x){ return x.id === cid; });
+        if (row){ row.amount = parseMoney(t.value) || 0; deps.saveEconStore(); renderEconomics(); }
+        return;
+      }
+      const pcl = t.dataset.econPcLabel;
+      if (pcl){
+        const row = (st().econ.payrollCustom || []).find(function(x){ return x.id === pcl; });
+        if (row){ row.label = t.value; deps.saveEconStore(); }
+      }
+    });
+  }
+
+  function renderElecCharts(farm){
+    const el = deps.$('econ-elec-charts');
+    if (!el) return;
+    const rows = farm.elecBreakdown || [];
+    const maxCost = Math.max.apply(null, rows.map(function(r){ return r.cost || 0; }).concat([1]));
+    let html = '<p class="econ-results-sub" style="margin-top:0">' + L('econ.elec.chartTitle') + '</p>';
+    rows.forEach(function(row){
+      const pct = maxCost > 0 ? Math.round((row.cost / maxCost) * 100) : 0;
+      const lbl = row.id === 'light' ? L('econ.elec.cat.light') : elecCatLabel(row.id);
+      const sub = row.kw != null ? tFmt('econ.elec.catSub', { kw: deps.r1(row.kw), h: deps.r1(row.h) }) : L('econ.elec.catLightSub');
+      html += '<div class="econ-elec-bar-row"><span class="econ-elec-bar-label">' + lbl + '<span class="econ-elec-bar-sub">' + sub + '</span></span>' +
+        '<div class="econ-elec-bar-track"><div class="econ-elec-bar-fill" style="width:' + pct + '%"></div></div>' +
+        '<span class="econ-elec-bar-kwh">' + deps.fmtNum(row.kwh || 0) + '</span>' +
+        '<span class="econ-elec-bar-cost">' + moneyFmt(row.cost) + '</span></div>';
+    });
+    el.innerHTML = html;
   }
 
   function bindEconomicsEquipment(){
@@ -338,8 +533,6 @@
     gen.innerHTML =
       econNumInput('priceKwh', moneyLabel('econ.priceKwh', 'econ.perKwh'), { step: 0.1 }) +
       econNumInput('rentMonth', moneyLabel('econ.rentMonth', 'econ.perMonth'), { step: 1000 }) +
-      econNumInput('staffCount', L('econ.staffCount'), { step: 1 }) +
-      econNumInput('staffSalary', moneyLabel('econ.staffSalary', 'econ.perMonth'), { step: 1000 }) +
       econToggleHtml('econ-payroll-tax', L('econ.payrollTax'), st().econ.payrollTax) +
       econNumInput('logisticsMonth', moneyLabel('econ.logisticsMonth', 'econ.perMonth'), { step: 1000 }) +
       econNumInput('floorArea', L('econ.floorArea'), { step: 1 }) +
@@ -354,13 +547,21 @@
     if (costs && costs.dataset.built !== ft){
       costs.dataset.built = ft;
       costs.innerHTML =
-      econNumInput('otherElecKw', L('econ.otherElecKw'), { step: 0.1, hint: L('econ.otherElecKw.hint') }) +
-      econNumInput('otherElecHoursDay', L('econ.otherElecHoursDay'), { step: 0.5, hint: L('econ.otherElecHoursDay.hint') }) +
-      '<div id="econ-other-elec-hint" class="econ-hint" style="grid-column:1/-1"></div>' +
       econNumInput('otherMonth', moneyLabel('econ.otherMonth', 'econ.perMonth'), { step: 1000, hint: L('econ.otherMonth.hint') }) +
       econNumInput('consumablesPerKg', L('econ.consumablesPerKg'), { step: 0.1, hint: L('econ.consumablesPerKg.hint') }) +
-      econToggleHtml('econ-usn-tax', L('econ.usnTax'), st().econ.usnTax);
+      econToggleHtml('econ-usn-tax', L('econ.usnTax'), st().econ.usnTax) +
+      econToggleHtml('econ-vat-tax', L('econ.vatTax'), st().econ.vatTax) +
+      econNumInput('vatPct', L('econ.vatPct'), { step: 0.5 }) +
+      econToggleHtml('econ-profit-tax', L('econ.profitTax'), st().econ.profitTax) +
+      econNumInput('profitTaxPct', L('econ.profitTaxPct'), { step: 0.5 });
     }
+
+    const elecWrap = deps.$('econ-elec-cats-inputs');
+    const payWrap = deps.$('econ-payroll-body');
+    if (elecWrap) elecWrap.dataset.built = '';
+    if (payWrap) payWrap.dataset.built = '';
+    renderElecCatsInputs();
+    renderPayrollSection();
 
     const tax = deps.$('econ-payroll-tax');
     if (tax){
@@ -378,8 +579,25 @@
         renderEconomics();
       });
     }
+    const vat = deps.$('econ-vat-tax');
+    if (vat){
+      vat.addEventListener('change', () => {
+        st().econ.vatTax = vat.checked;
+        deps.saveEconStore();
+        renderEconomics();
+      });
+    }
+    const profit = deps.$('econ-profit-tax');
+    if (profit){
+      profit.addEventListener('change', () => {
+        st().econ.profitTax = profit.checked;
+        deps.saveEconStore();
+        renderEconomics();
+      });
+    }
     renderEconomicsEquipment();
     bindEconomicsInputs();
+    bindEconomicsPayroll();
     bindEconomicsEquipment();
     bindEconomicsCultures();
     initEconFmtInputs();
@@ -715,34 +933,39 @@
     } else {
       metrics += '<div class="econ-results-section"><p style="color:var(--ink-faint);font-size:13px;margin:0">' + L('econ.metrics.empty') + '</p></div>';
     }
-    const oE = res.otherElec || {};
-    metrics += '<div class="econ-results-farm"><p class="econ-results-sub">' + L('econ.metrics.elecMo') + '</p>' +
-      '<div class="econ-table-scroll"><table class="econ-breakdown econ-elec-total"><tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwh') + '</th><th>' + moneySym() + '</th></tr>' +
-      '<tr><td>' + L('econ.elec.light') + '</td><td>' + deps.fmtNum(res.lightKwhMonth || 0) + '</td><td>' + moneyFmt(res.lightCost) + '</td></tr>' +
-      '<tr><td>' + tFmt('econ.elec.other', { kw: deps.r1(oE.kw || 0), h: deps.r1(oE.hoursDay || 0) }) + '</td><td>' + deps.fmtNum(res.otherElecKwhMonth || 0) + '</td><td>' + moneyFmt(res.otherElecCost) + '</td></tr>' +
-      '<tr class="econ-row-total"><td><strong>' + L('econ.elec.total') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr></table></div></div>';
+    metrics += '<div class="econ-results-farm"><div id="econ-elec-charts" class="econ-elec-charts-wrap"></div>' +
+      '<p class="econ-results-sub">' + L('econ.metrics.elecMo') + '</p>' +
+      '<div class="econ-table-scroll"><table class="econ-breakdown econ-elec-total"><tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwh') + '</th><th>' + moneySym() + '</th></tr>';
+    (res.elecBreakdown || []).forEach(function(row){
+      const lbl = row.id === 'light' ? L('econ.elec.cat.light') : elecCatLabel(row.id);
+      const sub = row.kw != null ? ' <span class="econ-tbl-sub">(' + tFmt('econ.elec.catSub', { kw: deps.r1(row.kw), h: deps.r1(row.h) }) + ')</span>' : '';
+      metrics += '<tr><td>' + lbl + sub + '</td><td>' + deps.fmtNum(row.kwh || 0) + '</td><td>' + moneyFmt(row.cost) + '</td></tr>';
+    });
+    metrics += '<tr class="econ-row-total"><td><strong>' + L('econ.elec.total') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr></table></div></div>';
     metrics += '<div class="econ-results-farm"><p class="econ-results-sub">' + L('econ.metrics.farm') + '</p><div class="econ-results" style="margin-top:0">' +
       '<div class="m"><div class="m-label">' + L('econ.metrics.opex') + '</div><div class="m-val">' + moneyFmt(res.monthlyOpex) + '<span class="m-unit">' + moneySym() + '</span></div></div>' +
       '<div class="m ' + (res.margin >= 0 ? 'hl' : 'bad-tint') + '"><div class="m-label">' + L('econ.metrics.marginAll') + '</div><div class="m-val">' + moneyFmt(res.margin) + '<span class="m-unit">' + moneySym() + '</span></div></div>' +
       '</div></div>';
     deps.$('econ-results-metrics').innerHTML = metrics;
-
-    const otherHint = deps.$('econ-other-elec-hint');
-    if (otherHint){
-      otherHint.textContent = tFmt('econ.otherElecHint', { kwh: deps.fmtNum(res.otherElecKwhMonth || 0), days: ECON_MONTH_DAYS });
-    }
-
+    renderElecCharts(res);
 
     const wasteRow = res.wastePct > 0
       ? '<tr><td>' + L('econ.bd.waste') + '</td><td colspan="2">' + deps.r1(res.wastePct) + '%</td></tr>'
       : '';
-    deps.$('econ-breakdown-table').innerHTML =
-      '<tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwhMo') + '</th><th>' + moneySym() + L('econ.perMonth') + '</th></tr>' +
+    let bd =
       '<tr><td>' + L('econ.bd.rent') + '</td><td>—</td><td>' + moneyFmt(res.rent) + '</td></tr>' +
+      '<tr><td>' + L('econ.bd.staffGross') + '</td><td>—</td><td>' + moneyFmt(res.staffGross) + '</td></tr>' +
+      (res.payrollTax > 0 ? '<tr><td>' + L('econ.bd.payrollTax') + '</td><td>—</td><td>' + moneyFmt(res.payrollTax) + '</td></tr>' : '') +
+      (res.payrollCustom > 0 ? '<tr><td>' + L('econ.bd.payrollCustom') + '</td><td>—</td><td>' + moneyFmt(res.payrollCustom) + '</td></tr>' : '') +
+      (res.accountingMonth > 0 ? '<tr><td>' + L('econ.bd.accounting') + '</td><td>—</td><td>' + moneyFmt(res.accountingMonth) + '</td></tr>' : '') +
       '<tr><td>' + L('econ.bd.staff') + '</td><td>—</td><td>' + moneyFmt(res.staffTotal) + '</td></tr>' +
-      '<tr><td>' + L('econ.bd.logistics') + '</td><td>—</td><td>' + moneyFmt(res.logistics) + '</td></tr>' +
-      '<tr><td>' + L('econ.bd.light') + '</td><td>' + deps.fmtNum(res.lightKwhMonth || 0) + '</td><td>' + moneyFmt(res.lightCost) + '</td></tr>' +
-      '<tr><td>' + L('econ.bd.otherElec') + '</td><td>' + deps.fmtNum(res.otherElecKwhMonth || 0) + '</td><td>' + moneyFmt(res.otherElecCost) + '</td></tr>' +
+      '<tr><td>' + L('econ.bd.logistics') + '</td><td>—</td><td>' + moneyFmt(res.logistics) + '</td></tr>';
+    (res.elecBreakdown || []).forEach(function(row){
+      const lbl = row.id === 'light' ? L('econ.bd.light') : (L('econ.bd.elecPrefix') + ' ' + elecCatLabel(row.id));
+      bd += '<tr><td>' + lbl + '</td><td>' + deps.fmtNum(row.kwh || 0) + '</td><td>' + moneyFmt(row.cost) + '</td></tr>';
+    });
+    deps.$('econ-breakdown-table').innerHTML =
+      '<tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwhMo') + '</th><th>' + moneySym() + L('econ.perMonth') + '</th></tr>' + bd +
       '<tr class="econ-row-total"><td><strong>' + L('econ.bd.elecTotal') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr>' +
       '<tr><td>' + L('econ.bd.other') + '</td><td>—</td><td>' + moneyFmt(res.other) + '</td></tr>' +
       '<tr><td>' + L('econ.bd.amort') + '</td><td>—</td><td>' + moneyFmt(res.equipAmort) + '</td></tr>' +
@@ -750,6 +973,9 @@
       '<tr><td><strong>' + L('econ.bd.opexTotal') + '</strong></td><td>—</td><td><strong>' + moneyFmt(res.monthlyOpex) + '</strong></td></tr>' +
       wasteRow +
       '<tr><td>' + L('econ.bd.revenue') + '</td><td>—</td><td>' + moneyFmt(res.revenue) + '</td></tr>' +
+      (res.usnTaxAmt > 0 ? '<tr><td>' + L('econ.bd.usn') + '</td><td>—</td><td>' + moneyFmt(res.usnTaxAmt) + '</td></tr>' : '') +
+      (res.vatTaxAmt > 0 ? '<tr><td>' + tFmt('econ.bd.vat', { pct: deps.r1(res.vatPct) }) + '</td><td>—</td><td>' + moneyFmt(res.vatTaxAmt) + '</td></tr>' : '') +
+      (res.profitTaxAmt > 0 ? '<tr><td>' + tFmt('econ.bd.profitTax', { pct: deps.r1(res.profitTaxPct) }) + '</td><td>—</td><td>' + moneyFmt(res.profitTaxAmt) + '</td></tr>' : '') +
       '<tr><td>' + L('econ.bd.margin') + '</td><td>—</td><td>' + moneyFmt(res.margin) + ' (' + deps.r1(res.marginPct) + '%)</td></tr>';
     refreshFmtDisplayAll();
   }

@@ -11,6 +11,17 @@
   var RUCOLA_BABY_ID = 'rucola-baby';
   var LETTUCE_BABY_ID = 'lettuce-baby';
   var GERM_DAYS = 3;
+  var HEAD_GERM_MIN = 1;
+  var HEAD_GERM_MAX = 4;
+  var HEAD_NURSERY_MIN = 1;
+  var HEAD_NURSERY_MAX = 21;
+  var HEAD_CHANNEL_MIN = 1;
+  var HEAD_CHANNEL_MAX = 28;
+  var HEAD_MAIN_HARVEST_INTERVAL_D = 20;
+  var HEAD_NURSERY_DEFAULT_D = 14;
+  var STAFF_AREA_MIN_M2 = 150;
+  var STAFF_AREA_MAX_M2 = 200;
+  var HARVEST_MONTH_DAYS = (global.DG_CUT && global.DG_CUT.HARVEST_MONTH_DAYS) || 30.5;
   var OFFSET_PCT = 50;
   var POT_MM = 50;
   var PHOTOPERIOD_H = 16;
@@ -251,7 +262,79 @@
     }
 
     function preChannelDaysGeorgy(){
-      return GERM_DAYS;
+      if (!isGeorgyGh()) return st().germination + st().nursery;
+      var cv = deps.getCv();
+      if (getGeorgyProfile(cv)) return GERM_DAYS;
+      return clamp(Math.round(st().germination), HEAD_GERM_MIN, HEAD_GERM_MAX) +
+        clamp(Math.round(st().nursery), HEAD_NURSERY_MIN, HEAD_NURSERY_MAX);
+    }
+
+    function isGeorgyHeadSalad(cv){
+      return isGeorgyGh() && cv && !getGeorgyProfile(cv);
+    }
+
+    function mainHarvestIntervalDays(){
+      return HEAD_MAIN_HARVEST_INTERVAL_D;
+    }
+
+    function headHarvestCyclesPerMonth(){
+      return HARVEST_MONTH_DAYS / HEAD_MAIN_HARVEST_INTERVAL_D;
+    }
+
+    function totalDaysFromSowGeorgy(cv){
+      cv = cv || deps.getCv();
+      if (!isGeorgyGh()) return null;
+      if (getGeorgyProfile(cv)) return GERM_DAYS + Math.round(st().day);
+      return preChannelDaysGeorgy() + clamp(Math.round(st().day), HEAD_CHANNEL_MIN, HEAD_CHANNEL_MAX);
+    }
+
+    function clampGeorgyHeadCycleInputs(){
+      st().germination = clamp(Math.round(st().germination), HEAD_GERM_MIN, HEAD_GERM_MAX);
+      st().nursery = clamp(Math.round(st().nursery), HEAD_NURSERY_MIN, HEAD_NURSERY_MAX);
+      st().day = clamp(Math.round(st().day), HEAD_CHANNEL_MIN, HEAD_CHANNEL_MAX);
+    }
+
+    function syncGeorgyHeadSlidersToState(){
+      var cv = deps.getCv();
+      var profile = getGeorgyProfile(cv);
+      var germInp = document.getElementById('georgy-germ');
+      var germV = document.getElementById('georgy-germ-v');
+      var nurInp = document.getElementById('georgy-nursery');
+      var nurV = document.getElementById('georgy-nursery-v');
+      if (!profile){
+        clampGeorgyHeadCycleInputs();
+        if (germInp && document.activeElement !== germInp){
+          germInp.value = st().germination;
+          if (germV) germV.textContent = String(st().germination);
+        }
+        if (nurInp && document.activeElement !== nurInp){
+          nurInp.value = st().nursery;
+          if (nurV) nurV.textContent = String(st().nursery);
+        }
+        if (deps.$('germination')) deps.$('germination').value = st().germination;
+        if (deps.$('germination-v')) deps.$('germination-v').textContent = String(st().germination);
+        if (deps.$('nursery')) deps.$('nursery').value = st().nursery;
+        if (deps.$('nursery-v')) deps.$('nursery-v').textContent = String(st().nursery);
+      }
+    }
+
+    function renderGeorgyStaffHint(){
+      var el = document.getElementById('georgy-staff-hint');
+      if (!el || !isGeorgyGh()) return;
+      var area = parseFloat(st().ghUsefulArea);
+      if (!(area > 0)){
+        el.textContent = T('georgy.staffNeedArea', null, 'Укажите полезную площадь в блоке урожая — покажем норму персонала.');
+        return;
+      }
+      var wMin = area / STAFF_AREA_MAX_M2;
+      var wMax = area / STAFF_AREA_MIN_M2;
+      el.textContent = T('georgy.staffNorm', {
+        area: r2(area),
+        wMin: r2(wMin),
+        wMax: r2(wMax),
+        aMin: STAFF_AREA_MIN_M2,
+        aMax: STAFF_AREA_MAX_M2
+      }, '');
     }
 
     function georgyAutoTargetDli(){
@@ -450,8 +533,15 @@
         st().cv = RUCOLA_BABY_ID;
         cv = deps.getCv();
       }
-      st().germination = GERM_DAYS;
-      st().nursery = 0;
+      var profile = getGeorgyProfile(cv);
+      if (profile){
+        st().germination = GERM_DAYS;
+        st().nursery = 0;
+      } else {
+        clampGeorgyHeadCycleInputs();
+        if (!(st().nursery > 0)) st().nursery = HEAD_NURSERY_DEFAULT_D;
+        if (st().germination < HEAD_GERM_MIN) st().germination = GERM_DAYS;
+      }
       st().offset = OFFSET_PCT;
       st().pot = POT_MM;
       st().useManualMass = false;
@@ -459,9 +549,11 @@
       st().useManualCutMass = false;
       st().targetPhotoperiod = PHOTOPERIOD_H;
       if (st().lighting) st().targetDli = georgyAutoTargetDli();
-      var profile = getGeorgyProfile(cv);
-      var dayLo = profile ? 8 : 14;
-      st().day = clamp(Math.round(st().day), dayLo, 40);
+      if (profile){
+        st().day = clamp(Math.round(st().day), 8, 40);
+      } else {
+        st().day = clamp(Math.round(st().day), HEAD_CHANNEL_MIN, HEAD_CHANNEL_MAX);
+      }
       if (profile){
         applyGeorgyProfilePresets(cv);
       } else {
@@ -707,6 +799,9 @@
       document.querySelectorAll('#panel-georgy-simple .georgy-baby-only').forEach(function (node){
         node.classList.toggle('env-block-hidden', !showBabyUi);
       });
+      document.querySelectorAll('#panel-georgy-simple .georgy-head-only').forEach(function (node){
+        node.classList.toggle('env-block-hidden', showBabyUi);
+      });
       var rucolaBtn = document.getElementById('georgy-rucola-std');
       var lettuceBtn = document.getElementById('georgy-lettuce-std');
       if (rucolaBtn){
@@ -734,11 +829,12 @@
       }
       var germV = document.getElementById('georgy-germ-val');
       if (germV) germV.textContent = String(GERM_DAYS);
+      syncGeorgyHeadSlidersToState();
       var dayInp = document.getElementById('georgy-day');
       var dayV = document.getElementById('georgy-day-v');
       if (dayInp){
-        dayInp.min = profile ? '8' : '14';
-        dayInp.max = '40';
+        dayInp.min = profile ? '8' : String(HEAD_CHANNEL_MIN);
+        dayInp.max = profile ? '40' : String(HEAD_CHANNEL_MAX);
       }
       if (dayInp && document.activeElement !== dayInp){
         dayInp.value = st().day;
@@ -768,7 +864,7 @@
       }
       if (densV) densV.textContent = String(targetRho);
       var densAutoBtn = document.getElementById('georgy-density-auto');
-      if (densAutoBtn) densAutoBtn.disabled = !(st().day >= (profile ? 8 : 14));
+      if (densAutoBtn) densAutoBtn.disabled = !(st().day >= (profile ? 8 : HEAD_CHANNEL_MIN));
       var densHint = document.getElementById('georgy-density-hint');
       if (densHint){
         var autoRho = st().georgyAutoDensity;
@@ -787,6 +883,12 @@
             'Задайте дни роста, проверьте массу и шапку, затем нажмите кнопку подбора.');
         }
       }
+      var totalDaysEl = document.getElementById('georgy-total-days');
+      if (totalDaysEl){
+        var td = totalDaysFromSowGeorgy(cv);
+        totalDaysEl.textContent = td != null ? String(Math.round(td)) : '—';
+      }
+      renderGeorgyStaffHint();
       renderGeorgyProfileRec(cv);
       renderGeorgyCutPreview(r);
       var autoDli = document.getElementById('georgy-auto-dli');
@@ -1010,6 +1112,16 @@
 
     function onGeorgyDayChanged(){
       st().georgyDensityFitted = false;
+      syncGeorgyHeadSlidersToState();
+    }
+
+    function onGeorgyHeadCycleChanged(){
+      onGeorgyDayChanged();
+      var totalDaysEl = document.getElementById('georgy-total-days');
+      if (totalDaysEl){
+        var td = totalDaysFromSowGeorgy(deps.getCv());
+        totalDaysEl.textContent = td != null ? String(Math.round(td)) : '—';
+      }
     }
 
     /** Сброс ручных масс срезок беби к авто-нормативу (тепло, свет). */
@@ -1044,6 +1156,11 @@
       RUCOLA_PROFILE: RUCOLA_PROFILE,
       LETTUCE_PROFILE: LETTUCE_PROFILE,
       preChannelDaysGeorgy: preChannelDaysGeorgy,
+      isGeorgyHeadSalad: isGeorgyHeadSalad,
+      mainHarvestIntervalDays: mainHarvestIntervalDays,
+      headHarvestCyclesPerMonth: headHarvestCyclesPerMonth,
+      totalDaysFromSowGeorgy: totalDaysFromSowGeorgy,
+      clampGeorgyHeadCycleInputs: clampGeorgyHeadCycleInputs,
       applyGeorgyBeforeCalc: applyGeorgyBeforeCalc,
       applyCanopyDensityBeforeCalc: applyCanopyDensityBeforeCalc,
       syncGeorgyControls: syncGeorgyControls,
@@ -1063,6 +1180,7 @@
       estimateGeorgyHarvest: estimateGeorgyHarvest,
       MAX_LEAF_OVERLAP_MM: MAX_LEAF_OVERLAP_MM,
       onGeorgyDayChanged: onGeorgyDayChanged,
+      onGeorgyHeadCycleChanged: onGeorgyHeadCycleChanged,
       GERM_DAYS: GERM_DAYS
     };
   }

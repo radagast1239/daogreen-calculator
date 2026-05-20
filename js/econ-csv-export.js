@@ -54,6 +54,8 @@
     lines.push(rowCsv([T('csv.margin') + ' ' + sym, Math.round(farm.margin || 0)]));
     lines.push(rowCsv([T('csv.marginPct'), farm.marginPct != null ? farm.marginPct.toFixed(1) : '']));
     lines.push(rowCsv([T('csv.usn') + ' ' + sym, Math.round(farm.usnTaxAmt || 0)]));
+    if (farm.vatTaxAmt > 0) lines.push(rowCsv([T('econ.bd.vat').replace('{pct}', farm.vatPct) + ' ' + sym, Math.round(farm.vatTaxAmt)]));
+    if (farm.profitTaxAmt > 0) lines.push(rowCsv([T('econ.bd.profitTax').replace('{pct}', farm.profitTaxPct) + ' ' + sym, Math.round(farm.profitTaxAmt)]));
     lines.push(rowCsv([T('csv.light') + ' ' + sym, Math.round(farm.lightCost || 0)]));
     lines.push(rowCsv([T('csv.cons') + ' ' + sym, Math.round(farm.consumablesCost || 0)]));
     lines.push(rowCsv([T('csv.rent') + ' ' + sym, Math.round(farm.rent || 0)]));

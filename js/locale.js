@@ -9,7 +9,7 @@
 
   var MONEY_ECON_KEYS = {
     priceKwh: 1, rentMonth: 1, staffSalary: 1, logisticsMonth: 1, salePrice: 1,
-    otherMonth: 1, consumablesPerKg: 1
+    otherMonth: 1, consumablesPerKg: 1, accountingMonth: 1
   };
   var MONEY_CULT_FIELDS = { salePrice: 1, consumablesPerPot: 1 };
 
@@ -67,6 +67,8 @@
       'econ.section.cultures': 'Состав фермы по культурам',
       'econ.cultures.intro': 'До 6 культур. Доли площади — не больше 100%. Расходники на посев: шт/м² × цена за горшок (семена, горшок, субстрат) — ориентир 3–6 за горшок, по умолчанию 4; сумма ÷ срок урожая с посева → в месяц на м². Урожай и свет — вручную или «Импорт из посадки» (в т.ч. культуры поддонов pl-*).',
       'econ.section.yield': 'Сводка урожая (из полей культур)',
+      'econ.section.elec': 'Электроэнергия по категориям',
+      'econ.section.payroll': 'Персонал, учёт и налоги',
       'econ.section.costs': 'Затраты (в месяц)',
       'econ.section.equipment': 'Оборудование и подготовка (разово)',
       'econ.section.results': 'Итог',
@@ -99,6 +101,10 @@
       'econ.consumablesPerKg': 'Доп. на ед. продукции',
       'econ.consumablesPerKg.hint': 'Упаковка на единицу выпуска; в таблице — на м²·мес',
       'econ.usnTax': 'УСН 6% с выручки',
+      'econ.vatTax': 'НДС с выручки',
+      'econ.vatPct': 'Ставка НДС, %',
+      'econ.profitTax': 'Налог на прибыль',
+      'econ.profitTaxPct': 'Ставка налога на прибыль, %',
       'econ.perMonth': '/мес',
       'econ.perKwh': '/кВт·ч',
       'econ.perKg': '/кг',
@@ -205,6 +211,8 @@
       'econ.section.cultures': 'Farm crop mix',
       'econ.cultures.intro': 'Up to 6 crops. Area shares must not exceed 100%. Sowing consumables: pcs/m² × price per pot (seed, pot, substrate) — typical 3–6 per pot, default 4; total ÷ months to harvest from sowing → per m² per month. Yield and light — manual or Import from planting (incl. pallet crops pl-*).',
       'econ.section.yield': 'Yield summary (from crop fields)',
+      'econ.section.elec': 'Electricity by category',
+      'econ.section.payroll': 'Staff, accounting & taxes',
       'econ.section.costs': 'Costs (monthly)',
       'econ.section.equipment': 'Equipment & setup (one-time)',
       'econ.section.results': 'Summary',
@@ -237,6 +245,10 @@
       'econ.consumablesPerKg': 'Extra per product unit',
       'econ.consumablesPerKg.hint': 'Packaging per sold unit; table shows per m²·mo',
       'econ.usnTax': 'Simplified tax 6% of revenue',
+      'econ.vatTax': 'VAT on revenue',
+      'econ.vatPct': 'VAT rate, %',
+      'econ.profitTax': 'Profit tax',
+      'econ.profitTaxPct': 'Profit tax rate, %',
       'econ.perMonth': '/mo',
       'econ.perKwh': '/kWh',
       'econ.perKg': '/kg',

@@ -169,14 +169,42 @@
     georgyMode.loadGeorgyMode();
     var gBtn = $('btn-georgy-mode');
     if (gBtn) gBtn.addEventListener('click', function(){ georgyMode.toggleGeorgyMode(); });
+    function bindGeorgyRange(id, onInput){
+      var el = $(id);
+      if (!el || el.dataset.georgyBound) return;
+      el.dataset.georgyBound = '1';
+      el.addEventListener('input', onInput);
+    }
+    bindGeorgyRange('georgy-germ', function(){
+      var cv = getCv();
+      if (georgyMode.getGeorgyProfile(cv)) return;
+      deps.getState().germination = clamp(parseInt($('georgy-germ').value, 10) || 3, 1, 4);
+      if ($('georgy-germ-v')) $('georgy-germ-v').textContent = String(deps.getState().germination);
+      if ($('germination')) $('germination').value = deps.getState().germination;
+      if ($('germination-v')) $('germination-v').textContent = String(deps.getState().germination);
+      if (georgyMode.onGeorgyHeadCycleChanged) georgyMode.onGeorgyHeadCycleChanged();
+      renderAll();
+    });
+    bindGeorgyRange('georgy-nursery', function(){
+      var cv = getCv();
+      if (georgyMode.getGeorgyProfile(cv)) return;
+      deps.getState().nursery = clamp(parseInt($('georgy-nursery').value, 10) || 14, 1, 21);
+      if ($('georgy-nursery-v')) $('georgy-nursery-v').textContent = String(deps.getState().nursery);
+      if ($('nursery')) $('nursery').value = deps.getState().nursery;
+      if ($('nursery-v')) $('nursery-v').textContent = String(deps.getState().nursery);
+      if (georgyMode.onGeorgyHeadCycleChanged) georgyMode.onGeorgyHeadCycleChanged();
+      renderAll();
+    });
     var gDay = $('georgy-day');
     if (gDay){
       gDay.addEventListener('input', function(){
         var cv = getCv();
         var gp = georgyMode.getGeorgyProfile(cv);
-        var dMin = gp ? 8 : 14;
-        deps.getState().day = clamp(parseInt(gDay.value, 10) || 21, dMin, 40);
+        var dMin = gp ? 8 : 1;
+        var dMax = gp ? 40 : 28;
+        deps.getState().day = clamp(parseInt(gDay.value, 10) || 21, dMin, dMax);
         if (georgyMode.onGeorgyDayChanged) georgyMode.onGeorgyDayChanged();
+        if (georgyMode.onGeorgyHeadCycleChanged) georgyMode.onGeorgyHeadCycleChanged();
         if ($('georgy-day-v')) $('georgy-day-v').textContent = String(deps.getState().day);
         if ($('day')) $('day').value = deps.getState().day;
         if ($('day-v')) $('day-v').textContent = String(deps.getState().day);

@@ -217,11 +217,20 @@
     const maxChannelsFit = Math.max(2, Math.floor((MAX_WIDTH - CH_W) / b) + 1);
 
     /* Cycle metrics */
+    const HMD = (global.DG_CUT && global.DG_CUT.HARVEST_MONTH_DAYS) || 30.5;
     const totalCycleDays = preChannelDays() + Math.round(tHarvestCh);
-    const cyclesPerYear = totalCycleDays > 0 ? 365 / totalCycleDays : 0;
+    const totalDaysFromSow = preChannelDays() + Math.round(t_ch);
+    let cyclesPerYear = totalCycleDays > 0 ? 365 / totalCycleDays : 0;
+    let harvestCyclesPerMonth = totalCycleDays > 0 ? HMD / totalCycleDays : 0;
     const yieldPerCycleKg = mass * total / 1000;
     const yieldPerSqmCycle = mass * rhoA / 1000;  /* kg/m² per cycle */
-    const yieldPerSqmYear = yieldPerSqmCycle * cyclesPerYear;
+    let yieldPerSqmYear = yieldPerSqmCycle * cyclesPerYear;
+    if (georgyModeRef() && georgyModeRef().isGeorgyHeadSalad && georgyModeRef().isGeorgyHeadSalad(cv)){
+      const mainInt = georgyModeRef().mainHarvestIntervalDays();
+      harvestCyclesPerMonth = georgyModeRef().headHarvestCyclesPerMonth();
+      cyclesPerYear = 365 / mainInt;
+      yieldPerSqmYear = yieldPerSqmCycle * cyclesPerYear;
+    }
 
     return { cv, t_ch, t_total, mass, massAuto, canopy, massRaw, canopyRaw, crowdF,
              rgrMass, rgrCanopy, tHarvestCh, tBoltCh, st: growthStage,
@@ -229,7 +238,7 @@
              rhoT, rhoA, leafGap,
              perChan, perRow, total, sysWmm, sysArea, vfMode,
              widthExceeds, widthClose, maxChannelsFit,
-             totalCycleDays, cyclesPerYear, yieldPerCycleKg, yieldPerSqmCycle, yieldPerSqmYear };
+             totalCycleDays, totalDaysFromSow, harvestCyclesPerMonth, cyclesPerYear, yieldPerCycleKg, yieldPerSqmCycle, yieldPerSqmYear };
   }
     return {
       calcScenario: calcScenario,

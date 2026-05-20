@@ -62,12 +62,13 @@
 
     function econStateFallback(){
     return {
-      priceKwh: 5, rentMonth: 0, staffCount: 2, staffSalary: 55000, payrollTax: true, logisticsMonth: 0,
-      floorArea: 200, plantingArea: 150,
+      priceKwh: 5, rentMonth: 0, payrollTax: true, staffLines: [], payrollCustom: [], accountingMonth: 15000,
+      logisticsMonth: 0, floorArea: 200, plantingArea: 150,
       cultures: [{ cvId: '', pct: 100, salePrice: 0, density: 80, yieldPerCut: 15, cutIntervalDays: 15,
         kwhPerM2Hour: 0.08, lightHoursDay: 16, consumablesPerPot: 4, potHarvestMonths: 3, unitIsPieces: false }],
-      salePrice: 800, kwhPerM2Hour: 0.08, lightHoursDay: 16, otherElecKw: 1.1, otherElecHoursDay: 24,
-      otherMonth: 15000, consumablesPerKg: 0, wastePct: 0, usnTax: false, amortMonths: 60,
+      salePrice: 800, kwhPerM2Hour: 0.08, lightHoursDay: 16, elecCats: {},
+      otherMonth: 15000, consumablesPerKg: 0, wastePct: 0, usnTax: false, vatTax: false, vatPct: 12,
+      profitTax: false, profitTaxPct: 15, amortMonths: 60,
       equipmentEnabled: true, equipment: {}, equipmentCustom: []
     };
   }
@@ -212,6 +213,7 @@
       getState: function(){ return st(); },
       $: $,
       ECON_MONTH_DAYS: ECON_MONTH_DAYS,
+      ECON_ELEC_CAT_IDS: (global.DG_ECON && global.DG_ECON.ECON_ELEC_CAT_IDS) || ['pumps', 'fans', 'heating', 'equipment', 'misc'],
       ECON_MAX_CULTURES: ECON_MAX_CULTURES,
       ECON_SALAD_MIX_ID: ECON_SALAD_MIX_ID,
       ECON_SALAD_MIX_CV_IDS: ECON_SALAD_MIX_CV_IDS,
