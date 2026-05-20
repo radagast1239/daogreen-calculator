@@ -494,11 +494,14 @@
         const d = Math.round(r.t_ch || 0);
         const rd = rangeDay();
         return Math.max(0, d - Math.round(rd)) + '–' + (d + Math.round(rd)) + ' ' + pm('unit.days');
-      case 'cycle':
-        if (!st().showRange) return Math.round(r.totalCycleDays || 0) + ' ' + pm('unit.days');
-        const c = Math.round(r.totalCycleDays || 0);
+      case 'cycle': {
+        const ghHead = georgyModeRef() && georgyModeRef().isGeorgyGh() && georgyModeRef().isGeorgyHeadSalad(r.cv);
+        const cycleD = ghHead && r.totalDaysFromSow != null ? r.totalDaysFromSow : (r.totalCycleDays || 0);
+        if (!st().showRange) return Math.round(cycleD) + ' ' + pm('unit.days');
+        const c = Math.round(cycleD);
         const rc = rangeDay();
         return Math.max(1, c - Math.round(rc)) + '–' + (c + Math.round(rc)) + ' ' + pm('unit.days');
+      }
       case 'kgSqmYear':
         return st().showRange
           ? r1((r.yieldPerSqmYear || 0) * (1 - st().errorPct / 100)) + '–' + r1((r.yieldPerSqmYear || 0) * (1 + st().errorPct / 100)) + ' kg/m²'
@@ -1052,7 +1055,15 @@
       ...(pallet && r.footprintAreaM2 != null ? [
         { l: pm('m.footprint'), v: r.footprintAreaM2.toFixed(2), u: 'm²' }
       ] : []),
-      { l: (st().multicut && supportsMulticut(r.cv)) ? pm('m.firstCut') : pm('m.cycle'), v: r.totalCycleDays != null ? r.totalCycleDays : '—', u: pm('unit.days') },
+      { l: (function(){
+          if (st().multicut && supportsMulticut(r.cv)) return pm('m.firstCut');
+          if (georgyModeRef() && georgyModeRef().isGeorgyGh() && georgyModeRef().isGeorgyHeadSalad(r.cv)) return ui('georgy.totalDaysFromSow');
+          return pm('m.cycle');
+        })(),
+        v: (function(){
+          if (georgyModeRef() && georgyModeRef().isGeorgyGh() && georgyModeRef().isGeorgyHeadSalad(r.cv) && r.totalDaysFromSow != null) return r.totalDaysFromSow;
+          return r.totalCycleDays != null ? r.totalCycleDays : '—';
+        })(), u: pm('unit.days') },
       ...((function(){
         const hy = st().multicut && supportsMulticut(r.cv) ? plantingHarvestYieldParams(r.cv, r) : null;
         if (hy && hy.multicutHarvest){

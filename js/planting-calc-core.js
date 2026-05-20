@@ -184,7 +184,11 @@
     if (isVF() && allVfCultivars().length) return calcFromVfSheet(getVfCv());
     const cv = getCv();
     const t_ch = st().day;
-    const t_total = totalAge(t_ch);
+    let t_total = totalAge(t_ch);
+    if (georgyModeRef() && georgyModeRef().isGeorgyHeadSalad && georgyModeRef().isGeorgyHeadSalad(cv)){
+      const tdGeorgy = georgyModeRef().totalDaysFromSowGeorgy(cv);
+      if (tdGeorgy != null && tdGeorgy > 0) t_total = tdGeorgy;
+    }
     const massRaw = massAtTotal(cv, t_total);
     const canopyRaw = canopyAtTotal(cv, t_total);
 

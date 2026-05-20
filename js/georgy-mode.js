@@ -354,7 +354,8 @@
       if (profile){
         massAuto = normativeBabyCutMass(profile, cv, 0);
       } else {
-        var tTotal = GERM_DAYS + st().day;
+        var tTotal = totalDaysFromSowGeorgy(cv);
+        if (tTotal == null || !(tTotal > 0)) tTotal = preChannelDaysGeorgy() + Math.round(st().day);
         var massRaw = deps.massAtTotal(cv, tTotal);
         var saved = { density: st().density, extraB: st().extraB };
         st().density = PLACEHOLDER_DENSITY;
