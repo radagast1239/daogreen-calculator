@@ -137,6 +137,10 @@ const dlg = $('cv-add-dialog');
     function renderVfStandardsPanel() { return deps.renderVfStandardsPanel.apply(deps, arguments); }
     function resetVfStdToSheetDefaults() { return deps.resetVfStdToSheetDefaults.apply(deps, arguments); }
     function resetPalletStdToSheetDefaults() { return deps.resetPalletStdToSheetDefaults.apply(deps, arguments); }
+    function initPalletValuesFromSheet() { return deps.initPalletValuesFromSheet.apply(deps, arguments); }
+    function updatePlantingGeomUI() { return deps.updatePlantingGeomUI.apply(deps, arguments); }
+    function getPalletCv() { return deps.getPalletCv.apply(deps, arguments); }
+    function syncCycleSlidersFromState() { return deps.syncCycleSlidersFromState.apply(deps, arguments); }
     function runPlantingEconImport() { return deps.runPlantingEconImport.apply(deps, arguments); }
     function saveEconStore() { return deps.saveEconStore.apply(deps, arguments); }
     function saveGhStandardsStore() { return deps.saveGhStandardsStore.apply(deps, arguments); }
@@ -517,10 +521,13 @@ const dlg = $('cv-add-dialog');
     renderAll();
   });
 
-  $('sowDate').addEventListener('change', e => {
-    state.sowDate = e.target.value;
-    renderAll();
-  });
+  var sowDateEl = $('sowDate');
+  if (sowDateEl){
+    sowDateEl.addEventListener('change', e => {
+      state.sowDate = e.target.value;
+      renderAll();
+    });
+  }
 
   $('auto-led-gh').addEventListener('click', () => {
     state.ledEfficacyGh = _lightEnergy.LED_STD_GH;
@@ -749,8 +756,12 @@ const dlg = $('cv-add-dialog');
       var btn = e.target.closest('.cv-btn[data-pl-id], .cv-btn[data-vf-id], .cv-btn[data-id]');
       if (!btn) return;
       if (btn.dataset.plId) {
+        if (state.appView !== 'pallets') setAppView('pallets');
         state.palletCv = btn.dataset.plId;
         resetPalletStdToSheetDefaults();
+        initPalletValuesFromSheet(getPalletCv());
+        updatePlantingGeomUI();
+        syncCycleSlidersFromState();
       } else if (btn.dataset.vfId) {
         state.vfCv = btn.dataset.vfId;
         if (!state.vfUserStandards[state.vfCv]) state.vfUserStandards[state.vfCv] = buildDefaultVfStandards(getVfCv());

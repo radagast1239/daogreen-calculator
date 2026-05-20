@@ -45,7 +45,6 @@
     'block-env-vf-light': false,
     'block-env-climate': false,
     'block-panel-growth': true,
-    'block-panel-calendar': true,
     'block-panel-multicut': false,
     'block-panel-recs': true,
     'block-panel-standards': false,

@@ -13,7 +13,7 @@
 <title>Калькулятор посадки 110×55 мм</title>
 <script id="calc-cache-guard">
 (function(){
-  var BUILD='2026-05-20-p107-farm-yield-all-modes';
+  var BUILD='2026-05-20-p109-pdf-sections';
   window.CALC_BUILD_EARLY=BUILD;
   var SK='daogreen-calc-build';
   var prev=localStorage.getItem(SK);
@@ -407,7 +407,6 @@ html.georgy-active .facility-env-wrap.georgy-facility-dim .facility-env-label { 
 html.georgy-active #block-grow-time,
 html.georgy-active #block-mass,
 html.georgy-active #block-panel-standards,
-html.georgy-active #block-panel-calendar .calendar-sow-only,
 html.georgy-active #panel-scenarios,
 html.georgy-active .cv-custom-bar,
 html.georgy-active #ctrl-germination,
@@ -422,7 +421,6 @@ html.georgy-active #multicut-detail,
 html.georgy-active #panel-scenarios { display: none !important; }
 /* График сравнения — в «Кривая роста»; в панели сравнения остаются переключатель, чипы и таблица */
 html.georgy-active #cv-compare-chart-wrap { display: none !important; }
-html.georgy-active #block-panel-calendar { display: none !important; }
 html.georgy-active #block-env-gh-season .collapse-head { display: none; }
 html.georgy-active #block-env-gh-season .collapse-body { display: block !important; padding-top: 0; }
 html.georgy-active #block-env-climate { display: block !important; }
@@ -434,7 +432,6 @@ html.georgy-active #gh-cuts-block { display: none !important; }
 #ctrl-density.canopy-density-locked input[type="range"] { pointer-events: none; opacity: 0.55; }
 .multicut-baby-only.env-block-hidden { display: none !important; }
 html.simple-ui-active #block-panel-growth,
-html.simple-ui-active #block-panel-calendar .calendar-sow-only,
 html.simple-ui-active #panel-cv-compare,
 html.simple-ui-active #panel-scenarios,
 html.simple-ui-active #panel-gh-standards,
@@ -1990,15 +1987,21 @@ html.auth-preview .page { padding-top: 0 !important; }
     </div>
   </div>
 </div>
-<script src="js/preview-config.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
+<script src="js/preview-config.js?v=2026-05-20-p109-pdf-sections"></script>
 <!-- ВРЕМЕННО: полный доступ без входа. Для включения входа удалите следующую строку. -->
 <script>window.DG_AUTH_DISABLED = true;</script>
 <script src="js/auth-client-config.js?v=2026-05-19-window-fix"></script>
-<script src="js/app-auth.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
+<script src="js/app-auth.js?v=2026-05-20-p109-pdf-sections"></script>
 <div class="page">
   <header class="masthead">
     <div class="masthead-bar">
-      <div class="brand-logo" id="brand">Daogreen</div>
+      <div class="brand-lockup">
+        <img src="icons/icon.svg" alt="" width="36" height="36" class="brand-mark" decoding="async">
+        <div class="brand-text">
+          <div class="brand-logo" id="brand">Daogreen</div>
+          <div class="brand-tagline" data-i18n="brand.tagline">Калькулятор посадки и урожая</div>
+        </div>
+      </div>
       <div class="masthead-toolbar">
         <div class="masthead-actions" role="toolbar" aria-label="Действия калькулятора">
           <div class="masthead-group masthead-group--project">
@@ -2045,9 +2048,9 @@ html.auth-preview .page { padding-top: 0 !important; }
   <div id="calc-build-badge" class="calc-build-badge" aria-live="polite">Калькулятор · загрузка…</div>
 
   <nav class="app-tabs" id="app-tabs" role="tablist" data-i18n="app.tabsAria" data-i18n-attr="aria-label" aria-label="Разделы калькулятора">
-    <button type="button" class="app-tab on" data-app-view="channels" data-preview-allow data-i18n="tab.channels" role="tab" aria-selected="true" onclick="if(window.DaoGreenCalc){DaoGreenCalc.setAppView('channels');}return false;">Посадка и геометрия · каналы</button>
-    <button type="button" class="app-tab" data-app-view="pallets" data-preview-allow data-i18n="tab.pallets" role="tab" aria-selected="false" onclick="if(window.DaoGreenCalc){DaoGreenCalc.setAppView('pallets');}return false;">Посадка и геометрия · поддоны 130×65</button>
-    <button type="button" class="app-tab" data-app-view="economics" data-preview-allow data-i18n="tab.economics" role="tab" aria-selected="false" onclick="if(window.DaoGreenCalc){DaoGreenCalc.setAppView('economics');}return false;">Экономика</button>
+    <button type="button" class="app-tab on" data-app-view="channels" data-preview-allow data-i18n="tab.channels" role="tab" aria-selected="true">Посадка и геометрия · каналы</button>
+    <button type="button" class="app-tab" data-app-view="pallets" data-preview-allow data-i18n="tab.pallets" role="tab" aria-selected="false">Посадка и геометрия · поддоны 130×65</button>
+    <button type="button" class="app-tab" data-app-view="economics" data-preview-allow data-i18n="tab.economics" role="tab" aria-selected="false">Экономика</button>
   </nav>
 
   <div id="planting-econ-bridge" class="planting-econ-bridge">
@@ -2455,7 +2458,7 @@ html.auth-preview .page { padding-top: 0 !important; }
     <div class="env-summary" id="env-summary"></div>
   </section>
 
-<section class="panel">
+<section class="panel" id="panel-bio-margin">
     <div class="section-h">Биологический разброс</div>
     <div class="toggle-wrap" style="margin-bottom: 12px">
       <span class="toggle-label">Показывать диапазон значений (а не одну цифру)</span>
@@ -2490,20 +2493,6 @@ html.auth-preview .page { padding-top: 0 !important; }
       </div>
       <div id="compare-legend"></div>
     </div>
-    </div>
-  </section>
-
-  <section class="panel collapse-block" id="block-panel-calendar">
-    <div class="collapse-head" data-collapse-target="block-panel-calendar">
-      <span>Календарь посадки</span>
-      <span class="collapse-chev" aria-hidden="true">▼</span>
-    </div>
-    <div class="collapse-body" id="block-panel-calendar-body">
-    <div class="ctrl calendar-sow-only">
-      <span class="ctrl-label">Дата посева</span>
-      <input type="date" id="sowDate" class="date-input" style="grid-column: 2 / 4">
-    </div>
-    <table class="cal-table calendar-sow-only" id="cal-table"></table>
     </div>
   </section>
 
@@ -2560,20 +2549,54 @@ html.auth-preview .page { padding-top: 0 !important; }
     </div>
   </section>
 
-  <section class="panel collapse-block sys-channel-only" id="panel-channel-guide">
-    <div class="collapse-head" data-collapse-target="panel-channel-guide">
-      <span data-i18n="guide.channel.title">Гайд · каналы в теплице</span>
-      <span class="collapse-chev" aria-hidden="true">▼</span>
-    </div>
-    <div class="collapse-body planting-guide-body" id="panel-channel-guide-body"></div>
-  </section>
+  <section class="panel sys-pallet-only env-block-hidden" id="panel-pallet-geom">
+    <div class="section-h" id="pallet-geom-inputs-title">Геометрия поддонов и кассет</div>
+    <p class="sys-pallet-hint sys-pallet-only env-block-hidden" id="pallet-sys-hint">Стеллаж <strong>130×65 см</strong> на ярус. Поддон <strong>130×65 см</strong>. Кассета <strong>600×400 мм</strong>, <strong>3 шт</strong> на поддон. В кассете или в крышке-крафте — <strong>9–54 отверстий</strong>.</p>
 
-  <section class="panel collapse-block sys-pallet-only env-block-hidden" id="panel-pallet-guide">
-    <div class="collapse-head" data-collapse-target="panel-pallet-guide">
-      <span data-i18n="guide.pallet.title">Гайд · поддоны 130×65</span>
-      <span class="collapse-chev" aria-hidden="true">▼</span>
+        <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallets-along">
+      <span class="ctrl-label">Поддонов вдоль стойки (130 см)</span>
+      <input type="range" id="palletsAlong" min="1" max="12" step="1" value="3">
+      <span class="ctrl-val"><span id="palletsAlong-v">3</span><span class="unit">шт</span> · <span id="pallet-zone-len">3,9</span><span class="unit">м</span></span>
     </div>
-    <div class="collapse-body planting-guide-body" id="panel-pallet-guide-body"></div>
+    <div id="nch-host-pallet" class="sys-pallet-only env-block-hidden"></div>
+
+        <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallet-cells">
+      <span class="ctrl-label" id="pallet-cells-label">Ячеек в кассете (400×600)</span>
+      <div class="pallet-cell-row" id="pallet-cells">
+        <button type="button" class="pallet-cell-btn" data-cells="6">6</button>
+        <button type="button" class="pallet-cell-btn" data-cells="8">8</button>
+        <button type="button" class="pallet-cell-btn" data-cells="9">9</button>
+        <button type="button" class="pallet-cell-btn" data-cells="14">14</button>
+        <button type="button" class="pallet-cell-btn" data-cells="20">20</button>
+        <button type="button" class="pallet-cell-btn" data-cells="24">24</button>
+        <button type="button" class="pallet-cell-btn on" data-cells="54">54</button>
+      </div>
+            </div>
+    <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallet-lid-holes" style="display:none">
+      <span class="ctrl-label">Отверстий на поддон (крышка 1300×650)</span>
+      <input type="range" id="palletLidHoles" min="20" max="200" step="1" value="54">
+      <span class="ctrl-val"><span id="palletLidHoles-v">54</span><span class="unit">шт</span></span>
+    </div>
+    <div class="ctrl sys-pallet-only env-block-hidden">
+      <span class="ctrl-label">Тип посадки на поддоне</span>
+      <div class="pallet-mount-row" id="pallet-mount">
+        <button type="button" class="pallet-mount-btn on" data-mount="cassette">3 кассеты 600×400 мм</button>
+        <button type="button" class="pallet-mount-btn" data-mount="lid">Крышка-крафт 1300×650 мм</button>
+      </div>
+        </div>
+    <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-tier-hint">Высота стеллажа (ориентир): <strong id="pallet-rack-height">—</strong> мм · посевная площадь: <strong id="pallet-useful-area">—</strong> м² <span class="pallet-area-footprint">(площадь пола <strong id="pallet-footprint-area">—</strong> м² × <span id="pallet-tier-count-hint">—</span> яр.)</span></p>
+<p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-plants-hint"><span id="pallet-plants-prefix">На поддон:</span> <strong id="pallet-plants-per">162</strong> <span id="pallet-plants-mid">раст.</span> (<span id="pallet-plants-formula">3×54</span>)</p>
+
+    <div class="ctrl sys-pallet-only env-block-hidden">
+      <span class="ctrl-label">Ярусов в стеллаже</span>
+      <input type="range" id="palletTiers" min="1" max="6" step="1" value="5">
+      <span class="ctrl-val"><span id="palletTiers-v">5</span><span class="unit">шт</span></span>
+    </div>
+    <div class="ctrl sys-pallet-only env-block-hidden">
+      <span class="ctrl-label">Расстояние между ярусами</span>
+      <input type="range" id="tierGapMm" min="300" max="400" step="10" value="350">
+      <span class="ctrl-val"><span id="tierGapMm-v">350</span><span class="unit">мм</span></span>
+    </div>
   </section>
 
   <section class="panel gh-yield-panel plant-yield-only" id="panel-gh-yield-totals">
@@ -2670,59 +2693,6 @@ html.auth-preview .page { padding-top: 0 !important; }
         <table class="cv-compare-table" id="cv-compare-table"></table>
       </div>
     </div>
-  </section>
-
-  <section class="panel sys-pallet-only env-block-hidden" id="panel-pallet-geom">
-    <div class="section-h" id="pallet-geom-inputs-title">Геометрия поддонов и кассет</div>
-    <p class="sys-pallet-hint sys-pallet-only env-block-hidden" id="pallet-sys-hint">Стеллаж <strong>130×65 см</strong> на ярус. Поддон <strong>130×65 см</strong>. Кассета <strong>600×400 мм</strong>, <strong>3 шт</strong> на поддон. В кассете или в крышке-крафте — <strong>9–54 отверстий</strong>.</p>
-
-        <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallets-along">
-      <span class="ctrl-label">Поддонов вдоль стойки (130 см)</span>
-      <input type="range" id="palletsAlong" min="1" max="12" step="1" value="3">
-      <span class="ctrl-val"><span id="palletsAlong-v">3</span><span class="unit">шт</span> · <span id="pallet-zone-len">3,9</span><span class="unit">м</span></span>
-    </div>
-    <div id="nch-host-pallet" class="sys-pallet-only env-block-hidden"></div>
-
-        <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallet-cells">
-      <span class="ctrl-label" id="pallet-cells-label">Ячеек в кассете (400×600)</span>
-      <div class="pallet-cell-row" id="pallet-cells">
-        <button type="button" class="pallet-cell-btn" data-cells="6">6</button>
-        <button type="button" class="pallet-cell-btn" data-cells="8">8</button>
-        <button type="button" class="pallet-cell-btn" data-cells="9">9</button>
-        <button type="button" class="pallet-cell-btn" data-cells="14">14</button>
-        <button type="button" class="pallet-cell-btn" data-cells="20">20</button>
-        <button type="button" class="pallet-cell-btn" data-cells="24">24</button>
-        <button type="button" class="pallet-cell-btn on" data-cells="54">54</button>
-      </div>
-            </div>
-    <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallet-lid-holes" style="display:none">
-      <span class="ctrl-label">Отверстий на поддон (крышка 1300×650)</span>
-      <input type="range" id="palletLidHoles" min="20" max="200" step="1" value="54">
-      <span class="ctrl-val"><span id="palletLidHoles-v">54</span><span class="unit">шт</span></span>
-    </div>
-    <div class="ctrl sys-pallet-only env-block-hidden">
-      <span class="ctrl-label">Тип посадки на поддоне</span>
-      <div class="pallet-mount-row" id="pallet-mount">
-        <button type="button" class="pallet-mount-btn on" data-mount="cassette">3 кассеты 600×400 мм</button>
-        <button type="button" class="pallet-mount-btn" data-mount="lid">Крышка-крафт 1300×650 мм</button>
-      </div>
-        </div>
-    <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-tier-hint">Высота стеллажа (ориентир): <strong id="pallet-rack-height">—</strong> мм · посевная площадь: <strong id="pallet-useful-area">—</strong> м² <span class="pallet-area-footprint">(площадь пола <strong id="pallet-footprint-area">—</strong> м² × <span id="pallet-tier-count-hint">—</span> яр.)</span></p>
-<p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-plants-hint"><span id="pallet-plants-prefix">На поддон:</span> <strong id="pallet-plants-per">162</strong> <span id="pallet-plants-mid">раст.</span> (<span id="pallet-plants-formula">3×54</span>)</p>
-
-    <div class="ctrl sys-pallet-only env-block-hidden">
-      <span class="ctrl-label">Ярусов в стеллаже</span>
-      <input type="range" id="palletTiers" min="1" max="6" step="1" value="5">
-      <span class="ctrl-val"><span id="palletTiers-v">5</span><span class="unit">шт</span></span>
-    </div>
-    <div class="ctrl sys-pallet-only env-block-hidden">
-      <span class="ctrl-label">Расстояние между ярусами</span>
-      <input type="range" id="tierGapMm" min="300" max="400" step="10" value="350">
-      <span class="ctrl-val"><span id="tierGapMm-v">350</span><span class="unit">мм</span></span>
-    </div>
-    
-
-
   </section>
 
   <section class="panel" id="panel-metrics">
@@ -2830,6 +2800,22 @@ html.auth-preview .page { padding-top: 0 !important; }
     <div class="collapse-body" id="block-panel-recs-body">
     <div id="recs"></div>
     </div>
+  </section>
+
+  <section class="panel collapse-block sys-channel-only" id="panel-channel-guide">
+    <div class="collapse-head" data-collapse-target="panel-channel-guide">
+      <span data-i18n="guide.channel.title">Гайд · каналы в теплице</span>
+      <span class="collapse-chev" aria-hidden="true">▼</span>
+    </div>
+    <div class="collapse-body planting-guide-body" id="panel-channel-guide-body"></div>
+  </section>
+
+  <section class="panel collapse-block sys-pallet-only env-block-hidden" id="panel-pallet-guide">
+    <div class="collapse-head" data-collapse-target="panel-pallet-guide">
+      <span data-i18n="guide.pallet.title">Гайд · поддоны 130×65</span>
+      <span class="collapse-chev" aria-hidden="true">▼</span>
+    </div>
+    <div class="collapse-body planting-guide-body" id="panel-pallet-guide-body"></div>
   </section>
 
   <section class="panel collapse-block" id="block-panel-standards">
@@ -3052,76 +3038,76 @@ html.auth-preview .page { padding-top: 0 !important; }
   </div>
 </dialog>
 
-<script src="vf-cultivars.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="pallet-cultivars.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/cultivar-registry.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/growth-light-model.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-dli-light.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-growth-core.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/cut-model.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-cut-model-init.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-useful-yield.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-constants.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-state.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/calc-format.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/calc-error.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-ui-helpers.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-runtime-init.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-layout.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-gh-yield.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-geom-ui.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-pallet-runtime.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-light-energy.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-calc-core.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-render.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-rec-icons.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-late-init-deps.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-late-init.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-event-bindings.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-econ-glue.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-app-nav.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-public-api.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-snapshot.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/georgy-mode.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/canopy-density-ui.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/simple-ui-mode.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-guides.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-i18n.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/i18n-plant-dynamic.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/i18n-ui.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/i18n-econ-extras.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/i18n-recs.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/locale.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/econ-core.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/econ-ui.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
+<script src="vf-cultivars.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="pallet-cultivars.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/cultivar-registry.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/growth-light-model.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-dli-light.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-growth-core.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/cut-model.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-cut-model-init.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-useful-yield.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-constants.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-state.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/calc-format.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/calc-error.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-ui-helpers.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-runtime-init.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-layout.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-gh-yield.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-geom-ui.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-pallet-runtime.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-light-energy.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-calc-core.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-render.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-rec-icons.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-late-init-deps.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-late-init.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-event-bindings.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-econ-glue.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-app-nav.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-public-api.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-snapshot.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/georgy-mode.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/canopy-density-ui.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/simple-ui-mode.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-guides.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-i18n.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/i18n-plant-dynamic.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/i18n-ui.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/i18n-econ-extras.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/i18n-recs.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/locale.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/econ-core.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/econ-ui.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/vendor/html2canvas.min.js"></script>
 <script src="js/vendor/jspdf.umd.min.js"></script>
-<script src="js/project-store.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/econ-presets.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/econ-csv-export.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/econ-sensitivity.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/econ-payback.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/pdf-econ-tables.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/pdf-export.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/project-summary.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/project-compare.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/onboarding-tour.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
+<script src="js/project-store.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/econ-presets.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/econ-csv-export.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/econ-sensitivity.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/econ-payback.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/pdf-econ-tables.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/pdf-export.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/project-summary.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/project-compare.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/onboarding-tour.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/vendor/qrcode.min.js"></script>
-<script src="js/pwa-qr.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/econ-advanced.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/readonly-mode.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/pwa-register.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/calc-theme.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/pallet-load-warn.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/gh-cultivars.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/gh-cv-colors.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-cut-interval-ui.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-pallet-sheet.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-custom-cv.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-vf-standards.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-harvest-ui.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-gh-standards.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
-<script src="js/planting-vf-user-standards.js?v=2026-05-20-p107-farm-yield-all-modes"></script>
+<script src="js/pwa-qr.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/econ-advanced.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/readonly-mode.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/pwa-register.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/calc-theme.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/pallet-load-warn.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/gh-cultivars.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/gh-cv-colors.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-cut-interval-ui.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-pallet-sheet.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-custom-cv.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-vf-standards.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-harvest-ui.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-gh-standards.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-vf-user-standards.js?v=2026-05-20-p109-pdf-sections"></script>
 
 <script>
 (function(){
@@ -3447,7 +3433,7 @@ html.auth-preview .page { padding-top: 0 !important; }
 
   const ICON = global.DG_PLANTING_REC_ICONS || {};
 
-  const CALC_BUILD = '2026-05-20-p107-farm-yield-all-modes';
+  const CALC_BUILD = '2026-05-20-p109-pdf-sections';
 
   function plantingLateInitCtx(){
     return {
@@ -3752,6 +3738,11 @@ html.auth-preview .page { padding-top: 0 !important; }
       buildDefaultGhStandards: buildDefaultGhStandards, buildDefaultVfStandards: buildDefaultVfStandards,
       resetVfStdToSheetDefaults: resetVfStdToSheetDefaults,
       resetPalletStdToSheetDefaults: resetPalletStdToSheetDefaults,
+      initPalletValuesFromSheet: initPalletValuesFromSheet,
+      updatePlantingGeomUI: updatePlantingGeomUI,
+      getPalletCv: getPalletCv,
+      syncCycleSlidersFromState: syncCycleSlidersFromState,
+      findCvById: findCvById,
       loadGhStandardsStore: loadGhStandardsStore,
       loadVfStandardsStore: loadVfStandardsStore, loadCustomCultivarsStore: loadCustomCultivarsStore,
       loadGhUsefulArea: loadGhUsefulArea, saveGhUsefulArea: saveGhUsefulArea,

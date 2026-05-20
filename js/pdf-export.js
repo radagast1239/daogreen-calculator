@@ -9,30 +9,40 @@
   var SECTIONS = [
     { id: 'cover', group: 'general', kind: 'cover' },
     { id: 'panel-cultivars', group: 'planting', selector: '#panel-cultivars' },
+    { id: 'panel-georgy-simple', group: 'planting', selector: '#panel-georgy-simple', georgyOnly: true },
     { id: 'panel-culture', group: 'planting', selector: '#panel-culture' },
     { id: 'env-panel', group: 'planting', selector: '#env-panel' },
+    { id: 'panel-bio-margin', group: 'planting', selector: '#panel-bio-margin' },
     { id: 'block-panel-growth', group: 'planting', selector: '#block-panel-growth' },
-    { id: 'block-panel-calendar', group: 'planting', selector: '#block-panel-calendar' },
     { id: 'block-panel-multicut', group: 'planting', selector: '#block-panel-multicut' },
     { id: 'panel-system', group: 'planting', selector: '#panel-system' },
+    { id: 'panel-pallet-geom', group: 'planting', selector: '#panel-pallet-geom' },
+    { id: 'panel-gh-yield', group: 'planting', selector: '#panel-gh-yield-totals' },
+    { id: 'panel-cv-compare', group: 'planting', selector: '#panel-cv-compare' },
     { id: 'panel-metrics', group: 'planting', selector: '#panel-metrics' },
     { id: 'panel-scenarios', group: 'planting', selector: '#panel-scenarios' },
     { id: 'panel-schema', group: 'planting', selector: '#panel-schema' },
     { id: 'block-panel-recs', group: 'planting', selector: '#block-panel-recs' },
+    { id: 'panel-channel-guide', group: 'planting', selector: '#panel-channel-guide' },
+    { id: 'panel-pallet-guide', group: 'planting', selector: '#panel-pallet-guide' },
+    { id: 'block-panel-standards', group: 'planting', selector: '#block-panel-standards' },
     { id: 'econ-warnings', group: 'economics', selector: '#econ-warnings' },
     { id: 'econ-general', group: 'economics', selector: '#econ-panel-general' },
     { id: 'econ-cultures', group: 'economics', selector: '#econ-panel-cultures' },
-    { id: 'econ-yield', group: 'economics', selector: '#econ-panel-yield-summary' },
+    { id: 'econ-yield', group: 'economics', selector: '#econ-panel-yield-summary', vectorId: 'econ-yield-summary' },
+    { id: 'econ-elec', group: 'economics', selector: '#econ-panel-elec' },
+    { id: 'econ-payroll', group: 'economics', selector: '#econ-panel-payroll' },
     { id: 'econ-costs', group: 'economics', selector: '#econ-panel-costs' },
     { id: 'econ-equipment', group: 'economics', selector: '#econ-panel-equipment' },
     { id: 'econ-results', group: 'economics', selector: '#econ-panel-results' },
+    { id: 'econ-advanced', group: 'economics', selector: '#econ-panel-advanced' },
     { id: 'econ-sensitivity', group: 'economics', selector: '#econ-panel-sensitivity' },
     { id: 'econ-payback', group: 'economics', selector: '#econ-panel-payback' }
   ];
 
   var DEFAULT_SELECTED = [
-    'cover', 'panel-cultivars', 'panel-culture', 'panel-system', 'panel-metrics',
-    'panel-schema', 'econ-general', 'econ-cultures', 'econ-results'
+    'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'panel-system', 'panel-metrics',
+    'panel-gh-yield', 'panel-schema', 'econ-general', 'econ-cultures', 'econ-results'
   ];
 
   var PDF_W_PX = 794;
@@ -41,16 +51,22 @@
 
   var PDF_PRESETS = {
     planting: [
-      'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'block-panel-growth',
-      'block-panel-calendar', 'block-panel-multicut', 'panel-system', 'panel-metrics',
-      'panel-schema', 'block-panel-recs'
+      'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'panel-bio-margin',
+      'block-panel-growth', 'panel-system', 'panel-pallet-geom', 'panel-gh-yield',
+      'panel-metrics', 'panel-schema', 'block-panel-recs',
+      'panel-channel-guide', 'panel-pallet-guide', 'block-panel-standards'
     ],
     econ: [
       'cover', 'econ-warnings', 'econ-general', 'econ-cultures', 'econ-yield',
-      'econ-costs', 'econ-equipment', 'econ-results', 'econ-sensitivity', 'econ-payback'
+      'econ-elec', 'econ-payroll', 'econ-costs', 'econ-equipment', 'econ-results',
+      'econ-advanced', 'econ-sensitivity', 'econ-payback'
     ],
     full: null
   };
+
+  function vectorSectionKey(sec){
+    return (sec && sec.vectorId) || (sec && sec.id) || '';
+  }
 
   function sortSelectedIds(ids){
     var order = {};
@@ -317,6 +333,7 @@
 
     function blockForSection(sec){
       if (sec.kind === 'cover') return buildCover();
+      if (sec.georgyOnly && !document.documentElement.classList.contains('georgy-active')) return null;
       var el = sec.selector ? document.querySelector(sec.selector) : null;
       if (!el) return null;
       if (el.classList.contains('env-block-hidden')) return null;
@@ -332,6 +349,16 @@
           note.style.cssText = 'background:#fff;color:#111;padding:16px;';
           note.innerHTML = '<p class="pdf-note">' + pdfT('pdf.scenB') + '</p>';
           return note;
+        }
+      }
+      if (sec.id === 'panel-cv-compare'){
+        var cmp = document.getElementById('compareMode');
+        if (!cmp || !cmp.checked){
+          var noteCmp = document.createElement('div');
+          noteCmp.className = 'pdf-page-block';
+          noteCmp.style.cssText = 'background:#fff;color:#111;padding:16px;';
+          noteCmp.innerHTML = '<p class="pdf-note">' + pdfT('pdf.cvCompareOff') + '</p>';
+          return noteCmp;
         }
       }
       return cloneSection(el);
@@ -460,7 +487,10 @@
       var margin = PDF_MARGIN_MM;
       var contentW = pdf.internal.pageSize.getWidth() - margin * 2;
       var useVector = !!(global.DG_isVectorEconPdfSection && global.DG_ensurePdfCyrillicFont &&
-        orderedIds.some(function(id){ return DG_isVectorEconPdfSection(id); }));
+        orderedIds.some(function(id){
+          var sec = secMap[id];
+          return DG_isVectorEconPdfSection(vectorSectionKey(sec));
+        }));
       var pdfCtx = useVector ? DG_createPdfCtx(pdf, margin) : null;
       var hasContent = false;
 
@@ -471,8 +501,8 @@
         var sec = secMap[id];
         if (!sec) continue;
 
-        if (useVector && DG_isVectorEconPdfSection(id)){
-          await DG_renderVectorEconPdfSection(pdf, pdfCtx, id, secLabel(sec.id));
+        if (useVector && DG_isVectorEconPdfSection(vectorSectionKey(sec))){
+          await DG_renderVectorEconPdfSection(pdf, pdfCtx, vectorSectionKey(sec), secLabel(sec.id));
           if (id === 'econ-payback') await appendPaybackChartRaster(pdf, pdfCtx, apis);
           hasContent = true;
           continue;
@@ -534,7 +564,9 @@
           throw new Error(pdfT('pdf.err.noVisible'));
         }
 
-        var hasCharts = orderedIds.indexOf('block-panel-growth') >= 0 || orderedIds.indexOf('panel-schema') >= 0;
+        var hasCharts = orderedIds.some(function(id){
+          return id === 'block-panel-growth' || id === 'panel-schema' || id === 'panel-cv-compare';
+        });
         await waitForPaint(hasCharts ? 350 : 200);
 
         var meta = deps.getExportMeta ? deps.getExportMeta() : {};

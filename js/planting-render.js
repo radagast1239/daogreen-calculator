@@ -1304,41 +1304,6 @@
     fillCompareLegend(cv);
   }
 
-  /* ---- Render: calendar ---- */
-  function renderCalendar(r){
-    const sow = new Date(st().sowDate);
-    if (isNaN(sow.getTime())) return;
-    const transplant = addDays(sow, st().germination + st().nursery);
-    const current = addDays(transplant, st().day);
-    const harvestDay = Math.round(harvestTotal(r.cv));
-    const harvest = addDays(sow, harvestDay);
-    const boltDay = Math.round(envBolt(r.cv));
-    const bolt = addDays(sow, boltDay);
-
-    const massLabel = st().showRange
-      ? round(r.mass - rangeMass(r.mass)) + '–' + round(r.mass + rangeMass(r.mass))
-      : round(r.mass);
-    const canopyLabel = st().showRange
-      ? round(r.canopy - rangeCanopy(r.canopy)) + '–' + round(r.canopy + rangeCanopy(r.canopy))
-      : round(r.canopy);
-
-    const rows = [
-      { stage: ui('ui.cal.stageSow'), date: sow, totalDay: 0, ch: '—' },
-      { stage: isPalletView() ? ui('ui.cal.stageTransPal') : (isVF() ? ui('ui.cal.stageTransVf') : ui('ui.cal.stageTransCh')), date: transplant, totalDay: st().germination + st().nursery, ch: '0' },
-      { stage: ui('ui.cal.stageCurrent'), date: current, totalDay: r.t_total, ch: ui('ui.cal.currentDetail', { day: st().day, mass: massLabel, gUnit: pm('unit.g'), canopy: canopyLabel, mm: pm('unit.mm') }), current: true },
-      { stage: ui('ui.cal.stageHarvest'), date: harvest, totalDay: harvestDay, ch: round(r.tHarvestCh) },
-      { stage: ui('ui.cal.stageBolt'), date: bolt, totalDay: boltDay, ch: round(r.tBoltCh) }
-    ];
-
-    $('cal-table').innerHTML = rows.map(row =>
-      '<tr' + (row.current ? ' class="current"' : '') + '>' +
-      '<td class="cal-stage">' + row.stage + '</td>' +
-      '<td class="cal-date">' + fmtDate(row.date) + '</td>' +
-      '<td class="cal-day">' + ui('ui.cal.dayCol', { total: row.totalDay, dUnit: pm('unit.days'), ctx: vegContextLabel(), ch: row.ch }) + '</td>' +
-      '</tr>'
-    ).join('');
-  }
-
   /* ---- Render: multi-cut schedule ---- */
   function renderMulticut(r){
     const panel = $('block-panel-multicut');
@@ -2166,7 +2131,6 @@
     renderEnvSummary(r);
     renderMetrics(r);
     renderChart(r);
-    renderCalendar(r);
     renderMulticut(r);
     renderSchema(r);
     renderScenarios();

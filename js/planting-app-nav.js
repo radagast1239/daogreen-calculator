@@ -120,6 +120,18 @@
   function setAppView(view){
     if (view === 'planting') view = 'channels';
     const prev = st().appView;
+    if (prev === view && (view === 'channels' || view === 'pallets')){
+      if (view === 'pallets' && allPalletCultivars().length){
+        initPalletValuesFromSheet(getPalletCv());
+      }
+      updatePlantingGeomUI();
+      updatePageSub();
+      renderCultivars();
+      syncVfStdControls();
+      renderAll();
+      try { localStorage.setItem(APP_VIEW_KEY, view); } catch(_){}
+      return;
+    }
     if (prev === 'channels' || prev === 'pallets') plantingSnapshots[prev] = capturePlantingViewSnapshot(prev);
     st().appView = view;
     try { localStorage.setItem(APP_VIEW_KEY, view); } catch(_){}
