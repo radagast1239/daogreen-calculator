@@ -91,7 +91,7 @@
     }
 
     function isPlantingYieldView() {
-      return isChannelGreenhouse() || deps.isPalletView();
+      return isChannelGreenhouse() || deps.isPalletView() || deps.isVF();
     }
 
     function isGreenhousePlanting() {

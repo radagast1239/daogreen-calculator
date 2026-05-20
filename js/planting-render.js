@@ -1092,12 +1092,16 @@
           const kgYr = (r.yieldPerSqmYear > 0)
             ? r.yieldPerSqmYear
             : (hy.yieldPerSqmMonthKg > 0 ? hy.yieldPerSqmMonthKg * 12 : 0);
+          const kgMoSys = (hy.yieldPerPotMonth / 1000) * (r.total || 0);
+          const kgYrSys = kgMoSys * 12;
           return [
             { l: pm('m.cutMass'), v: round(hy.harvestYieldPerCut), u: hy.yieldUnit, cls: 'hl' },
             { l: pm('m.cutInterval'), v: hy.harvestCutIntervalDays, u: pm('unit.days') },
             { l: pm('m.cutsMonth'), v: r1(hy.harvestCutsPerMonth), u: pm('u.pcs') },
             { l: pm('m.yieldPotMo'), v: yPotMo, u: '', cls: 'hl' },
             { l: pm('m.yieldMo'), v: ySqm, u: '', cls: 'hl' },
+            { l: pm('m.yieldSysMo'), v: r1(kgMoSys), u: 'kg', cls: 'hl' },
+            { l: pm('m.yieldSysYear'), v: r1(kgYrSys), u: 'kg', cls: 'hl' },
             { l: pm('m.kgSqmYear'), v: r1(kgYr), u: 'kg/m²', cls: 'hl' },
             ...(hy.yieldPerPotLife != null ? [
               { l: pm('m.lifeSum'), v: round(hy.yieldPerPotLife), u: hy.yieldUnit }

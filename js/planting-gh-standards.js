@@ -253,7 +253,7 @@
         el.classList.toggle('env-block-hidden', !deps.isVF() && !deps.isPalletView());
       });
       document.querySelectorAll('.plant-yield-only').forEach(function (el) {
-        el.classList.toggle('env-block-hidden', deps.isVF());
+        el.classList.remove('env-block-hidden');
       });
       deps.syncBioMarginVisibility();
     }

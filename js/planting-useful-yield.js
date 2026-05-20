@@ -17,10 +17,10 @@
       return deps.georgyMode;
     }
 
-    /** Теплица (каналы) или поддоны — блок «урожай с полезной площади». */
+    /** Каналы, поддоны, VF — блок «урожай с полезной площади». */
     function isUsefulAreaFacility() {
       if (deps.isPalletView && deps.isPalletView()) return true;
-      if (deps.isVF && deps.isVF()) return false;
+      if (deps.isVF && deps.isVF()) return true;
       var s = st();
       return s.facility === 'greenhouse';
     }

@@ -159,6 +159,10 @@
         if (title) title.textContent = ui('gh.yield.titlePallet');
         if (intro) intro.textContent = ui('gh.yield.introPallet');
         if (btn) btn.textContent = ui('gh.yield.fromGeomPallet');
+      } else if (isVF()) {
+        if (title) title.textContent = ui('gh.yield.titleVf');
+        if (intro) intro.textContent = ui('gh.yield.introVf');
+        if (btn) btn.textContent = ui('gh.yield.fromGeomVf');
       } else {
         if (title) title.textContent = ui('gh.yield.title');
         if (intro) intro.textContent = ui('gh.yield.intro');
@@ -169,13 +173,17 @@
           ? ui('gh.yield.compareIntroCanopy')
           : isPalletView()
             ? ui('gh.yield.introPallet') + ' ' + ui('gh.yield.palletEnvNote')
-            : ui('gh.yield.compareIntroGeneral');
+            : isVF()
+              ? ui('gh.yield.compareIntroVf')
+              : ui('gh.yield.compareIntroGeneral');
       }
       var hint = $('gh-useful-area-geom-hint');
       if (hint && r && r.sysArea > 0) {
         hint.textContent = isPalletView()
           ? ui('gh.yield.geomHintPallet', { area: r1(r.sysArea) })
-          : ui('gh.yield.geomHint', { area: r1(r.sysArea) });
+          : isVF()
+            ? ui('gh.yield.geomHintVf', { area: r1(r.sysArea) })
+            : ui('gh.yield.geomHint', { area: r1(r.sysArea) });
       }
     }
 
