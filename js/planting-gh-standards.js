@@ -29,6 +29,11 @@
       } catch (_) {
         state.ghStandards = {};
       }
+      if (state.cv === 'romaine') state.cv = 'little-gem';
+      if (state.ghStandards && state.ghStandards.romaine) {
+        if (!state.ghStandards['little-gem']) state.ghStandards['little-gem'] = state.ghStandards.romaine;
+        delete state.ghStandards.romaine;
+      }
     }
 
     function saveGhStandardsStore() {

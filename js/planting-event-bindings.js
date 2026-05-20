@@ -167,10 +167,24 @@ const dlg = $('cv-add-dialog');
     function ui() { return deps.ui.apply(deps, arguments); }
     function unlockPlantingStdForControl() { return deps.unlockPlantingStdForControl.apply(deps, arguments); }
 /* ---- Event handlers ---- */
+  var draggingSliderId = null;
+  function palletGeomSliderDefer(id) {
+    return isPalletView() && (id === 'palletsAlong' || id === 'nch');
+  }
+  function endSliderDrag(id) {
+    if (draggingSliderId === id) {
+      draggingSliderId = null;
+      try { renderAll(); } catch (err) { showError('slider/' + id, err); }
+    }
+  }
   const numericSliders = ['germination','length','palletsAlong','nch','density','offset','extraB','day','nursery','temp','targetDli','targetPhotoperiod','cutInterval','errorPct','canopyPct','temp-B','pricePerKg','pricePerKwh','targetDliVf','targetPhotoperiodVf','ppfd','ledEfficacyVf','rh','targetDliB','targetPhotoperiodB','palletTiers','tierGapMm','palletLidHoles'];
   numericSliders.forEach(id => {
     const sliderEl = $(id);
     if (!sliderEl) return;
+    sliderEl.addEventListener('pointerdown', function () { draggingSliderId = id; });
+    sliderEl.addEventListener('pointerup', function () { endSliderDrag(id); });
+    sliderEl.addEventListener('pointercancel', function () { endSliderDrag(id); });
+    sliderEl.addEventListener('change', function () { endSliderDrag(id); });
     sliderEl.addEventListener('input', e => {
       const v = parseNumInput(e.target.value);
       let key = id;
@@ -202,10 +216,6 @@ const dlg = $('cv-add-dialog');
         if (id === 'palletLidHoles') syncPalletPlantsHint();
         unlockPlantingStdForControl(id);
         if (id === 'nursery') unlockPlantingStdForControl('day');
-        if (['temp', 'targetDli', 'targetPhotoperiod', 'targetDliVf', 'targetPhotoperiodVf', 'ppfd', 'ledEfficacyVf', 'nursery', 'germination', 'day', 'cutInterval', 'canopyPct'].indexOf(id) >= 0){
-          state.palletStd.mass = false;
-          if (id !== 'manualMass') state.useManualMass = false;
-        }
       } else if (isVF()){
         unlockPlantingStdForControl(id);
       }
@@ -230,6 +240,7 @@ const dlg = $('cv-add-dialog');
           else valEl.textContent = v;
         }
       }
+      if (draggingSliderId === id && palletGeomSliderDefer(id)) return;
       try { renderAll(); } catch (err) { showError('slider/' + id, err); }
     });
   });
@@ -273,7 +284,7 @@ const dlg = $('cv-add-dialog');
   $('useManualMass').addEventListener('change', e => {
     state.useManualMass = e.target.checked;
     if (state.useManualMass) unlockPlantingStdForControl('mass');
-    else if (isPalletView()) state.palletStd.mass = false;
+    else if (isPalletView()) state.palletStd.mass = true;
     else if (isVF()) state.vfStd.mass = true;
     if (state.useManualMass && !state.useManualCanopy){
       const cv = getActiveCv();
@@ -287,7 +298,7 @@ const dlg = $('cv-add-dialog');
 
   $('useManualCanopy').addEventListener('change', e => {
     state.useManualCanopy = e.target.checked;
-    if (state.useManualCanopy) unlockPlantingStdForControl('mass');
+    if (state.useManualCanopy && !isVF() && !isPalletView()) unlockPlantingStdForControl('mass');
     const r = calc();
     if (state.useManualCanopy) state.manualCanopy = Math.round(r.canopy);
     else state.manualCanopy = Math.round(modelCanopyFromMass(r.cv, r.mass));
@@ -298,7 +309,7 @@ const dlg = $('cv-add-dialog');
 
   $('manualCanopy').addEventListener('input', e => {
     state.manualCanopy = clamp(parseFloat(e.target.value) || 0, 20, 600);
-    if (state.useManualCanopy) unlockPlantingStdForControl('mass');
+    if (state.useManualCanopy && !isVF() && !isPalletView()) unlockPlantingStdForControl('mass');
     syncHarvestBlockUI(calc());
     if (state.useManualCanopy) renderAll();
   });
@@ -322,7 +333,7 @@ const dlg = $('cv-add-dialog');
     state.useManualMass = false;
     const r = calc();
     state.useManualMass = wasManual;
-    state.manualMass = clamp(Math.round(r.massAuto), 5, 500);
+    state.manualMass = clamp(Math.round(r.mass), 5, 500);
     syncManualMassUI();
     renderAll();
   });
@@ -439,7 +450,6 @@ const dlg = $('cv-add-dialog');
     if (stdBtn){
       const r = calc();
       applyCanopyStandard(r.cv, r.mass);
-      if (isPalletView()) state.palletStd.mass = false;
       syncCanopyUI();
       renderAll();
     }
@@ -449,7 +459,7 @@ const dlg = $('cv-add-dialog');
     if (e.target.classList && e.target.classList.contains('canopyPct-sync')){
       state.canopyPct = clamp(parseFloat(e.target.value) || 100, 100, 130);
       state.useManualCanopy = false;
-      unlockPlantingStdForControl('mass');
+      if (!isVF() && !isPalletView()) unlockPlantingStdForControl('mass');
       syncCanopyUI();
       renderAll();
     }
@@ -580,13 +590,16 @@ const dlg = $('cv-add-dialog');
     btn.addEventListener('click', () => setFacility(btn.dataset.facility));
   });
 
+  var sharePending = !!(global.DG_SHARE_PENDING);
   try {
-    const storedFac = localStorage.getItem(FACILITY_KEY);
-    if (storedFac === 'vertical' || storedFac === 'greenhouse') state.facility = storedFac;
+    if (!sharePending) {
+      const storedFac = localStorage.getItem(FACILITY_KEY);
+      if (storedFac === 'vertical' || storedFac === 'greenhouse') state.facility = storedFac;
+    }
   } catch(_){}
 
-  loadEconStore();
-  loadGhUsefulArea();
+  if (!sharePending) loadEconStore();
+  if (!sharePending) loadGhUsefulArea();
 
   const ghAreaInp = $('gh-useful-area');
   if (ghAreaInp){
@@ -740,6 +753,44 @@ const dlg = $('cv-add-dialog');
   var cultivarsEl = $('cultivars');
   if (cultivarsEl && !cultivarsEl.dataset.cvDelegated) {
     cultivarsEl.dataset.cvDelegated = '1';
+    cultivarsEl.addEventListener('input', function (e) {
+      var searchInp = e.target.closest('.cv-catalog-search');
+      if (!searchInp) return;
+      if (global.DG_setGhCvSearch) global.DG_setGhCvSearch(searchInp.value);
+      renderCultivars();
+    });
+    cultivarsEl.addEventListener('change', function (e) {
+      var calOnlyInp = e.target.closest('.cv-catalog-calibrated-only');
+      if (calOnlyInp) {
+        if (global.DG_setGhCvCalibratedOnly) global.DG_setGhCvCalibratedOnly(calOnlyInp.checked);
+        renderCultivars();
+        return;
+      }
+      var sel = e.target.closest('.cv-cat-select');
+      if (!sel || !sel.value) return;
+      state.cv = sel.value;
+      if (georgyMode && georgyMode.isGeorgyGh && georgyMode.isGeorgyGh()) state.georgyDensityFitted = false;
+      if (!state.ghStandards[state.cv]) state.ghStandards[state.cv] = buildDefaultGhStandards(getCv());
+      renderCultivars();
+      renderGhStandardsPanel();
+      renderAll();
+    });
+    function resolvePalletCvId(btn){
+      var plId = btn.getAttribute('data-pl-id');
+      var ghId = btn.getAttribute('data-id');
+      if (plId) return plId;
+      if (!ghId) return null;
+      if (deps.isPalletCvId && deps.isPalletCvId(ghId)) return ghId;
+      if (ghId.indexOf('pl-') === 0) return ghId;
+      return null;
+    }
+    function highlightPalletCvBtn(host, activeId){
+      if (!host || !activeId) return;
+      host.querySelectorAll('.cv-btn').forEach(function (b) {
+        var bid = b.getAttribute('data-pl-id') || b.getAttribute('data-id');
+        b.classList.toggle('on', bid === activeId);
+      });
+    }
     cultivarsEl.addEventListener('click', function (e) {
       var delBtn = e.target.closest('.cv-del[data-cv-del]');
       if (delBtn) {
@@ -753,28 +804,43 @@ const dlg = $('cv-add-dialog');
         renderAll();
         return;
       }
-      var btn = e.target.closest('.cv-btn[data-pl-id], .cv-btn[data-vf-id], .cv-btn[data-id]');
+      var btn = e.target.closest('.cv-btn');
       if (!btn) return;
-      if (btn.dataset.plId) {
+      var plId = resolvePalletCvId(btn);
+      var vfId = btn.getAttribute('data-vf-id');
+      var ghId = btn.getAttribute('data-id');
+      if (plId) {
         if (state.appView !== 'pallets') setAppView('pallets');
-        state.palletCv = btn.dataset.plId;
-        resetPalletStdToSheetDefaults();
-        initPalletValuesFromSheet(getPalletCv());
-        updatePlantingGeomUI();
-        syncCycleSlidersFromState();
-      } else if (btn.dataset.vfId) {
-        state.vfCv = btn.dataset.vfId;
+        state.palletCv = plId;
+        highlightPalletCvBtn(cultivarsEl, plId);
+        try {
+          resetPalletStdToSheetDefaults();
+          initPalletValuesFromSheet(getPalletCv());
+          updatePlantingGeomUI();
+          syncCycleSlidersFromState();
+        } catch (err) {
+          showError('palletCv', err);
+        }
+        renderCultivars();
+        try { renderAll(); } catch (err2) { showError('palletCv/render', err2); }
+        renderVfStandardsPanel();
+        return;
+      }
+      if (vfId) {
+        state.vfCv = vfId;
         if (!state.vfUserStandards[state.vfCv]) state.vfUserStandards[state.vfCv] = buildDefaultVfStandards(getVfCv());
         resetVfStdToSheetDefaults();
-      } else if (btn.dataset.id) {
-        state.cv = btn.dataset.id;
+      } else if (ghId && state.appView !== 'pallets') {
+        state.cv = ghId;
         if (georgyMode && georgyMode.isGeorgyGh && georgyMode.isGeorgyGh()) state.georgyDensityFitted = false;
         if (!state.ghStandards[state.cv]) state.ghStandards[state.cv] = buildDefaultGhStandards(getCv());
+      } else {
+        return;
       }
       renderCultivars();
-      if (btn.dataset.plId || btn.dataset.vfId) renderVfStandardsPanel();
+      try { renderAll(); } catch (err3) { showError('cv/render', err3); }
+      if (vfId) renderVfStandardsPanel();
       else renderGhStandardsPanel();
-      renderAll();
     });
   }
     }
@@ -793,6 +859,9 @@ const dlg = $('cv-add-dialog');
               var st = deps.getState();
               if (st.appView === 'economics'){
                 if (typeof deps.renderEconomics === 'function') deps.renderEconomics();
+                try { deps.updateCalcBuildBadge(deps.calc()); } catch(_){}
+              } else if (st.appView === 'standards'){
+                if (typeof deps.renderStandardsCatalog === 'function') deps.renderStandardsCatalog();
                 try { deps.updateCalcBuildBadge(deps.calc()); } catch(_){}
               } else if (typeof deps.renderAll === 'function') deps.renderAll();
             }
@@ -848,14 +917,20 @@ const dlg = $('cv-add-dialog');
         deps.initCollapseBlocks();
         deps.bindVfStdBadges();
         if (deps.VF_CULTIVARS.length){ deps.renderVfStdGrid(); }
-        if (deps.VF_CULTIVARS.length && state.facility === 'vertical' && state.appView === 'channels') deps.resetVfStdToSheetDefaults();
-        if (deps.PALLET_CULTIVARS && deps.PALLET_CULTIVARS.length && state.appView === 'pallets') deps.resetPalletStdToSheetDefaults();
+        if (!global.DG_SHARE_PENDING) {
+          if (deps.VF_CULTIVARS.length && state.facility === 'vertical' && state.appView === 'channels') deps.resetVfStdToSheetDefaults();
+          if (deps.PALLET_CULTIVARS && deps.PALLET_CULTIVARS.length && state.appView === 'pallets') deps.resetPalletStdToSheetDefaults();
+        }
         deps.renderAll();
-        try {
-          var savedView = localStorage.getItem(deps.APP_VIEW_KEY);
-          if (savedView === 'planting') deps.setAppView('channels');
-          else if (savedView === 'channels' || savedView === 'pallets' || savedView === 'economics') deps.setAppView(savedView);
-        } catch(_){}
+        if (!global.DG_SHARE_PENDING) {
+          try {
+            var savedView = localStorage.getItem(deps.APP_VIEW_KEY);
+            if (savedView === 'planting') deps.setAppView('channels');
+            else if (savedView === 'channels' || savedView === 'pallets' || savedView === 'economics' || savedView === 'standards') deps.setAppView(savedView);
+          } catch(_){}
+        }
+        if (global.DG_onShareReady && global.DG_SHARE_PENDING) global.DG_onShareReady();
+        global.dispatchEvent(new CustomEvent('daogreen-app-ready'));
       } catch (err) {
         deps.showError('init', err);
       }

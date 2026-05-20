@@ -1155,7 +1155,15 @@
     }
 
     function onGeorgyDayChanged(){
-      st().georgyDensityFitted = false;
+      if (isGeorgyGh()) {
+        st().georgyDensityFitted = false;
+        syncGeorgyHeadSlidersToState();
+        return;
+      }
+      var cv = deps.getCv();
+      if (canUseCanopyDensityPick(cv) && st().georgyDensityFitted) {
+        applyGeorgyDensityAuto(cv);
+      }
       syncGeorgyHeadSlidersToState();
     }
 

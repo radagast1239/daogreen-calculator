@@ -113,6 +113,39 @@ body {
 .masthead .kicker { margin: 0 0 8px; }
 .cv-group-h { grid-column: 1 / -1; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin: 10px 0 4px; }
 .cv-group-h:first-child { margin-top: 0; }
+#cultivars.cv-catalog-host,
+.cv-catalog-host { display: block; width: 100%; min-width: 0; box-sizing: border-box; }
+.cv-catalog-host .cv-catalog-toolbar {
+  display: flex; flex-direction: column; gap: 10px; margin: 0 0 12px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.cv-catalog-host .cv-catalog-toolbar-top { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+@media (min-width: 520px) {
+  .cv-catalog-host .cv-catalog-toolbar-top { flex-direction: row; align-items: flex-end; gap: 14px; }
+  .cv-catalog-host .cv-catalog-search-label { flex: 1; min-width: 0; }
+  .cv-catalog-host .cv-catalog-filter-label { flex-shrink: 0; margin: 0 0 2px; white-space: nowrap; }
+}
+.cv-catalog-hint { font-size: 12px; color: var(--ink-soft); line-height: 1.45; margin: 0 0 12px; max-width: none; }
+.cv-catalog-grouped { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.cv-category { border: 1px solid var(--rule); border-radius: var(--radius); background: var(--paper-deep); width: 100%; box-sizing: border-box; }
+.cv-category-summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; cursor: pointer; font-weight: 600; font-size: 13px; list-style: none; }
+.cv-category-summary::-webkit-details-marker { display: none; }
+.cv-category[open] .cv-category-summary { border-bottom: 1px solid var(--rule); color: var(--olive-text); }
+.cv-category-count { font-size: 11px; font-weight: 500; color: var(--ink-faint); }
+.cv-category-body { padding: 10px 12px 12px; }
+.cv-cat-select-label { display: block; font-size: 12px; color: var(--ink-soft); margin-bottom: 10px; }
+.cv-cat-select, .cv-compare-select { display: block; width: 100%; max-width: 100%; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--rule-strong); border-radius: var(--radius); font-family: inherit; font-size: 13px; background: var(--paper); color: var(--ink); box-sizing: border-box; }
+.cv-cat-grid { margin-top: 8px; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); }
+.cv-catalog-search-label { display: block; font-size: 12px; color: var(--ink-soft); font-weight: 500; }
+.cv-catalog-search { display: block; width: 100%; margin-top: 6px; padding: 8px 10px; border: 1px solid var(--rule-strong); border-radius: var(--radius); font-family: inherit; font-size: 14px; background: var(--paper); color: var(--ink); box-sizing: border-box; }
+.cv-catalog-filter-label { display: block; font-size: 12px; color: var(--ink-soft); cursor: pointer; user-select: none; line-height: 1.35; }
+.cv-catalog-filter-label input { margin-right: 6px; vertical-align: -2px; }
+.cv-catalog-empty { font-size: 13px; color: var(--ink-soft); margin: 8px 0 0; }
+#panel-cultivars-body .cultivar-grid--pick { width: 100%; }
+.cv-badge { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 5px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+.cv-badge--est { background: var(--paper-deep); color: var(--ink-faint); border: 1px solid var(--rule); }
+.cv-badge--cal { background: var(--olive-pale); color: var(--olive-text); border: 1px solid var(--olive); }
+.cv-btn .cv-name { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 
 .masthead {
   position: relative; margin-bottom: 22px; padding: 22px 24px 20px;
@@ -152,6 +185,15 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var
 .ctrl-val { font-size: 14.5px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
 .ctrl-val .unit { color: var(--ink-faint); font-weight: 400; font-size: 12.5px; margin-left: 2px; }
 .ctrl-row-extra { grid-column: 2 / 4; margin-top: -8px; margin-bottom: 6px; }
+.ctrl-row-extra.auto-btn-row,
+.ctrl-row-extra.sys-aux-actions,
+.georgy-btn-row.ctrl-row-extra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; grid-column: 1 / -1; width: 100%; margin-top: 8px; margin-bottom: 8px; }
+.georgy-btn-row .georgy-density-hint { flex: 1 1 100%; margin: 4px 0 0; max-width: none; }
+#panel-system .sys-channel-block { margin-bottom: 14px; }
+#panel-system .sys-aux-actions { margin-top: 8px; }
+#block-grow-time .grow-auto-day-row { grid-column: 1 / -1; width: 100%; margin: 10px 0 4px; }
+#block-grow-time .cut-schedule-wrap { margin-top: 12px; }
+#block-grow-time .multicut-enable-hint { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-faint); line-height: 1.45; }
 .auto-btn {
   background: var(--card); border: 1px solid var(--rule-strong); color: var(--ink-soft);
   padding: 6px 14px; border-radius: 999px; font-family: inherit; font-size: 12.5px;
@@ -312,7 +354,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var
   background: linear-gradient(165deg, var(--brand-pale) 0%, var(--card) 55%);
 }
 .georgy-panel > .section-h { color: var(--olive-deep); }
-.georgy-btn-row { margin-bottom: 10px; flex-wrap: wrap; gap: 8px; align-items: center; }
+.georgy-btn-row { margin-bottom: 10px; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
 .georgy-mode-btn.on { background: var(--olive-pale); border-color: var(--olive-deep); color: var(--olive-text); font-weight: 600; }
 .georgy-conservative-note {
   font-size: 12px;
@@ -426,8 +468,8 @@ html.georgy-active #block-env-gh-season .collapse-body { display: block !importa
 html.georgy-active #block-env-climate { display: block !important; }
 html.georgy-active .georgy-multicut-badge { display: none !important; }
 html.georgy-active #gh-cuts-block { display: none !important; }
-.canopy-density-wrap { margin: 4px 0 14px; grid-column: 1 / -1; }
-.canopy-density-wrap .ctrl-row-extra { margin-bottom: 6px; }
+.canopy-density-wrap { margin: 0 0 14px; }
+.canopy-density-wrap .sys-aux-actions { margin-top: 0; margin-bottom: 8px; }
 .canopy-density-block.is-locked #density { pointer-events: none; opacity: 0.55; }
 #ctrl-density.canopy-density-locked input[type="range"] { pointer-events: none; opacity: 0.55; }
 .multicut-baby-only.env-block-hidden { display: none !important; }
@@ -964,34 +1006,7 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 
 .env-block-hidden { display: none !important; }
 
-.facility-btn {
-  flex: 1 1 0;
-  margin: 0;
-  padding: 12px 14px;
-  border: 0;
-  border-right: 1px solid var(--rule);
-  background: var(--paper-deep);
-  color: var(--ink-soft);
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.facility-btn:last-child { border-right: 0; }
-.facility-btn:hover {
-  background: var(--olive-pale);
-  color: var(--olive-text);
-}
-.facility-btn.on {
-  background: var(--olive);
-  color: #fff;
-}
-.facility-btn:focus-visible {
-  outline: 2px solid var(--sky);
-  outline-offset: 2px;
-}
+/* facility-bar / app-tabs — см. css/daogreen-unify.css */
 
 .theme-toggle {
   display: inline-flex;
@@ -1606,7 +1621,7 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   font-size: 14px;
 }
 
-.env-gh-only, .env-vf-only, .collapse-vf-only, .gh-geom-only, .scen-gh-only, .scen-vf-only {}
+.env-gh-only, .env-vf-only, .collapse-sheet-only, .gh-geom-only, .scen-gh-only, .scen-vf-only {}
 
 .svg-axis-t { fill: var(--ink-soft); font-size: 11px; font-family: var(--font-body); opacity: 0.88; }
 .svg-grid { stroke: var(--rule); stroke-width: 1; opacity: 0.55; stroke-dasharray: none; }
@@ -1744,32 +1759,14 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .vf-section-h .vf-chev { font-size: 10px; opacity: 0.6; }
 .vf-section.collapsed .cultivar-grid { display: none; }
 
-/* VF: компактнее блок культуры и цикла */
-#panel-culture.is-vf .ctrl { margin-bottom: 10px; gap: 10px; }
-#panel-culture.is-vf .vf-sheet-panel { margin-top: 4px; padding-top: 10px; }
-#panel-culture.is-vf .vf-sheet-panel .section-h { margin-bottom: 8px; }
-#panel-culture.is-vf .vf-cv-std-hint { margin: 0 0 8px; font-size: 12px; line-height: 1.4; }
-#panel-culture.is-vf .vf-std-grid {
+/* поддоны / вертикальная ферма — ритм панелей: css/daogreen-unify.css (#panel-culture.is-sheet-mode) */
+#panel-culture.is-sheet-mode .vf-std-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px 8px;
 }
 @media (max-width: 720px) {
-  #panel-culture.is-vf .vf-std-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #panel-culture.is-sheet-mode .vf-std-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-#panel-culture.is-vf .vf-std-item { padding: 5px 8px; font-size: 12px; gap: 6px; }
-#panel-culture.is-vf .collapse-block { margin-top: 8px; }
-#panel-culture.is-vf .collapse-head { padding: 8px 12px; font-size: 13.5px; }
-#panel-culture.is-vf .collapse-body { padding: 4px 12px 10px; }
-#panel-culture.is-vf .grow-flow-note { margin: 0 0 8px; font-size: 12px; line-height: 1.4; }
-#panel-culture.is-vf .cv-btn { padding: 8px 10px; }
-#panel-culture.is-vf .cv-btn .cv-name { font-size: 13px; }
-#panel-culture.is-vf .cv-btn .cv-sub { font-size: 10.5px; }
-#panel-culture.is-vf .cv-group-h { margin: 6px 0 2px; font-size: 10.5px; }
-#panel-culture.is-vf .stage-bar { margin: 2px 0 8px; gap: 6px; }
-#panel-culture.is-vf .stage-seg { padding: 7px 6px; font-size: 12px; }
-#panel-culture.is-vf .metrics { gap: 8px; }
-#panel-culture.is-vf .m { padding: 10px 12px; }
-#panel-culture.is-vf .m-val { font-size: 22px; }
 .pdf-export-dialog { border: none; border-radius: var(--radius); padding: 0; max-width: min(520px, 92vw); box-shadow: 0 12px 40px rgba(0,0,0,.2); }
 .pdf-export-dialog::backdrop { background: rgba(0,0,0,.45); }
 .pdf-export-form { padding: 22px 24px 20px; margin: 0; }
@@ -1897,6 +1894,7 @@ html.auth-preview .page button:not([data-preview-allow]) {
 html.auth-preview .page .app-tab,
 html.auth-preview .page .facility-btn,
 html.auth-preview .page .collapse-head,
+html.auth-preview .page .cv-btn,
 html.auth-preview .page [data-preview-allow] {
   pointer-events: auto !important;
   cursor: pointer;
@@ -1917,6 +1915,40 @@ html.auth-preview.georgy-active .georgy-only { display: none !important; }
 /* Публичный режим: без верхней плашки предпросмотра с кнопкой «Войти». */
 #app-auth-preview-banner { display: none !important; visibility: hidden !important; }
 html.auth-preview .page { padding-top: 0 !important; }
+
+/* Демо по ссылке ?share=demos/….json */
+html.share-loading .page { visibility: hidden; }
+html.share-mode .page { visibility: visible; }
+.share-view-banner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 16px;
+  padding: 10px 16px; background: var(--brand-pale); border-bottom: 1px solid var(--brand-border);
+  font-size: 14px; color: var(--brand-text); z-index: 9000;
+}
+.share-view-banner__text--err { color: #a33; }
+.share-view-banner__link {
+  font-weight: 600; color: var(--brand); text-decoration: underline;
+}
+html.share-mode .masthead-group--project,
+html.share-mode #btn-project-import,
+html.share-mode #btn-import-econ-quick,
+html.share-mode #econ-sync-planting,
+html.share-mode #btn-readonly,
+html.share-mode #btn-logout { display: none !important; }
+html.share-mode .page input,
+html.share-mode .page select,
+html.share-mode .page textarea,
+html.share-mode .page button:not([data-readonly-allow]) {
+  pointer-events: none !important; opacity: 0.88;
+}
+html.share-mode .page .app-tab,
+html.share-mode .page .facility-btn,
+html.share-mode .page .collapse-head,
+html.share-mode .page .cv-btn,
+html.share-mode .page [data-readonly-allow] {
+  pointer-events: auto !important; opacity: 1;
+}
+html.share-mode .page label { pointer-events: none; }
+html.share-mode .page { user-select: text; padding-top: 0; }
 
 .compare-lead, .compare-meta { font-size: 13px; color: var(--ink-soft); line-height: 1.45; }
 .compare-meta { margin-top: 12px; font-size: 12px; color: var(--ink-faint); }
@@ -1940,7 +1972,7 @@ html.auth-preview .page { padding-top: 0 !important; }
 .adv-infl-form label { display: flex; flex-direction: column; gap: 4px; color: var(--ink-faint); }
 .adv-infl-form input { width: 72px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: var(--radius); }
 </style>
-<link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-18-p52-masthead">
+<link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-20-stdcat-grid">
 <link rel="stylesheet" href="css/mobile.css?v=2026-05-19-desktop-page-width">
 <link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-preview-mode">
 </head>
@@ -2048,9 +2080,10 @@ html.auth-preview .page { padding-top: 0 !important; }
   <div id="calc-build-badge" class="calc-build-badge" aria-live="polite">Калькулятор · загрузка…</div>
 
   <nav class="app-tabs" id="app-tabs" role="tablist" data-i18n="app.tabsAria" data-i18n-attr="aria-label" aria-label="Разделы калькулятора">
-    <button type="button" class="app-tab on" data-app-view="channels" data-preview-allow data-i18n="tab.channels" role="tab" aria-selected="true">Посадка и геометрия · каналы</button>
-    <button type="button" class="app-tab" data-app-view="pallets" data-preview-allow data-i18n="tab.pallets" role="tab" aria-selected="false">Посадка и геометрия · поддоны 130×65</button>
-    <button type="button" class="app-tab" data-app-view="economics" data-preview-allow data-i18n="tab.economics" role="tab" aria-selected="false">Экономика</button>
+    <button type="button" class="app-tab on" data-app-view="channels" data-preview-allow data-i18n="tab.channels" data-i18n-tip="tab.channels.tip" role="tab" aria-selected="true" title="Посадка и геометрия · каналы">Каналы</button>
+    <button type="button" class="app-tab" data-app-view="pallets" data-preview-allow data-i18n="tab.pallets" data-i18n-tip="tab.pallets.tip" role="tab" aria-selected="false" title="Посадка и геометрия · поддоны 130×65">Поддоны</button>
+    <button type="button" class="app-tab" data-app-view="economics" data-preview-allow data-i18n="tab.economics" data-i18n-tip="tab.economics.tip" role="tab" aria-selected="false" title="Экономика фермы">Экономика</button>
+    <button type="button" class="app-tab" data-app-view="standards" data-preview-allow data-i18n="tab.standards" data-i18n-tip="tab.standards.tip" role="tab" aria-selected="false" title="Справочник стандартов">Справочник</button>
   </nav>
 
   <div id="planting-econ-bridge" class="planting-econ-bridge">
@@ -2076,16 +2109,16 @@ html.auth-preview .page { padding-top: 0 !important; }
 
   <section class="panel collapse-block" id="panel-cultivars">
     <div class="collapse-head" data-collapse-target="panel-cultivars">
-      <span>Культура и сорт</span>
+      <span>Культуры</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="panel-cultivars-body">
-      <div class="cultivar-grid" id="cultivars"></div>
+      <div id="cultivars" class="cv-catalog-host"></div>
       <div class="cv-custom-bar">
         <button type="button" class="auto-btn" id="cv-add-custom">+ Добавить свой сорт</button>
-        <span style="font-size:12px;color:var(--ink-faint)">Копия параметров текущего сорта · сохраняется в браузере</span>
+        <span class="ui-hint ui-hint--tight" style="margin:0">Копия параметров текущего сорта · сохраняется в браузере</span>
       </div>
-      <p class="vf-cv-std-hint env-block-hidden" id="vf-cv-std-hint" style="margin-top:12px"></p>
+      <p class="vf-cv-std-hint ui-hint env-block-hidden" id="vf-cv-std-hint"></p>
     </div>
   </section>
 
@@ -2172,12 +2205,11 @@ html.auth-preview .page { padding-top: 0 !important; }
     <div class="collapse-block" id="block-grow-time" data-collapse-vf="germination,day">
       <div class="collapse-head" data-collapse-target="block-grow-time">
         <span>Сроки цикла</span>
-        <span class="collapse-hint collapse-vf-only env-block-hidden">свернуть → подставить стандарты VF</span>
+        <span class="collapse-hint collapse-sheet-only env-block-hidden">свернуть → подставить стандарты</span>
         <span class="collapse-chev" aria-hidden="true">▼</span>
       </div>
       <div class="collapse-body" id="block-grow-time-body">
-        <p class="grow-flow-note"><strong>Прорастание</strong>, затем <strong>период вегетации</strong> — рассада и выращивание (канал, поддон с кассетами или VF).</p>
-        <p class="grow-flow-note vf-audit-intro env-block-hidden" id="vf-audit-standards-intro"></p>
+        <p class="grow-flow-note ui-hint"><strong>Прорастание</strong>, затем <strong>период вегетации</strong> — рассада и выращивание (канал, поддон с кассетами или вертикальная ферма).</p>
 
         <div class="ctrl" id="ctrl-germination" data-vf-param="germination">
           <span class="ctrl-label">Время прорастания<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="germination" id="vf-badge-germination">стандарт</button></span>
@@ -2199,17 +2231,21 @@ html.auth-preview .page { padding-top: 0 !important; }
             <input type="range" id="day" min="1" max="40" step="1" value="21">
             <span class="ctrl-val"><span id="day-v">21</span><span class="unit">сут</span></span>
           </div>
+          <div class="ctrl-row-extra grow-auto-day-row">
+            <button type="button" class="auto-btn" id="auto-day">→ К рекомендуемому дню съёма</button>
+          </div>
         </div>
 
         <div id="block-panel-multicut" class="multicut-in-cycle" data-collapse-vf="cutInterval">
           <p class="veg-period-head multicut-cycle-head">Многократный срез</p>
-          <div class="toggle-wrap" style="margin: 10px 0 8px">
+          <div class="toggle-wrap toggle-wrap--inset">
             <span class="toggle-label">Многократный срез</span>
             <label class="toggle">
               <input type="checkbox" id="multicut">
               <span class="toggle-switch"></span>
             </label>
           </div>
+          <p id="multicut-enable-hint" class="multicut-enable-hint env-block-hidden"></p>
           <div id="multicut-detail" class="env-block-hidden">
             <div class="ctrl ctrl-veg-sub" id="ctrl-cut-interval" data-vf-param="cutInterval">
               <span class="ctrl-label">Интервал между срезами<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="cutInterval" id="vf-badge-cutInterval">стандарт</button></span>
@@ -2224,7 +2260,7 @@ html.auth-preview .page { padding-top: 0 !important; }
             <div id="multicut-baby-plan-wrap" class="multicut-baby-only env-block-hidden">
               <div id="multicut-cut-preview" class="georgy-cut-preview env-block-hidden"></div>
             </div>
-            <div class="toggle-wrap multicut-baby-only env-block-hidden" style="margin: 10px 0">
+            <div class="toggle-wrap toggle-wrap--inset multicut-baby-only env-block-hidden">
               <span class="toggle-label" data-i18n="mc.manualCutCount">Задать число срезок вручную</span>
               <label class="toggle">
                 <input type="checkbox" id="useManualGhCutCount">
@@ -2233,7 +2269,7 @@ html.auth-preview .page { padding-top: 0 !important; }
             </div>
             <p id="manual-gh-cut-count-hint" class="multicut-meta multicut-baby-only env-block-hidden" data-i18n="mc.manualCutCountHint"></p>
             <div id="gh-cuts-block" class="gh-only">
-              <p style="font-size:12.5px;color:var(--ink-faint);margin:12px 0 6px">Теплица: число срезок и масса с 1 горшка на каждый срез</p>
+              <p class="ui-hint ui-hint--tight">Теплица: число срезок и масса с 1 горшка на каждый срез</p>
               <div class="cut-count-row" id="gh-cut-count-row">
                 <span style="font-size:12px;color:var(--ink-faint);margin-right:6px">Срезок:</span>
                 <button type="button" class="cut-count-btn on" data-gh-cuts="1">1</button>
@@ -2245,7 +2281,7 @@ html.auth-preview .page { padding-top: 0 !important; }
               <div class="gh-cut-masses-grid" id="gh-cut-masses-grid"></div>
             </div>
 
-            <div class="toggle-wrap" style="margin: 10px 0">
+            <div class="toggle-wrap toggle-wrap--inset">
               <span class="toggle-label">Задать вес одного среза вручную</span>
               <label class="toggle">
                 <input type="checkbox" id="useManualCutMass">
@@ -2255,7 +2291,7 @@ html.auth-preview .page { padding-top: 0 !important; }
             <div id="manual-cut-mass-block" class="env-block-hidden">
               <div class="ctrl">
                 <span class="ctrl-label">Вес за срез<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="cutMass" id="vf-badge-cutMass">стандарт</button></span>
-                <input type="number" id="manualCutMass" min="1" max="500" step="1" value="15" style="grid-column:2/3;width:100%;max-width:140px;padding:8px 10px;border:1px solid var(--rule-strong);border-radius:var(--radius);font-family:inherit;font-size:14px;background:var(--card);color:var(--ink)">
+                <input type="number" id="manualCutMass" class="ctrl-num" min="1" max="500" step="1" value="15">
                 <span class="ctrl-val"><span id="manualCutMass-v">15</span><span class="unit" id="manualCutMass-unit">г</span></span>
               </div>
               <p id="vf-yield-std-hint" class="multicut-meta env-block-hidden"></p>
@@ -2264,12 +2300,10 @@ html.auth-preview .page { padding-top: 0 !important; }
               <button type="button" class="auto-btn" id="auto-cut-mass">→ Вес среза из справочника</button>
             </div>
             <p id="multicut-sheet-hint" class="multicut-meta env-block-hidden"></p>
+            <div id="cut-schedule-wrap" class="cut-schedule-wrap env-block-hidden">
+              <div id="cut-schedule"></div>
+            </div>
           </div>
-          <div id="cut-schedule" style="margin-top: 10px"></div>
-        </div>
-
-        <div class="ctrl-row-extra">
-          <button type="button" class="auto-btn" id="auto-day">→ К рекомендуемому дню съёма</button>
         </div>
       </div>
     </div>
@@ -2277,11 +2311,11 @@ html.auth-preview .page { padding-top: 0 !important; }
     <div class="collapse-block" id="block-mass" data-collapse-vf="mass">
       <div class="collapse-head" data-collapse-target="block-mass">
         <span>Масса урожая</span>
-        <span class="collapse-hint collapse-vf-only env-block-hidden">свернуть → стандарт VF</span>
+        <span class="collapse-hint collapse-sheet-only env-block-hidden">свернуть → стандарт</span>
         <span class="collapse-chev" aria-hidden="true">▼</span>
       </div>
       <div class="collapse-body" id="block-mass-body">
-        <div class="toggle-wrap" style="margin-bottom: 12px">
+        <div class="toggle-wrap toggle-wrap--spaced">
           <span class="toggle-label">Задать массу урожая вручную</span>
           <label class="toggle">
             <input type="checkbox" id="useManualMass">
@@ -2297,7 +2331,7 @@ html.auth-preview .page { padding-top: 0 !important; }
           </div>
         </div>
 
-        <p style="margin:12px 0 6px;font-size:12.5px;color:var(--ink-faint)">Диаметр шапки на схеме и в расчёте зазоров</p>
+        <p class="ui-hint ui-hint--tight">Диаметр шапки на схеме и в расчёте зазоров</p>
         <div class="canopy-toolbar">
           <button type="button" class="auto-btn js-canopy-std">стандарт</button>
           <div class="ctrl canopy-pct-ctrl" id="canopy-pct-block">
@@ -2329,7 +2363,7 @@ html.auth-preview .page { padding-top: 0 !important; }
           <button type="button" class="auto-btn" id="auto-mass">→ Масса по модели роста</button>
         </div>
 
-        <div id="mass-model-hint" style="font-size:12.5px;color:var(--ink-faint);line-height:1.5;margin:0 0 4px"></div>
+        <div id="mass-model-hint" class="ui-hint ui-hint--tight"></div>
       </div>
     </div>
 
@@ -2358,7 +2392,7 @@ html.auth-preview .page { padding-top: 0 !important; }
       </div>
       <div class="collapse-body" id="block-env-vf-light-body">
     <div id="env-vertical">
-    <div style="font-size:12.5px;color:var(--ink-faint);line-height:1.55;margin:-6px 0 14px">DLI и PPFD связаны: DLI = PPFD × часы × 0,0036. Ориентиры для листового салата: Cornell CEA Handbook — DLI 12–17 моль/м²·сут, фотопериод 16–18 ч; ниже 12 моль рост резко падает.</div>
+    <div class="ui-hint ui-hint--tight">DLI и PPFD связаны: DLI = PPFD × часы × 0,0036. Ориентиры для листового салата: Cornell CEA Handbook — DLI 12–17 моль/м²·сут, фотопериод 16–18 ч; ниже 12 моль рост резко падает.</div>
 
     <div class="ctrl">
       <span class="ctrl-label">DLI на кроне</span>
@@ -2383,7 +2417,7 @@ html.auth-preview .page { padding-top: 0 !important; }
       <input type="range" id="ledEfficacyVf" min="2.3" max="2.5" step="0.05" value="2.4">
       <span class="ctrl-val"><span id="ledEfficacyVf-v">2.4</span><span class="unit">µmol/Дж</span></span>
     </div>
-    <div style="font-size:12px;color:var(--ink-faint);margin:-6px 0 10px;line-height:1.5">Сити-ферма: 2.3–2.5 µmol/Дж — с потерями в блоках питания, кабелях и оптике.</div>
+    <div class="ui-hint ui-hint--tight">Сити-ферма: 2.3–2.5 µmol/Дж — с потерями в блоках питания, кабелях и оптике.</div>
     </div>
       </div>
     </div>
@@ -2458,9 +2492,40 @@ html.auth-preview .page { padding-top: 0 !important; }
     <div class="env-summary" id="env-summary"></div>
   </section>
 
+  <section class="panel collapse-block sheet-standards-panel" id="block-panel-standards">
+    <div class="collapse-head" data-collapse-target="block-panel-standards">
+      <span>Мои стандарты</span>
+      <span class="collapse-chev" aria-hidden="true">▼</span>
+    </div>
+    <div class="collapse-body" id="block-panel-standards-body">
+      <div class="standards-sub gh-only" id="user-standards-gh-wrap">
+        <div class="section-h">Теплица</div>
+        <p class="gh-standards-hint ui-hint">Значения для сорта <strong id="gh-std-cv-name">—</strong>, в т.ч. <strong>шапка в мм</strong>. «Сохранить для сорта» пишет в браузер (localStorage) — остаётся после перезагрузки, пока не сбросите или не очистите данные сайта. «Применить» подставит в расчёт.</p>
+        <div class="gh-standards-grid" id="gh-standards-grid"></div>
+        <div class="gh-standards-actions">
+          <button type="button" class="auto-btn" id="gh-std-apply">Применить к расчёту</button>
+          <button type="button" class="auto-btn" id="gh-std-save">Сохранить для сорта</button>
+          <button type="button" class="auto-btn" id="gh-std-reset-model">Сбросить к модели сорта</button>
+        </div>
+      </div>
+      <div class="standards-sub sheet-standards-only vf-only env-block-hidden" id="user-standards-vf-wrap">
+        <div class="section-h" id="sheet-standards-section-title">Вертикальная ферма</div>
+        <p class="gh-standards-hint ui-hint" id="sheet-standards-hint"></p>
+        <p class="vf-std-locks-title" id="sheet-std-locks-title">Подставлять из справочника:</p>
+        <div class="vf-std-grid" id="vf-std-grid"></div>
+        <div class="gh-standards-grid" id="vf-standards-grid"></div>
+        <div class="gh-standards-actions">
+          <button type="button" class="auto-btn" id="vf-std-apply">Применить к расчёту</button>
+          <button type="button" class="auto-btn" id="vf-std-save">Сохранить для сорта</button>
+          <button type="button" class="auto-btn" id="vf-std-reset-model">Сбросить к справочнику</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
 <section class="panel" id="panel-bio-margin">
     <div class="section-h">Биологический разброс</div>
-    <div class="toggle-wrap" style="margin-bottom: 12px">
+    <div class="toggle-wrap toggle-wrap--spaced">
       <span class="toggle-label">Показывать диапазон значений (а не одну цифру)</span>
       <label class="toggle">
         <input type="checkbox" id="showRange">
@@ -2474,7 +2539,7 @@ html.auth-preview .page { padding-top: 0 !important; }
       <span class="ctrl-val">±<span id="errorPct-v">12</span><span class="unit">%</span></span>
     </div>
 
-    <div style="font-size:12.5px;color:var(--ink-faint);line-height:1.55;margin-top:4px" id="bio-margin-hint">
+    <div class="ui-hint ui-hint--tight" id="bio-margin-hint">
       Разные семена в одной партии, неодинаковая рассада, микроклимат в разных точках теплицы — всё это даёт реальный разброс. Типичные значения: 8–10% при отработанной агротехнике и хороших семенах, 12–15% при обычных условиях, 18–20% если рассада неравномерная или генетика семян «гуляет». Применяется к массе (±N%), шапке (±N/2%), дню съёма (±N/8 сут).
     </div>
   </section>
@@ -2485,6 +2550,24 @@ html.auth-preview .page { padding-top: 0 !important; }
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="block-panel-growth-body">
+    <p class="growth-compare-hint ui-hint ui-hint--tight" data-i18n="ui.chart.compareHint">Включите сравнение — на графике появятся кривые выбранных культур; жирная линия — текущая. Переключить текущую можно кнопками под графиком.</p>
+    <div class="toggle-wrap growth-compare-toggle">
+      <span class="toggle-label" data-i18n="cvCompare.toggle">Сравнить культуры на графике</span>
+      <label class="toggle">
+        <input type="checkbox" id="compareMode" data-readonly-allow data-preview-allow>
+        <span class="toggle-switch"></span>
+      </label>
+    </div>
+    <div id="compare-pick-wrap" class="compare-pick-wrap env-block-hidden">
+      <p class="compare-pick-summary" id="compare-pick-summary">Выберите культуры для сравнения.</p>
+      <div class="compare-pick-actions">
+        <button type="button" class="auto-btn" id="compare-pick-all" data-i18n="ui.chart.all" data-readonly-allow data-preview-allow>Все</button>
+        <button type="button" class="auto-btn" id="compare-pick-none" data-i18n="ui.chart.none" data-readonly-allow data-preview-allow>Снять</button>
+        <button type="button" class="auto-btn" id="compare-pick-active" data-i18n="ui.chart.onlyActive" data-readonly-allow data-preview-allow>Только текущая</button>
+        <button type="button" class="auto-btn" id="compare-pick-add-active" data-i18n="ui.chart.addActive" data-readonly-allow data-preview-allow>+ Текущая</button>
+      </div>
+      <div class="compare-pick-grid" id="compare-pick-grid"></div>
+    </div>
     <div class="viz-frame viz-frame--chart">
       <svg id="growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
       <div class="chart-legend" id="chart-legend">
@@ -2504,19 +2587,19 @@ html.auth-preview .page { padding-top: 0 !important; }
       <span class="ctrl-val"><span id="length-v">12.0</span><span class="unit">м</span></span>
     </div>
 
-<div id="nch-host-channel">
+<div id="nch-host-channel" class="sys-channel-block sys-channel-only">
       <div class="ctrl" id="ctrl-nch-wrap">
       <span class="ctrl-label" id="nch-label">Количество каналов</span>
       <input type="range" id="nch" min="1" max="20" step="1" value="13">
       <span class="ctrl-val"><span id="nch-v">13</span><span class="unit">шт</span></span>
     </div>
-    </div>
-    <div class="ctrl-row-extra sys-channel-only">
-      <button class="auto-btn" id="auto-nch">→ Максимум каналов в 2 м ширины</button>
+      <div class="sys-aux-actions">
+        <button type="button" class="auto-btn" id="auto-nch">→ Максимум каналов в 2 м ширины</button>
+      </div>
     </div>
 
     <div class="canopy-density-wrap sys-channel-only env-block-hidden" id="canopy-density-wrap">
-      <div class="ctrl-row-extra">
+      <div class="sys-aux-actions">
         <button type="button" class="auto-btn" id="canopy-density-auto" data-i18n="canopy.density.autoBtn">Подобрать по шапке (≤20 мм)</button>
       </div>
       <p class="georgy-density-hint" id="canopy-density-hint"></p>
@@ -2584,7 +2667,7 @@ html.auth-preview .page { padding-top: 0 !important; }
         <button type="button" class="pallet-mount-btn" data-mount="lid">Крышка-крафт 1300×650 мм</button>
       </div>
         </div>
-    <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-tier-hint">Высота стеллажа (ориентир): <strong id="pallet-rack-height">—</strong> мм · посевная площадь: <strong id="pallet-useful-area">—</strong> м² <span class="pallet-area-footprint">(площадь пола <strong id="pallet-footprint-area">—</strong> м² × <span id="pallet-tier-count-hint">—</span> яр.)</span></p>
+    <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-tier-hint">Высота стеллажа (ориентир): <strong id="pallet-rack-height">—</strong> мм · посевная площадь: <strong id="pallet-useful-area">—</strong> м² <span class="pallet-area-footprint">(площадь по полу <strong id="pallet-footprint-area">—</strong> м² × <span id="pallet-tier-count-hint">—</span> яр.)</span></p>
 <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-plants-hint"><span id="pallet-plants-prefix">На поддон:</span> <strong id="pallet-plants-per">162</strong> <span id="pallet-plants-mid">раст.</span> (<span id="pallet-plants-formula">3×54</span>)</p>
 
     <div class="ctrl sys-pallet-only env-block-hidden">
@@ -2646,25 +2729,8 @@ html.auth-preview .page { padding-top: 0 !important; }
 
   <section class="panel" id="panel-cv-compare">
     <div class="section-h" data-i18n="cvCompare.title">Сравнение сортов</div>
-    <p class="cv-compare-intro" data-i18n="cvCompare.intro">Выберите несколько сортов при одинаковых настройках (свет, температура, плотность, срок). Таблица и график обновляются сразу. Выделенная колонка — текущий сорт.</p>
-    <p class="cv-compare-georgy-note georgy-only" data-i18n="georgy.cvCompare.hint">В режиме Георгия кривые нескольких сортов отображаются в блоке «Кривая роста» выше. Включите сравнение и отметьте сорта — легенду с переключением текущего сорта см. под графиком.</p>
-    <div class="toggle-wrap" style="margin-bottom: 12px">
-      <span class="toggle-label" data-i18n="cvCompare.toggle">Сравнить сорта</span>
-      <label class="toggle">
-        <input type="checkbox" id="compareMode">
-        <span class="toggle-switch"></span>
-      </label>
-    </div>
-    <div id="compare-pick-wrap" class="compare-pick-wrap env-block-hidden">
-      <p class="compare-pick-summary" id="compare-pick-summary">Выберите культуры для сравнения.</p>
-      <div class="compare-pick-actions">
-        <button type="button" class="auto-btn" id="compare-pick-all" data-i18n="ui.chart.all">Все</button>
-        <button type="button" class="auto-btn" id="compare-pick-none" data-i18n="ui.chart.none">Снять</button>
-        <button type="button" class="auto-btn" id="compare-pick-active" data-i18n="ui.chart.onlyActive">Только текущая</button>
-        <button type="button" class="auto-btn" id="compare-pick-add-active" data-i18n="ui.chart.addActive">+ Текущая</button>
-      </div>
-      <div class="compare-pick-grid" id="compare-pick-grid"></div>
-    </div>
+    <p class="cv-compare-intro" data-i18n="cvCompare.intro">Таблица показателей при тех же настройках (свет, температура, плотность, срок). График сравнения — в блоке «Кривая роста» выше.</p>
+    <p class="cv-compare-georgy-note georgy-only" data-i18n="georgy.cvCompare.hint">Кривые на графике в блоке «Кривая роста»; здесь — таблица. Включите сравнение у графика и отметьте сорта.</p>
     <div id="cv-compare-margin-wrap" class="cv-compare-margin env-block-hidden">
       <label class="toggle-wrap" style="margin:0">
         <span class="toggle-label" data-i18n="cvCompare.showRange">Показать погрешность</span>
@@ -2679,7 +2745,7 @@ html.auth-preview .page { padding-top: 0 !important; }
         <span class="ctrl-val">±<span id="compareErrorPct-v">12</span><span class="unit">%</span></span>
       </div>
     </div>
-    <div id="cv-compare-chart-wrap" class="cv-compare-chart-wrap env-block-hidden">
+    <div id="cv-compare-chart-wrap" class="cv-compare-chart-wrap env-block-hidden" hidden aria-hidden="true">
       <div class="section-h cv-compare-chart-title" data-i18n="ui.chart.title">Кривая роста</div>
       <div class="viz-frame viz-frame--chart">
         <svg id="cv-compare-growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
@@ -2818,37 +2884,6 @@ html.auth-preview .page { padding-top: 0 !important; }
     <div class="collapse-body planting-guide-body" id="panel-pallet-guide-body"></div>
   </section>
 
-  <section class="panel collapse-block" id="block-panel-standards">
-    <div class="collapse-head" data-collapse-target="block-panel-standards">
-      <span>Мои стандарты</span>
-      <span class="collapse-chev" aria-hidden="true">▼</span>
-    </div>
-    <div class="collapse-body" id="block-panel-standards-body">
-      <div class="standards-sub gh-only" id="user-standards-gh-wrap">
-        <div class="section-h">Теплица</div>
-        <p class="gh-standards-hint">Значения для сорта <strong id="gh-std-cv-name">—</strong>, в т.ч. <strong>шапка в мм</strong>. «Сохранить для сорта» пишет в браузер (localStorage) — остаётся после перезагрузки, пока не сбросите или не очистите данные сайта. «Применить» подставит в расчёт.</p>
-        <div class="gh-standards-grid" id="gh-standards-grid"></div>
-        <div class="gh-standards-actions">
-          <button type="button" class="auto-btn" id="gh-std-apply">Применить к расчёту</button>
-          <button type="button" class="auto-btn" id="gh-std-save">Сохранить для сорта</button>
-          <button type="button" class="auto-btn" id="gh-std-reset-model">Сбросить к модели сорта</button>
-        </div>
-      </div>
-      <div class="standards-sub vf-only env-block-hidden" id="user-standards-vf-wrap">
-        <div class="section-h">Вертикальная ферма</div>
-        <p class="gh-standards-hint">Сорт <strong id="vf-std-cv-name">—</strong>. Поле <strong>«Шапка, мм»</strong> — вручную для сорта (не только из модели). «Сохранить для сорта» → localStorage навсегда в этом браузере. Галочки выше — что подставлять из справочника VF.</p>
-        <p class="vf-std-locks-title">Подставлять из справочника VF:</p>
-        <div class="vf-std-grid" id="vf-std-grid"></div>
-        <div class="gh-standards-grid" id="vf-standards-grid"></div>
-        <div class="gh-standards-actions">
-          <button type="button" class="auto-btn" id="vf-std-apply">Применить к расчёту</button>
-          <button type="button" class="auto-btn" id="vf-std-save">Сохранить для сорта</button>
-          <button type="button" class="auto-btn" id="vf-std-reset-model">Сбросить к справочнику</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <footer class="colophon">
     <div><strong>Модель роста.</strong> Логистическая: <span class="formula">M(t) = M<sub>max</sub> / (1 + e<sup>−k(t−t₅₀)</sup>)</span>, шапка <span class="formula">d = c · √M</span></div>
     <div id="colophon-light"></div>
@@ -2964,6 +2999,11 @@ html.auth-preview .page { padding-top: 0 !important; }
     </section>
   </div>
 
+  <div id="view-standards" class="app-view app-view-hidden">
+    <p class="stdcat-intro" data-i18n="stdcat.intro">Диапазон из аудита → значение в калькуляторе. Переключайте среду ниже.</p>
+    <div id="standards-catalog-host" aria-live="polite"></div>
+  </div>
+
 </div>
 
 <dialog id="pdf-export-dialog" class="pdf-export-dialog">
@@ -3065,6 +3105,7 @@ html.auth-preview .page { padding-top: 0 !important; }
 <script src="js/planting-late-init.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-event-bindings.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-econ-glue.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/standards-catalog-table.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-app-nav.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-public-api.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-snapshot.js?v=2026-05-20-p109-pdf-sections"></script>
@@ -3096,10 +3137,14 @@ html.auth-preview .page { padding-top: 0 !important; }
 <script src="js/pwa-qr.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/econ-advanced.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/readonly-mode.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/share-view.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/pwa-register.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/calc-theme.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/pallet-load-warn.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/gh-cultivars.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/gh-cultivars-extended.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/gh-cultivar-catalog.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/gh-cultivars-user.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/gh-cv-colors.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-cut-interval-ui.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-pallet-sheet.js?v=2026-05-20-p109-pdf-sections"></script>
@@ -3619,6 +3664,13 @@ html.auth-preview .page { padding-top: 0 !important; }
   function sumEconEquipmentRaw(){ return _econApi.sumEconEquipmentRaw(); }
   function sumEconEquipment(){ return _econApi.sumEconEquipment(); }
 
+  var _standardsCatalog = global.DG_createStandardsCatalogTable({
+    $: $, pt: pt, tr: tr, htmlEsc: htmlEsc,
+    allVfCultivars: allVfCultivars, allPalletCultivars: allPalletCultivars, allGhCultivars: allGhCultivars,
+    VF_SECTIONS: VF_SECTIONS, PALLET_SECTIONS: PALLET_SECTIONS
+  });
+  function renderStandardsCatalog(){ return _standardsCatalog.renderStandardsCatalog(); }
+
   function plantingAppNavDeps(){
     return {
       getState: function(){ return state; },
@@ -3628,6 +3680,7 @@ html.auth-preview .page { padding-top: 0 !important; }
       getActivePlantingCvId: getActivePlantingCvId, importAllEconFromPlanting: importAllEconFromPlanting,
       getPlantingSnapshotForCvId: getPlantingSnapshotForCvId, syncEconFromPlanting: syncEconFromPlanting,
       syncEconInputsFromState: syncEconInputsFromState, renderEconomics: renderEconomics,
+      renderStandardsCatalog: renderStandardsCatalog,
       getDefaultEconState: getDefaultEconState, ensureEconCultures: ensureEconCultures,
       migrateEconCultureRows: migrateEconCultureRows, ensureEconEquipment: ensureEconEquipment,
       saveGhStandardsStore: saveGhStandardsStore, saveVfStandardsStore: saveVfStandardsStore,
@@ -3684,6 +3737,7 @@ html.auth-preview .page { padding-top: 0 !important; }
         if (r && r.sysArea != null) lines.push({ label: ui('ui.pdf.meta.area'), value: r2(r.sysArea), unit: tr('sum.unit.sqm') });
         var mode = state.appView === 'pallets' ? tr('mode.pallets') : (state.facility === 'vertical' ? tr('mode.vf') : tr('mode.gh'));
         if (state.appView === 'economics') mode = tr('mode.economics');
+        if (state.appView === 'standards') mode = tr('mode.standards');
         lines.push({ label: ui('ui.pdf.meta.mode'), value: mode, unit: '' });
         var tEl = $('page-title');
         var s = $('page-sub');
@@ -3716,10 +3770,11 @@ html.auth-preview .page { padding-top: 0 !important; }
       CALC_BUILD: CALC_BUILD, ECON_SALAD_MIX_ID: ECON_SALAD_MIX_ID,
       lightEnergy: _lightEnergy,
       renderAll: renderAll, renderCultivars: renderCultivars, renderMonths: renderMonths,
-      renderEconomics: renderEconomics, renderGhStandardsPanel: renderGhStandardsPanel,
+      renderEconomics: renderEconomics, renderStandardsCatalog: renderStandardsCatalog,
+      renderGhStandardsPanel: renderGhStandardsPanel,
       renderVfStandardsPanel: renderVfStandardsPanel, renderVfStdGrid: renderVfStdGrid,
       renderGhYieldTotals: renderGhYieldTotals, calc: calc, setFacility: setFacility,
-      setAppView: setAppView, isVF: isVF, isPalletView: isPalletView, getCv: getCv,
+      setAppView: setAppView, isVF: isVF, isPalletView: isPalletView, isPalletCvId: isPalletCvId, getCv: getCv,
       getVfCv: getVfCv, getActiveCv: getActiveCv, getCompareList: getCompareList,
       comparePickActiveId: comparePickActiveId, ensureComparePick: ensureComparePick,
       ghCutCountMax: ghCutCountMax, syncGhCutsUI: syncGhCutsUI, syncGhYieldMarginSliders: syncGhYieldMarginSliders,

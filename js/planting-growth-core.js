@@ -156,6 +156,10 @@
     }
 
     function canopyAtTotal(cv, t) {
+      var GLM = glm();
+      if (GLM && GLM.canopyFromMass) {
+        return GLM.canopyFromMass(cv, massAtTotal(cv, t), st().temp);
+      }
       return effectiveCa(cv) * Math.sqrt(massAtTotal(cv, t));
     }
 

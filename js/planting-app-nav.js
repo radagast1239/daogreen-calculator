@@ -22,6 +22,7 @@
     function syncEconFromPlanting() { return deps.syncEconFromPlanting.apply(deps, arguments); }
     function syncEconInputsFromState() { return deps.syncEconInputsFromState.apply(deps, arguments); }
     function renderEconomics() { return deps.renderEconomics.apply(deps, arguments); }
+    function renderStandardsCatalog() { return deps.renderStandardsCatalog.apply(deps, arguments); }
     function getDefaultEconState() { return deps.getDefaultEconState.apply(deps, arguments); }
     function ensureEconCultures() { return deps.ensureEconCultures.apply(deps, arguments); }
     function migrateEconCultureRows() { return deps.migrateEconCultureRows.apply(deps, arguments); }
@@ -137,11 +138,15 @@
     try { localStorage.setItem(APP_VIEW_KEY, view); } catch(_){}
     const planting = $('view-planting');
     const economics = $('view-economics');
+    const standards = $('view-standards');
     const isPlanting = view === 'channels' || view === 'pallets';
     if (planting) planting.classList.toggle('app-view-hidden', !isPlanting);
     if (economics) economics.classList.toggle('app-view-hidden', view !== 'economics');
+    if (standards) standards.classList.toggle('app-view-hidden', view !== 'standards');
+    var pageEl = document.querySelector('.page');
+    if (pageEl) pageEl.classList.toggle('page--stdcat', view === 'standards');
     const bridge = $('planting-econ-bridge');
-    if (bridge) bridge.style.display = (view === 'economics') ? 'none' : 'flex';
+    if (bridge) bridge.style.display = isPlanting ? 'flex' : 'none';
     document.querySelectorAll('.app-tab').forEach(btn => {
       const on = btn.dataset.appView === view;
       btn.classList.toggle('on', on);
@@ -151,6 +156,11 @@
       restorePlantingViewSnapshot(view, plantingSnapshots[view]);
       if (view === 'pallets'){
         if (allPalletCultivars().length){
+          var palCv = getPalletCv();
+          if (palCv) {
+            st().palletCv = palCv.id;
+            if (st().comparePick[palCv.id] === undefined) st().comparePick[palCv.id] = true;
+          }
           if (!allPalletCultivars().find(c => c.id === st().cvB)) st().cvB = st().palletCv;
           if (!plantingSnapshots.pallets) resetPalletStdToSheetDefaults();
           else syncCycleSlidersFromState();
@@ -158,7 +168,11 @@
         syncPalletLoadWarn();
       }
       const culturePanel = $('panel-culture');
-      if (culturePanel) culturePanel.classList.toggle('is-vf', isVF() || isPalletView());
+      if (culturePanel) {
+        const sheetMode = isVF() || isPalletView();
+        culturePanel.classList.toggle('is-vf', sheetMode);
+        culturePanel.classList.toggle('is-sheet-mode', sheetMode);
+      }
       updatePlantingGeomUI();
       updatePageSub();
       renderCultivars();
@@ -166,13 +180,15 @@
       renderAll();
     }
     if (view === 'economics'){ updatePageSub(); renderEconomics(); }
+    if (view === 'standards'){ updatePageSub(); renderStandardsCatalog(); }
   }
 
   function updateCalcBuildBadge(r){
     const el = document.getElementById('calc-build-badge');
     if (!el) return;
     var tr = window.DG_t || function(k){ return k; };
-    const view = st().appView === 'pallets' ? tr('badge.pallets') : (st().appView === 'economics' ? tr('badge.economics') : tr('badge.channels'));
+    var av = st().appView;
+    const view = av === 'pallets' ? tr('badge.pallets') : (av === 'economics' ? tr('badge.economics') : (av === 'standards' ? tr('badge.standards') : tr('badge.channels')));
     const pal = allPalletCultivars().length;
     let extra = '';
     if (st().appView === 'pallets'){
@@ -206,6 +222,12 @@
       if (kick) kick.textContent = pt('econ.kicker');
       if (title) title.textContent = pt('econ.title');
       if (el) el.textContent = pt('econ.sub');
+      return;
+    }
+    if (st().appView === 'standards'){
+      if (kick) kick.textContent = pt('stdcat.kicker');
+      if (title) title.textContent = pt('stdcat.title');
+      if (el) el.textContent = pt('stdcat.sub');
       return;
     }
     if (isPalletView()){

@@ -2,6 +2,12 @@
 (function(global){
   'use strict';
 
+  var CV_ID_ALIASES = { romaine: 'little-gem' };
+
+  function resolveCvId(id){
+    return id && CV_ID_ALIASES[id] ? CV_ID_ALIASES[id] : id;
+  }
+
   function createCultivarRegistry(deps){
     function st(){ return deps.getState(); }
 
@@ -18,7 +24,8 @@
     function isPalletSheetCv(cv){ return !!(cv && cv.palletSheet); }
 
     function getCv(){
-      return allGhCultivars().find(c => c.id === st().cv) || allGhCultivars()[0];
+      var id = resolveCvId(st().cv);
+      return allGhCultivars().find(c => c.id === id) || allGhCultivars()[0];
     }
     function getPalletCv(){
       const list = allPalletCultivars();
@@ -43,6 +50,7 @@
     }
     function findCvById(id){
       if (!id) return null;
+      id = resolveCvId(id);
       if (isPalletCvId(id)) return allPalletCultivars().find(c => c.id === id) || null;
       if (isVfCvId(id)) return allVfCultivars().find(c => c.id === id) || null;
       const gh = allGhCultivars().find(c => c.id === id);

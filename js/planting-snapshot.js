@@ -21,10 +21,21 @@
       return T('facility.greenhouse', 'Теплица');
     }
 
+    function usesMonthlyCutYield(cv){
+      var state = deps.getState();
+      if (state.multicut && deps.supportsMulticut(cv)) return true;
+      return (
+        deps.isPalletView() &&
+        cv.countUnit === 'шт' &&
+        cv.cutInterval > 0 &&
+        cv.yieldPerCutG > 0
+      );
+    }
+
     function plantingHarvestYieldParams(cv, r){
       var state = deps.getState();
       var unitIsPieces = cv.countUnit === 'шт';
-      var useMc = state.multicut && deps.supportsMulticut(cv);
+      var useMc = usesMonthlyCutYield(cv);
       if (useMc){
         var stateInterval = Math.max(1, Math.round(state.cutInterval || 12));
         var cutIntervalDays = (r && r.mainHallIntervalDays > 0)

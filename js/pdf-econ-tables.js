@@ -29,8 +29,24 @@
     };
   }
 
+  function plainCellText(nodeOrStr){
+    if (nodeOrStr == null) return '';
+    var t;
+    if (typeof nodeOrStr === 'string') {
+      t = nodeOrStr;
+      if (/<|&(?:#|amp;|nbsp;|lt;|gt;)/i.test(t)) {
+        var box = document.createElement('div');
+        box.innerHTML = t;
+        t = box.textContent || '';
+      }
+    } else {
+      t = nodeOrStr.textContent || '';
+    }
+    return String(t).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
   function stripHtml(s){
-    return String(s || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    return plainCellText(s);
   }
 
   function parseHtmlTable(table){
@@ -41,7 +57,7 @@
     trs.forEach(function(tr, ri){
       var cells = [];
       tr.querySelectorAll('th, td').forEach(function(c){
-        cells.push(stripHtml(c.innerHTML));
+        cells.push(plainCellText(c));
       });
       if (!cells.length) return;
       if (ri === 0 && tr.querySelector('th')) headers = cells;
@@ -59,8 +75,8 @@
     var rows = [];
     root.querySelectorAll('.econ-pb-row').forEach(function(row){
       var spans = row.querySelectorAll('span, strong');
-      var k = spans[0] ? stripHtml(spans[0].textContent) : '';
-      var v = spans[1] ? stripHtml(spans[1].textContent) : '';
+      var k = spans[0] ? plainCellText(spans[0]) : '';
+      var v = spans[1] ? plainCellText(spans[1]) : '';
       if (k) rows.push([k, v]);
     });
     return rows.length ? { headers: [pdfT('pdf.vec.indicator'), pdfT('pdf.vec.value')], rows: rows } : null;
@@ -115,7 +131,7 @@
 
   function splitLines(pdf, text, maxW, fontSize){
     pdf.setFontSize(fontSize);
-    var words = String(text || '—').split(/\s+/);
+    var words = plainCellText(String(text || '—')).split(/\s+/).filter(Boolean);
     var lines = [];
     var line = '';
     words.forEach(function(w){

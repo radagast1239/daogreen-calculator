@@ -87,8 +87,6 @@
       };
       state.useManualCutMass = false;
       applyPalletStandardsFromSheet(deps.getPalletCv());
-      deps.renderVfStdGrid();
-      if (deps.renderVfStandardsPanel) deps.renderVfStandardsPanel();
       deps.syncPalletCellButtons();
       deps.syncManualMassUI();
       deps.syncCutMassUI();
@@ -205,7 +203,7 @@
       var canopyAtMax = deps.effectiveCa(cv) * Math.sqrt(cv.M_max);
       var crowdF = deps.crowdingFactor(canopyAtMax, cellPitch);
       var massAuto = massRaw * crowdF;
-      var mass = state.useManualMass ? deps.manualHarvestMass(massAuto) : massAuto;
+      var mass = palletEffectiveMass(cv, massAuto);
       var canopy = deps.harvestCanopy(cv, mass);
       var intervalMod = deps.applyCutIntervalHarvestMods(cv, mass, canopy);
       mass = intervalMod.mass;
@@ -219,8 +217,14 @@
       var leafGap = cellPitch - canopy;
       var totalCycleDays = germ + nursery + Math.round(tHarvestCh);
       var cyclesPerYear = totalCycleDays > 0 ? 365 / totalCycleDays : 0;
-      var yieldPerSqmCycle = (mass * lay.rhoA) / 1000;
-      var yieldPerCycleKg = (mass * lay.total) / 1000;
+      var yieldFn = global.DG_yieldPerSqmCycleFromMass;
+      var totalFn = global.DG_yieldPerCycleTotalFromMass;
+      var yieldPerSqmCycle = yieldFn
+        ? yieldFn(cv, mass, lay.rhoA)
+        : (cv.countUnit === 'шт' ? mass * lay.rhoA : (mass * lay.rhoA) / 1000);
+      var yieldPerCycleKg = totalFn
+        ? totalFn(cv, mass, lay.total)
+        : (cv.countUnit === 'шт' ? mass * lay.total : (mass * lay.total) / 1000);
       var yieldPerSqmYear = yieldPerSqmCycle * cyclesPerYear;
       return Object.assign(
         {

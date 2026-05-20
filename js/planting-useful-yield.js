@@ -42,6 +42,24 @@
         meta.usefulAreaBasis = 'main_hall';
         return meta;
       }
+      var palletPiecesMonthly =
+        deps.isPalletView &&
+        deps.isPalletView() &&
+        cv &&
+        cv.countUnit === 'шт' &&
+        cv.cutInterval > 0;
+      if (palletPiecesMonthly) {
+        var ivPal = deps.effectiveCutInterval
+          ? deps.effectiveCutInterval()
+          : state.cutInterval;
+        meta.mainHallIntervalDays = Math.max(1, Math.round(ivPal || cv.cutInterval));
+        meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
+        meta.usefulAreaBasis = 'main_hall';
+        if (state.multicut && deps.supportsMulticut && deps.supportsMulticut(cv)) {
+          meta.multicutMode = true;
+        }
+        return meta;
+      }
       if (state.multicut && deps.supportsMulticut && deps.supportsMulticut(cv)) {
         meta.multicutMode = true;
         var iv = deps.effectiveCutInterval
@@ -70,21 +88,36 @@
       var meta = resolveMeta(cv, r);
       var mass = ctx.mass != null ? ctx.mass : r.mass;
       var rhoA = ctx.rhoA != null ? ctx.rhoA : r.rhoA;
-      var yieldPerSqmCycle = ctx.yieldPerSqmCycle != null
-        ? ctx.yieldPerSqmCycle
-        : (mass * rhoA) / 1000;
+      var yieldPerSqmCycle =
+        ctx.yieldPerSqmCycle != null
+          ? ctx.yieldPerSqmCycle
+          : global.DG_yieldPerSqmCycleFromMass
+            ? global.DG_yieldPerSqmCycleFromMass(cv, mass, rhoA)
+            : (cv && cv.countUnit === 'шт' ? mass * rhoA : (mass * rhoA) / 1000);
       var out = {
         mainHallIntervalDays: meta.mainHallIntervalDays,
         harvestCyclesPerMonth: meta.harvestCyclesPerMonth,
         usefulAreaBasis: meta.usefulAreaBasis
       };
-      if (meta.multicutMode && deps.cutMassForMonthlyYield) {
+      var piecesMonthly =
+        cv &&
+        cv.countUnit === 'шт' &&
+        meta.harvestCyclesPerMonth > 0 &&
+        deps.cutMassForMonthlyYield;
+      if ((meta.multicutMode || piecesMonthly) && deps.cutMassForMonthlyYield) {
         var cm = deps.cutMassForMonthlyYield(cv);
         var ypm = cm.val * meta.harvestCyclesPerMonth;
+        var piecesMc = cm.unit === 'шт' || cv.countUnit === 'шт';
         out.harvestYieldPerCut = cm.val;
-        out.yieldPerSqmMonthKg = (ypm / 1000) * rhoA;
-        out.cyclesPerYear = meta.mainHallIntervalDays > 0 ? 365 / meta.mainHallIntervalDays : 0;
-        out.yieldPerSqmYear = out.yieldPerSqmMonthKg * 12;
+        out.cyclesPerYear =
+          meta.mainHallIntervalDays > 0 ? 365 / meta.mainHallIntervalDays : 0;
+        if (piecesMc) {
+          out.yieldPerSqmMonthPcs = ypm * rhoA;
+          out.yieldPerSqmYear = out.yieldPerSqmMonthPcs * 12;
+        } else {
+          out.yieldPerSqmMonthKg = (ypm / 1000) * rhoA;
+          out.yieldPerSqmYear = out.yieldPerSqmMonthKg * 12;
+        }
         return out;
       }
       if (meta.usefulAreaBasis === 'main_hall' && meta.mainHallIntervalDays > 0) {

@@ -4,20 +4,26 @@
 
   var P = {
     ru: {
-      'cultivars.title': 'Культура и сорт',
+      'cultivars.title': 'Культуры',
       'cultivars.add': '+ Добавить свой сорт',
       'cultivars.addHint': 'Копия параметров текущего сорта · сохраняется в браузере',
       'cycle.title': 'Параметры цикла',
       'grow.title': 'Сроки цикла',
-      'grow.vfHint': 'свернуть → подставить стандарты VF',
-      'grow.flow': 'Прорастание, затем период вегетации — рассада и выращивание (канал, поддон с кассетами или VF).',
+      'grow.sheetHintVf': 'свернуть → подставить стандарты вертикальной фермы',
+      'grow.sheetHintPal': 'свернуть → подставить стандарты поддонов',
+      'grow.flow': 'Прорастание, затем период вегетации — рассада и выращивание (канал, поддон с кассетами или вертикальная ферма).',
+      'mass.sheetHintVf': 'свернуть → стандарт вертикальной фермы',
+      'mass.sheetHintPal': 'свернуть → стандарт поддонов',
       'germination': 'Время прорастания',
       'nursery': 'Рассада',
       'vegDays': 'Дней роста до среза/готовности',
       'autoDay': '→ К рекомендуемому дню съёма',
       'mass.title': 'Масса урожая',
+      'mass.titlePcs': 'Количество урожая',
       'mass.manual': 'Задать массу урожая вручную',
+      'mass.manualPcs': 'Задать количество вручную',
       'mass.perPot': 'Масса урожая с 1 горшка, г',
+      'mass.perPotPcs': 'Количество с 1 горшка, шт',
       'canopy.schema': 'Диаметр шапки на схеме и в расчёте зазоров',
       'canopy.std': 'стандарт',
       'canopy.pct': 'Погрешность шапки',
@@ -99,7 +105,7 @@
       'std.save': 'Сохранить для сорта',
       'std.reset': 'Сбросить к модели сорта',
       'std.resetVf': 'Сбросить к справочнику',
-      'vf.stdLocks': 'Подставлять из справочника VF:',
+      'vf.stdLocks': 'Подставлять из справочника вертикальной фермы:',
       'std.gh.germination': 'Прорастание',
       'std.gh.nursery': 'Рассада',
       'std.gh.day': 'Дней до среза',
@@ -123,20 +129,56 @@
       'kicker.vf': 'Вертикальная ферма · каналы 110×55',
       'kicker.pal': 'Поддоны 130 × 65 см',
       'title.ch': 'Калькулятор посадки · каналы',
-      'title.vf': 'Калькулятор посадки · VF',
+      'title.vf': 'Калькулятор посадки · вертикальная ферма',
       'title.pal': 'Калькулятор посадки · поддоны',
       'sub.gh': 'Теплица: салат и зелень, досветка, плотность до 220 шт/м², габарит до 2×12 м.',
-      'sub.vf': 'Вертикальная ферма: культуры VF, DLI, PPFD; каналы 110×55 мм.',
+      'sub.vf': 'Вертикальная ферма: культуры из справочника, DLI, PPFD; каналы 110×55 мм.',
       'sub.pal': 'Поддоны 130×65',
       'econ.kicker': 'Экономика Daogreen',
       'econ.title': 'Экономика фермы',
       'econ.sub': 'Доход, затраты на свет и расходники по культурам — отдельно от вкладки посадки.',
+      'stdcat.kicker': 'Справочник Daogreen',
+      'stdcat.title': 'Стандарты по культурам',
+      'stdcat.sub': 'Прорастание, дни вегетации, плотность стояния и урожай за срез — по всем сортам из аудита и модели теплицы.',
+      'stdcat.intro': 'Диапазон из аудита → значение в калькуляторе. Переключайте среду ниже.',
+      'stdcat.modeAria': 'Среда выращивания в справочнике',
+      'stdcat.mode.vf': 'Вертикальная ферма',
+      'stdcat.mode.pal': 'Поддоны',
+      'stdcat.mode.gh': 'Теплица',
+      'stdcat.legend': 'В ячейках: диапазон из аудита → расчётное значение (жирным). Урожай на каналах: верх диапазона +12,5%.',
+      'stdcat.about': 'Источник данных',
+      'stdcat.sec.vf': 'Вертикальная ферма · каналы 110×55',
+      'stdcat.sec.pal': 'Поддоны 130×65',
+      'stdcat.sec.gh': 'Теплица · модель роста',
+      'stdcat.hint.vf': 'Источник: АУДИТ/КАНАЛЫ.xlsx, АУДИТ/ЦВЕТЫ.xlsx. Плотность — растений на погонный метр канала.',
+      'stdcat.hint.pal': 'Источник: АУДИТ/ПОДДОНЫ.xlsx. Ячейки кассеты — типовой формат под поддон.',
+      'stdcat.hint.gh': 'Сорта теплицы без листа аудита: M_max и t50 задают кривую роста; срезки и плотность настраиваются на вкладке посадки.',
+      'stdcat.col.section': 'Секция',
+      'stdcat.col.name': 'Культура',
+      'stdcat.col.germ': 'Прор., дн.',
+      'stdcat.col.days': 'Вег., дн.',
+      'stdcat.col.density': 'Плотн., шт/м',
+      'stdcat.col.cells': 'Ячейки кассеты',
+      'stdcat.col.yield': 'Урожай за срез',
+      'stdcat.col.cut': 'Интервал срезки, дн.',
+      'stdcat.col.multicut': 'Многосрез',
+      'stdcat.col.note': 'Замена / примечание',
+      'stdcat.col.mmax': 'M_max, г',
+      'stdcat.col.t50': 'День t50',
+      'stdcat.col.cutStd': 'Интервал (справ.)',
+      'stdcat.col.baby': 'Беби-зелень',
+      'stdcat.yes': 'да',
+      'stdcat.no': 'нет',
+      'stdcat.unit.g': 'г',
+      'stdcat.unit.pcs': 'шт',
+      'stdcat.empty': 'Нет данных в справочнике',
       'veg.head': 'Период вегетации',
       'std.badge': 'стандарт',
       'm.massCut': 'Урожай за срез',
       'm.massHarvest': 'Масса урожая',
       'm.massProduct': 'Масса продукции',
       'm.massHead': 'Масса кочана',
+      'm.massPcsCut': 'Количество за срез',
       'm.canopyDiam': 'Диаметр шапки',
       'm.massGain': 'Прирост массы',
       'm.canopyGain': 'Прирост шапки',
@@ -173,7 +215,7 @@
       'm.totalPlants': 'Всего растений',
       'm.areaTiers': 'Посевная площадь (с ярусами)',
       'm.sysArea': 'Площадь системы',
-      'm.footprint': 'Отпечаток пола',
+      'm.footprint': 'Площадь по полу',
       'm.firstCut': 'До первой срезки',
       'm.cycle': 'Цикл выращивания',
       'm.cutMass': 'Масса одной срезки',
@@ -187,6 +229,8 @@
       'm.yieldCycle': 'Урожай за цикл',
       'm.kgSqmCycle': 'кг/м² за цикл',
       'm.kgSqmYear': 'кг/м² в год',
+      'm.pcsSqmCycle': 'шт/м² за цикл',
+      'm.pcsSqmYear': 'шт/м² в год',
       'm.yearMonthHint': '«В год» считается по 365 календарным дням. «В месяц» и срезки — по 30,5 сут (средний месяц). Поэтому годовой урожай не всегда ровно в 12 раз больше месячного.',
       'm.yieldPal': 'Урожай с поддона за цикл',
       'm.model': 'модель',
@@ -206,20 +250,26 @@
       'cv.secGroup.adult': 'Взрослая зелень и салаты (D6)'
     },
     en: {
-      'cultivars.title': 'Crop & cultivar',
+      'cultivars.title': 'Crops',
       'cultivars.add': '+ Add custom cultivar',
       'cultivars.addHint': 'Copy of current cultivar · saved in browser',
       'cycle.title': 'Cycle parameters',
       'grow.title': 'Cycle timing',
-      'grow.vfHint': 'collapse → VF standards',
-      'grow.flow': 'Germination, then vegetative period — nursery and grow-out (channel, pallet trays, or VF).',
+      'grow.sheetHintVf': 'collapse → apply vertical farm standards',
+      'grow.sheetHintPal': 'collapse → apply pallet standards',
+      'grow.flow': 'Germination, then vegetative period — nursery and grow-out (channel, pallet trays, or vertical farm).',
+      'mass.sheetHintVf': 'collapse → vertical farm standard',
+      'mass.sheetHintPal': 'collapse → pallet standard',
       'germination': 'Germination time',
       'nursery': 'Nursery',
       'vegDays': 'Days to harvest / ready',
       'autoDay': '→ Recommended harvest day',
       'mass.title': 'Harvest mass',
+      'mass.titlePcs': 'Harvest count',
       'mass.manual': 'Set harvest mass manually',
+      'mass.manualPcs': 'Set count manually',
       'mass.perPot': 'Harvest mass per pot, g',
+      'mass.perPotPcs': 'Count per pot, pcs',
       'canopy.schema': 'Canopy diameter on layout and gap calc',
       'canopy.std': 'standard',
       'canopy.pct': 'Canopy margin',
@@ -301,7 +351,7 @@
       'std.save': 'Save for cultivar',
       'std.reset': 'Reset to model',
       'std.resetVf': 'Reset to catalog',
-      'vf.stdLocks': 'Use VF catalog for:',
+      'vf.stdLocks': 'Use vertical farm catalog for:',
       'std.gh.germination': 'Germination',
       'std.gh.nursery': 'Nursery',
       'std.gh.day': 'Days to cut',
@@ -325,7 +375,7 @@
       'kicker.vf': 'Vertical farm · channels 110×55',
       'kicker.pal': 'Pallets 130 × 65 cm',
       'title.ch': 'Planting calculator · channels',
-      'title.vf': 'Planting calculator · VF',
+      'title.vf': 'Planting calculator · vertical farm',
       'title.pal': 'Planting calculator · pallets',
       'sub.gh': 'Greenhouse: salads & greens, supplemental light, density up to 220 pots/m².',
       'sub.vf': 'Vertical farm: VF crops, DLI, PPFD; 110×55 mm channels.',
@@ -333,12 +383,48 @@
       'econ.kicker': 'Daogreen economics',
       'econ.title': 'Farm economics',
       'econ.sub': 'Revenue, light and consumables by crop — separate from planting tab.',
+      'stdcat.kicker': 'Daogreen catalog',
+      'stdcat.title': 'Crop standards',
+      'stdcat.sub': 'Germination, veg days, stand density and yield per cut — all cultivars from audit sheets and greenhouse model.',
+      'stdcat.intro': 'Audit range → calculator value. Switch growing environment below.',
+      'stdcat.modeAria': 'Environment in catalog',
+      'stdcat.mode.vf': 'Vertical farm',
+      'stdcat.mode.pal': 'Pallets',
+      'stdcat.mode.gh': 'Greenhouse',
+      'stdcat.legend': 'Cells show audit range → calculated value (bold). Channels: yield = top of range +12.5%.',
+      'stdcat.about': 'Data source',
+      'stdcat.sec.vf': 'Vertical farm · channels 110×55',
+      'stdcat.sec.pal': 'Pallets 130×65',
+      'stdcat.sec.gh': 'Greenhouse · growth model',
+      'stdcat.hint.vf': 'Source: audit channel sheets. Density — plants per linear meter.',
+      'stdcat.hint.pal': 'Source: audit pallet sheet. Tray cell count — typical format.',
+      'stdcat.hint.gh': 'Greenhouse cultivars without audit sheet: M_max and t50 drive the growth curve; cuts and density are set on the planting tab.',
+      'stdcat.col.section': 'Section',
+      'stdcat.col.name': 'Crop',
+      'stdcat.col.germ': 'Germ., d',
+      'stdcat.col.days': 'Veg, d',
+      'stdcat.col.density': 'Dens., pcs/m',
+      'stdcat.col.cells': 'Tray cells',
+      'stdcat.col.yield': 'Yield per cut',
+      'stdcat.col.cut': 'Cut interval, d',
+      'stdcat.col.multicut': 'Multicut',
+      'stdcat.col.note': 'Replacement / note',
+      'stdcat.col.mmax': 'M_max, g',
+      'stdcat.col.t50': 'Day t50',
+      'stdcat.col.cutStd': 'Interval (ref.)',
+      'stdcat.col.baby': 'Baby greens',
+      'stdcat.yes': 'yes',
+      'stdcat.no': 'no',
+      'stdcat.unit.g': 'g',
+      'stdcat.unit.pcs': 'pcs',
+      'stdcat.empty': 'No data in catalog',
       'veg.head': 'Vegetative period',
       'std.badge': 'standard',
       'm.massCut': 'Yield per cut',
       'm.massHarvest': 'Harvest mass',
       'm.massProduct': 'Product mass',
       'm.massHead': 'Head mass',
+      'm.massPcsCut': 'Pieces per cut',
       'm.canopyDiam': 'Canopy diameter',
       'm.massGain': 'Mass gain rate',
       'm.canopyGain': 'Canopy gain rate',
@@ -375,7 +461,7 @@
       'm.totalPlants': 'Total plants',
       'm.areaTiers': 'Growing area (with tiers)',
       'm.sysArea': 'System area',
-      'm.footprint': 'Floor footprint',
+      'm.footprint': 'Floor area',
       'm.firstCut': 'Until first cut',
       'm.cycle': 'Growing cycle',
       'm.cutMass': 'Mass per cut',
@@ -389,6 +475,8 @@
       'm.yieldCycle': 'Yield per cycle',
       'm.kgSqmCycle': 'kg/m² per cycle',
       'm.kgSqmYear': 'kg/m² per year',
+      'm.pcsSqmCycle': 'pcs/m² per cycle',
+      'm.pcsSqmYear': 'pcs/m² per year',
       'm.yearMonthHint': 'Per-year uses 365 calendar days. Per-month and cuts use 30.5 days (average month). Annual yield is not always exactly 12× the monthly figure.',
       'm.yieldPal': 'Yield per pallet per cycle',
       'm.model': 'model',
@@ -439,7 +527,9 @@
     if (!el) return;
     var badge = badgeSel ? el.querySelector(badgeSel) : null;
     if (badge){
-      el.innerHTML = plantT(key) + badge.outerHTML;
+      /* Не пересоздавать кнопку «стандарт» — иначе теряются обработчики bindVfStdBadges */
+      while (el.firstChild && el.firstChild !== badge) el.removeChild(el.firstChild);
+      el.insertBefore(document.createTextNode(plantT(key)), badge);
       badge.textContent = plantT('std.badge');
     } else el.textContent = plantT(key);
   }
@@ -460,8 +550,7 @@
 
     setText('#panel-culture > .section-h', 'cycle.title');
     setText('#block-grow-time .collapse-head > span:first-child', 'grow.title');
-    var gvh = document.querySelector('#block-grow-time .collapse-vf-only');
-    if (gvh) gvh.textContent = plantT('grow.vfHint');
+    /* collapse-sheet-only: текст в syncVfStdBadges */
     var gfn = document.querySelector('#block-grow-time .grow-flow-note');
     if (gfn) gfn.innerHTML = uix('ui.grow.flowNote');
 
@@ -570,16 +659,7 @@
     setText('#user-standards-gh-wrap .section-h', 'std.gh');
     var ghHint = document.querySelector('#user-standards-gh-wrap .gh-standards-hint');
     if (ghHint) ghHint.innerHTML = uix('ui.std.ghHint');
-    var vfWrap = document.getElementById('user-standards-vf-wrap');
-    if (vfWrap){
-      var vfSec = vfWrap.querySelector('.section-h');
-      if (vfSec){
-        var palOn = document.querySelector('.app-tab[data-app-view="pallets"].on');
-        vfSec.textContent = plantT(palOn ? 'std.vfPal' : 'std.vf');
-      }
-      var vfHint = vfWrap.querySelector('.gh-standards-hint');
-      if (vfHint) vfHint.innerHTML = uix(palOn ? 'ui.std.vfHintPal' : 'ui.std.vfHint');
-    }
+    /* sheet-standards: заголовок и подсказка — в syncVfStdBadges */
     var tierHint = document.getElementById('pallet-tier-hint');
     if (tierHint) tierHint.innerHTML = uix('ui.pal.tierHintHtml');
     /* подпись галочек — в syncVfStdBadges по режиму канал/VF/поддоны */

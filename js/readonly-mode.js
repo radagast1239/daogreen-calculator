@@ -4,7 +4,12 @@
 
   var STORAGE_KEY = 'daogreen-readonly';
 
+  function isShareLocked(){
+    return (global.DG_isShareMode && global.DG_isShareMode()) || !!global.DG_SHARE_PENDING;
+  }
+
   function isReadonly(){
+    if (isShareLocked()) return true;
     if (global.location.search.indexOf('readonly=1') >= 0) return true;
     try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch(_){ return false; }
   }
@@ -14,6 +19,7 @@
   }
 
   function applyReadonly(on){
+    if (isShareLocked()) on = true;
     if (global.DG_isPreviewMode && global.DG_isPreviewMode()) {
       on = false;
     }
@@ -24,10 +30,12 @@
       btn.textContent = on ? t('btn.readonly.edit') : t('btn.readonly');
       btn.title = on ? t('btn.readonly.titleEdit') : t('btn.readonly.title');
     }
-    try {
-      if (on) localStorage.setItem(STORAGE_KEY, '1');
-      else localStorage.removeItem(STORAGE_KEY);
-    } catch(_){}
+    if (!isShareLocked()) {
+      try {
+        if (on) localStorage.setItem(STORAGE_KEY, '1');
+        else localStorage.removeItem(STORAGE_KEY);
+      } catch(_){}
+    }
   }
 
   function initReadonlyMode(){
@@ -36,6 +44,7 @@
     btn.dataset.bound = '1';
     applyReadonly(isReadonly());
     btn.addEventListener('click', function(){
+      if (isShareLocked()) return;
       if (global.DG_isPreviewMode && global.DG_isPreviewMode()) return;
       applyReadonly(!document.documentElement.classList.contains('read-only-mode'));
     });

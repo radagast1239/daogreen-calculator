@@ -4,7 +4,7 @@
   global.DG_GH_CV_COLORS = {
     rucola:      '#7CB342',
     lollo:       '#AD1457',
-    romaine:     '#388E3C',
+    'little-gem': '#388E3C',
     oakleaf:     '#D84315',
     frillice:    '#9E9D24',
     salanova:    '#00838F',

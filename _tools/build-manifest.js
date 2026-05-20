@@ -30,9 +30,13 @@ module.exports = {
     'js/planting-calc-core.js',
     'js/planting-event-bindings.js',
     'js/planting-econ-glue.js',
+    'js/standards-catalog-table.js',
     'js/planting-app-nav.js',
     'js/planting-public-api.js',
     'js/gh-cultivars.js',
+    'js/gh-cultivars-extended.js',
+    'js/gh-cultivar-catalog.js',
+    'js/gh-cultivars-user.js',
     'js/gh-cv-colors.js',
     'js/calc-theme.js',
     'js/pallet-load-warn.js',
@@ -74,7 +78,8 @@ module.exports = {
     'js/onboarding-tour.js',
     'js/pwa-qr.js',
     'js/econ-advanced.js',
-    'js/readonly-mode.js'
+    'js/readonly-mode.js',
+    'js/share-view.js'
   ],
 
   /** Без версии в URL (vendor, CDN fallback внутри модулей) */
@@ -86,6 +91,9 @@ module.exports = {
 
   syntaxCheck: [
     'js/gh-cultivars.js',
+    'js/gh-cultivars-extended.js',
+    'js/gh-cultivar-catalog.js',
+    'js/gh-cultivars-user.js',
     'js/gh-cv-colors.js',
     'js/calc-theme.js',
     'js/pallet-load-warn.js',
@@ -108,6 +116,7 @@ module.exports = {
     'js/planting-calc-core.js',
     'js/planting-event-bindings.js',
     'js/planting-econ-glue.js',
+    'js/standards-catalog-table.js',
     'js/planting-app-nav.js',
     'js/planting-public-api.js',
     'js/planting-pallet-sheet.js',
@@ -138,6 +147,7 @@ module.exports = {
     'js/onboarding-tour.js',
     'js/pwa-qr.js',
     'js/econ-advanced.js',
-    'js/readonly-mode.js'
+    'js/readonly-mode.js',
+    'js/share-view.js'
   ]
 };

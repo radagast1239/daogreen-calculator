@@ -32,9 +32,14 @@
       'page.kicker': 'Калькулятор посадки Daogreen',
       'page.title': 'Планирование посадки и урожая',
       'page.sub': 'Каналы 110×55, поддоны 130×65, вертикальные фермы и экономика — в одном инструменте.',
-      'tab.channels': 'Посадка и геометрия · каналы',
-      'tab.pallets': 'Посадка и геометрия · поддоны 130×65',
+      'tab.channels': 'Каналы',
+      'tab.pallets': 'Поддоны',
       'tab.economics': 'Экономика',
+      'tab.standards': 'Справочник',
+      'tab.channels.tip': 'Посадка и геометрия · каналы 110×55',
+      'tab.pallets.tip': 'Посадка и геометрия · поддоны 130×65',
+      'tab.economics.tip': 'Экономика фермы',
+      'tab.standards.tip': 'Справочник стандартов по культурам',
       'bridge.title': 'Экономика фермы',
       'bridge.hint': '— перенос урожая и площади из посадки',
       'bridge.open': 'Открыть экономику',
@@ -46,6 +51,7 @@
       'badge.channels': 'КАНАЛЫ',
       'badge.pallets': 'ПОДДОНЫ',
       'badge.economics': 'ЭКОНОМИКА',
+      'badge.standards': 'СПРАВОЧНИК',
       'badge.catalog': 'справочник',
       'badge.sorts': 'сортов',
       'badge.noCatalog': 'НЕТ справочника!',
@@ -152,6 +158,7 @@
       'sum.unit.pcs': 'шт',
       'sum.unit.cells': 'яч.',
       'mode.economics': 'Экономика',
+      'mode.standards': 'Справочник стандартов',
       'mode.pallets': 'Поддоны',
       'mode.vf': 'VF · каналы',
       'mode.gh': 'Теплица · каналы',
@@ -176,9 +183,14 @@
       'page.kicker': 'Daogreen planting calculator',
       'page.title': 'Planting and yield planning',
       'page.sub': 'Channels 110×55, pallets 130×65, vertical farms and farm economics in one tool.',
-      'tab.channels': 'Planting & geometry · channels',
-      'tab.pallets': 'Planting & geometry · pallets 130×65',
+      'tab.channels': 'Channels',
+      'tab.pallets': 'Pallets',
       'tab.economics': 'Economics',
+      'tab.standards': 'Catalog',
+      'tab.channels.tip': 'Planting & geometry · 110×55 channels',
+      'tab.pallets.tip': 'Planting & geometry · 130×65 pallets',
+      'tab.economics.tip': 'Farm economics',
+      'tab.standards.tip': 'Crop standards catalog',
       'bridge.title': 'Farm economics',
       'bridge.hint': '— import yield and area from planting',
       'bridge.open': 'Open economics',
@@ -190,6 +202,7 @@
       'badge.channels': 'CHANNELS',
       'badge.pallets': 'PALLETS',
       'badge.economics': 'ECONOMICS',
+      'badge.standards': 'CATALOG',
       'badge.catalog': 'catalog',
       'badge.sorts': 'cultivars',
       'badge.noCatalog': 'NO catalog!',
@@ -296,6 +309,7 @@
       'sum.unit.pcs': 'pcs',
       'sum.unit.cells': 'cells',
       'mode.economics': 'Economics',
+      'mode.standards': 'Standards catalog',
       'mode.pallets': 'Pallets',
       'mode.vf': 'VF · channels',
       'mode.gh': 'Greenhouse · channels',
@@ -549,6 +563,10 @@
       var val = t(key);
       if (attr) el.setAttribute(attr, val);
       else el.textContent = val;
+    });
+    root.querySelectorAll('[data-i18n-tip]').forEach(function(el){
+      var tipKey = el.getAttribute('data-i18n-tip');
+      if (tipKey) el.title = t(tipKey);
     });
   }
 

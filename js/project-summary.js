@@ -8,6 +8,7 @@
   function modeLabel(state, deps){
     if (!state) return '—';
     if (state.appView === 'economics') return t(deps || {}, 'mode.economics');
+    if (state.appView === 'standards') return t(deps || {}, 'mode.standards');
     if (state.appView === 'pallets') return t(deps || {}, 'mode.pallets');
     if (state.facility === 'vertical') return t(deps || {}, 'mode.vf');
     return t(deps || {}, 'mode.gh');

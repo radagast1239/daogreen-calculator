@@ -51,8 +51,31 @@
     'block-grow-time': false,
     'block-mass': false,
     'block-stage': false,
-    'panel-georgy-guide': false,
+    'panel-georgy-guide': true,
     'panel-channel-guide': true,
     'panel-pallet-guide': true
   };
+
+  /** Цветы и др. — урожай за срез в штуках, не в граммах */
+  function countIsPieces(cv) {
+    return !!(cv && cv.countUnit === 'шт');
+  }
+
+  /** Урожайность на м² за цикл: шт/м² или кг/м² */
+  function yieldPerSqmCycleFromMass(cv, mass, rhoA) {
+    var m = mass != null ? mass : 0;
+    var rho = rhoA != null ? rhoA : 0;
+    return countIsPieces(cv) ? m * rho : (m * rho) / 1000;
+  }
+
+  /** Суммарный урожай за цикл по всем растениям: шт или кг */
+  function yieldPerCycleTotalFromMass(cv, mass, totalPlants) {
+    var m = mass != null ? mass : 0;
+    var n = totalPlants != null ? totalPlants : 0;
+    return countIsPieces(cv) ? m * n : (m * n) / 1000;
+  }
+
+  global.DG_countIsPieces = countIsPieces;
+  global.DG_yieldPerSqmCycleFromMass = yieldPerSqmCycleFromMass;
+  global.DG_yieldPerCycleTotalFromMass = yieldPerCycleTotalFromMass;
 })(typeof window !== 'undefined' ? window : global);

@@ -90,8 +90,12 @@
 
     const totalCycleDays = preChannelDays() + Math.round(tHarvestCh);
     const cyclesPerYear = totalCycleDays > 0 ? 365 / totalCycleDays : 0;
-    const yieldPerCycleKg = mass * total / 1000;
-    const yieldPerSqmCycle = mass * rhoA / 1000;
+    const yieldPerCycleKg = global.DG_yieldPerCycleTotalFromMass
+      ? global.DG_yieldPerCycleTotalFromMass(cv, mass, total)
+      : mass * total / 1000;
+    const yieldPerSqmCycle = global.DG_yieldPerSqmCycleFromMass
+      ? global.DG_yieldPerSqmCycleFromMass(cv, mass, rhoA)
+      : mass * rhoA / 1000;
     const yieldPerSqmYear = yieldPerSqmCycle * cyclesPerYear;
 
     /* Electricity: kWh/m²·сут = DLI_досветки / (КПД × 3.6); теплица 2.1, сити-ферма 2.3–2.5 µmol/Дж */
@@ -180,8 +184,11 @@
   }
 
   function calc(){
-    if (georgyModeRef()) georgyModeRef().applyGeorgyBeforeCalc();
-    else if (georgyModeRef() && georgyModeRef().applyCanopyDensityBeforeCalc) georgyModeRef().applyCanopyDensityBeforeCalc();
+    var gm = georgyModeRef();
+    if (gm) {
+      if (gm.isGeorgyGh && gm.isGeorgyGh()) gm.applyGeorgyBeforeCalc();
+      else if (gm.applyCanopyDensityBeforeCalc) gm.applyCanopyDensityBeforeCalc();
+    }
     if (isPalletView()){
       let r;
       if (allPalletCultivars().length) r = calcFromPalletSheet(getPalletCv());

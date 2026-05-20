@@ -10,6 +10,8 @@
     "serve:auth": "node _tools/serve-auth.js",
     "auth:config": "node _tools/write-auth-client-config.js",
     "preview:from-project": "node _tools/project-to-preview-config.js",
+    "share:install-demo": "node _tools/install-share-demo.js",
+    "gen:gh-user": "node _tools/gen-gh-user-from-xlsx.js",
     "sync:audit": "node _tools/sync-vf-audit-xlsx.js"
   },
   "optionalDependencies": {

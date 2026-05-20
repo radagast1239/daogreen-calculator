@@ -49,6 +49,18 @@
     function syncBioMarginVisibility() { return deps.syncBioMarginVisibility(); }
     function supportsMulticut(cv) { return deps.supportsMulticut(cv); }
     function plantingHarvestYieldParams(cv, r) { return deps.plantingHarvestYieldParams(cv, r); }
+    function countIsPieces(cv) {
+      return global.DG_countIsPieces ? global.DG_countIsPieces(cv) : !!(cv && cv.countUnit === 'шт');
+    }
+    function areaYieldSqmUnit(cv, hy) {
+      return (hy && hy.unitIsPieces) || countIsPieces(cv) ? pm('u.pcsSqm') : 'kg/m²';
+    }
+    function farmYieldMoUnit(hy) {
+      return hy && hy.unitIsPieces ? ui('gh.yield.unitPcsMo') : ui('gh.yield.unitKgMo');
+    }
+    function farmYieldYrUnit(hy) {
+      return hy && hy.unitIsPieces ? ui('gh.yield.unitPcsYear') : ui('gh.yield.unitKgYear');
+    }
     function rangeMass(v) { return deps.rangeMass(v); }
     function rangeCanopy(v) { return deps.rangeCanopy(v); }
     function rangeDay() { return deps.rangeDay(); }
@@ -202,6 +214,7 @@
     const showRhoRec = isChannelGreenhouse();
     const dataRows = getCompareSelected().map(function(cv){
       const rc = calcForGhYieldCompareCv(cv);
+      const hyR = plantingHarvestYieldParams(cv, rc);
       const kgSqmYear = ghYieldKgSqmYear(rc, cv);
       const kgSqmMo = kgSqmYear / 12;
       const kgYear = kgSqmYear * area;
@@ -210,6 +223,8 @@
         ? georgyModeRef().densityFromCanopy(cv) : null;
       return {
         cv: cv,
+        rc: rc,
+        hyR: hyR,
         mass: rc.mass,
         rhoRec: rhoRec,
         rhoA: rc.rhoA,
@@ -222,28 +237,35 @@
     });
     dataRows.sort(function(a, b){ return b.kgYear - a.kgYear; });
 
+    const pcsCols = dataRows.some(function (row) {
+      return row.hyR && row.hyR.unitIsPieces;
+    });
     const head = '<thead><tr>' +
       '<th>' + ui('gh.yield.compareColCultivar') + '</th>' +
-      '<th>' + ui('gh.yield.compareColMass') + '</th>' +
+      '<th>' + ui(pcsCols ? 'gh.yield.compareColQty' : 'gh.yield.compareColMass') + '</th>' +
       (showRhoRec ? '<th>' + ui('gh.yield.compareColRho') + '</th>' : '') +
       '<th>' + ui('gh.yield.compareColRhoA') + '</th>' +
-      '<th>' + ui('gh.yield.compareColKgSqmY') + '</th>' +
-      '<th>' + ui('gh.yield.compareColKgSqmMo') + '</th>' +
-      '<th>' + ui('gh.yield.compareColFarmMo') + '</th>' +
-      '<th>' + ui('gh.yield.compareColYear') + '</th>' +
+      '<th>' + ui(pcsCols ? 'gh.yield.compareColPcsSqmY' : 'gh.yield.compareColKgSqmY') + '</th>' +
+      '<th>' + ui(pcsCols ? 'gh.yield.compareColPcsSqmMo' : 'gh.yield.compareColKgSqmMo') + '</th>' +
+      '<th>' + ui(pcsCols ? 'gh.yield.compareColFarmPcsMo' : 'gh.yield.compareColFarmMo') + '</th>' +
+      '<th>' + ui(pcsCols ? 'gh.yield.compareColPcsYear' : 'gh.yield.compareColYear') + '</th>' +
       '</tr></thead>';
 
     const body = dataRows.map(function(row){
+      const hyR = row.hyR;
+      const pcs = hyR && hyR.unitIsPieces;
+      const massU = pcs ? pm('u.pcs') : pm('unit.g');
+      const sqmU = pcs ? pm('u.pcsSqm') : 'kg/m²';
       return '<tr class="' + (row.isActive ? 'gh-yield-row-active' : '') + '">' +
         '<td><span class="compare-chip-dot" style="background:' + cvColor(row.cv.id) + ';display:inline-block;vertical-align:middle;margin-right:6px"></span>' +
         row.cv.name + '</td>' +
-        '<td>' + round(row.mass) + ' ' + pm('unit.g') + '</td>' +
+        '<td>' + round(row.mass) + ' ' + massU + '</td>' +
         (showRhoRec ? '<td>' + (row.rhoRec != null ? Math.round(row.rhoRec) : '—') + ' ' + pm('ui.unit.pcsSqm') + '</td>' : '') +
         '<td>' + Math.round(row.rhoA) + ' ' + pm('ui.unit.pcsSqm') + '</td>' +
-        '<td>' + ghYieldWithMargin(row.kgSqmYear, 1) + ' kg/m²</td>' +
-        '<td>' + ghYieldWithMargin(row.kgSqmMo, 1) + ' kg/m²</td>' +
-        '<td>' + ghYieldWithMargin(row.kgFarmMo, 1) + ' ' + ui('gh.yield.unitKgMo') + '</td>' +
-        '<td><strong>' + ghYieldWithMargin(row.kgYear, 1) + '</strong> ' + ui('gh.yield.unitKgYear') + '</td>' +
+        '<td>' + ghYieldWithMargin(row.kgSqmYear, 1) + ' ' + sqmU + '</td>' +
+        '<td>' + ghYieldWithMargin(row.kgSqmMo, 1) + ' ' + sqmU + '</td>' +
+        '<td>' + ghYieldWithMargin(row.kgFarmMo, 1) + ' ' + farmYieldMoUnit(hyR) + '</td>' +
+        '<td><strong>' + ghYieldWithMargin(row.kgYear, 1) + '</strong> ' + farmYieldYrUnit(hyR) + '</td>' +
         '</tr>';
     }).join('');
 
@@ -314,12 +336,23 @@
       const cv = r.cv || getCv();
       const hy = plantingHarvestYieldParams ? plantingHarvestYieldParams(cv, r) : null;
       if (hy && hy.multicutHarvest){
-        noteEl.textContent = ui('gh.yield.noteMulticut', {
-          interval: hy.harvestCutIntervalDays,
-          cutsMo: r1(hy.harvestCutsPerMonth),
-          mass: round(hy.harvestYieldPerCut),
-          potMo: round(hy.yieldPerPotMonth)
-        });
+        if (hy.unitIsPieces) {
+          noteEl.textContent = ui('gh.yield.noteMulticutPcs', {
+            interval: hy.harvestCutIntervalDays,
+            cutsMo: r1(hy.harvestCutsPerMonth),
+            mass: round(hy.harvestYieldPerCut),
+            potMo: round(hy.yieldPerPotMonth),
+            sqmMo: r1(hy.yieldPerSqmMonthPcs || 0),
+            rho: Math.round(r.rhoA || 0)
+          });
+        } else {
+          noteEl.textContent = ui('gh.yield.noteMulticut', {
+            interval: hy.harvestCutIntervalDays,
+            cutsMo: r1(hy.harvestCutsPerMonth),
+            mass: round(hy.harvestYieldPerCut),
+            potMo: round(hy.yieldPerPotMonth)
+          });
+        }
       } else if (r.mainHallIntervalDays > 0 && r.usefulAreaBasis === 'main_hall'){
         noteEl.textContent = ui('gh.yield.noteMainHall', {
           mainDays: r.mainHallIntervalDays,
@@ -371,7 +404,8 @@
     grid.addEventListener('click', e => {
       const chip = e.target.closest('.compare-chip');
       if (!chip) return;
-      const id = chip.dataset.cmpId;
+      const id = chip.getAttribute('data-cmp-id');
+      if (!id) return;
       const turningOff = !!st().comparePick[id];
       const nOn = getCompareList().filter(c => st().comparePick[c.id]).length;
       if (turningOff && nOn <= 1) return;
@@ -416,7 +450,8 @@
     const on = !!st().comparePick[c.id];
     const isActive = c.id === comparePickActiveId();
     return '<button type="button" class="compare-chip' + (on ? ' on' : '') + (isActive ? ' is-active' : '') +
-      '" data-cmp-id="' + c.id + '" title="' + (isActive ? ui('ui.cv.compareOn') : ui('ui.cv.compareOff')) + '">' +
+      '" data-cmp-id="' + c.id + '" data-readonly-allow data-preview-allow title="' +
+      (isActive ? ui('ui.cv.compareOn') : ui('ui.cv.compareOff')) + '">' +
       '<span class="compare-chip-dot" style="background:' + cvColor(c.id) + '"></span>' + c.name + '</button>';
   }
   function catalogSectionTitle(sec){
@@ -452,7 +487,8 @@
     grid.addEventListener('click', e => {
       const chip = e.target.closest('.compare-chip');
       if (!chip) return;
-      const id = chip.dataset.cmpId;
+      const id = chip.getAttribute('data-cmp-id');
+      if (!id) return;
       const turningOff = !!st().comparePick[id];
       const nOn = getCompareList().filter(c => st().comparePick[c.id]).length;
       if (turningOff && nOn <= 1) return;
@@ -501,7 +537,11 @@
     const hy = col.hy;
     switch (metricId){
       case 'mass':
-        return fmtCompareRange(r.mass, rangeMass, pm('unit.g'));
+        return fmtCompareRange(
+          r.mass,
+          rangeMass,
+          (hy && hy.unitIsPieces) || r.countUnit === 'шт' ? pm('u.pcs') : pm('unit.g')
+        );
       case 'canopy':
         return fmtCompareRange(r.canopy, rangeCanopy, pm('unit.mm'));
       case 'harvestDay':
@@ -517,14 +557,20 @@
         const rc = rangeDay();
         return Math.max(1, c - Math.round(rc)) + '–' + (c + Math.round(rc)) + ' ' + pm('unit.days');
       }
-      case 'kgSqmYear':
+      case 'kgSqmYear': {
+        const sqmU = areaYieldSqmUnit(col.cv, hy);
+        const v = r.yieldPerSqmYear || 0;
         return st().showRange
-          ? r1((r.yieldPerSqmYear || 0) * (1 - st().errorPct / 100)) + '–' + r1((r.yieldPerSqmYear || 0) * (1 + st().errorPct / 100)) + ' kg/m²'
-          : r1(r.yieldPerSqmYear || 0) + ' kg/m²';
-      case 'kgSqmCycle':
+          ? r1(v * (1 - st().errorPct / 100)) + '–' + r1(v * (1 + st().errorPct / 100)) + ' ' + sqmU
+          : r1(v) + ' ' + sqmU;
+      }
+      case 'kgSqmCycle': {
+        const sqmU = areaYieldSqmUnit(col.cv, hy);
+        const v = r.yieldPerSqmCycle || 0;
         return st().showRange
-          ? r1((r.yieldPerSqmCycle || 0) * (1 - st().errorPct / 100)) + '–' + r1((r.yieldPerSqmCycle || 0) * (1 + st().errorPct / 100)) + ' kg/m²'
-          : r1(r.yieldPerSqmCycle || 0) + ' kg/m²';
+          ? r1(v * (1 - st().errorPct / 100)) + '–' + r1(v * (1 + st().errorPct / 100)) + ' ' + sqmU
+          : r1(v) + ' ' + sqmU;
+      }
       case 'rhoA':
         return Math.round(r.rhoA || 0) + ' ' + pm('ui.unit.pcsSqm');
       case 'rhoRec':
@@ -545,12 +591,12 @@
         const area = getGhUsefulAreaM2();
         if (!(area > 0)) return '—';
         const kgSqmMo = ghYieldKgSqmYear(r, col.cv) / 12;
-        return ghYieldWithMargin(kgSqmMo * area, 1) + ' ' + ui('gh.yield.unitKgMo');
+        return ghYieldWithMargin(kgSqmMo * area, 1) + ' ' + farmYieldMoUnit(hy);
       }
       case 'farmKgYear': {
         const area = getGhUsefulAreaM2();
         if (!(area > 0)) return '—';
-        return ghYieldWithMargin(ghYieldKgSqmYear(r, col.cv) * area, 1) + ' ' + ui('gh.yield.unitKgYear');
+        return ghYieldWithMargin(ghYieldKgSqmYear(r, col.cv) * area, 1) + ' ' + farmYieldYrUnit(hy);
       }
       default:
         return '—';
@@ -579,13 +625,16 @@
       return { cv: c, r: r, hy: hy, rhoRec: rhoRec };
     });
     const anyMulticut = cols.some(function(col){ return col.hy && col.hy.multicutHarvest; });
+    const anyPcs = cols.some(function(col){
+      return (col.hy && col.hy.unitIsPieces) || countIsPieces(col.cv);
+    });
     const metricRows = [
-      { id: 'mass', label: ui('cvCompare.row.mass') },
+      { id: 'mass', label: anyPcs ? pm('m.massPcsCut') : ui('cvCompare.row.mass') },
       { id: 'canopy', label: ui('cvCompare.row.canopy') },
       { id: 'harvestDay', label: ui('cvCompare.row.harvestDay') },
       { id: 'cycle', label: ui('cvCompare.row.cycle') },
-      { id: 'kgSqmYear', label: ui('cvCompare.row.kgSqmYear') },
-      { id: 'kgSqmCycle', label: ui('cvCompare.row.kgSqmCycle') },
+      { id: 'kgSqmYear', label: anyPcs ? pm('m.pcsSqmYear') : ui('cvCompare.row.kgSqmYear') },
+      { id: 'kgSqmCycle', label: anyPcs ? pm('m.pcsSqmCycle') : ui('cvCompare.row.kgSqmCycle') },
       { id: 'rhoA', label: ui('cvCompare.row.rhoA') },
       { id: 'leafGap', label: ui('cvCompare.row.leafGap') }
     ];
@@ -601,8 +650,14 @@
     }
     const farmArea = getGhUsefulAreaM2();
     if (farmArea > 0 && isGreenhousePlanting()){
-      metricRows.push({ id: 'farmKgMonth', label: ui('cvCompare.row.farmKgMonth') });
-      metricRows.push({ id: 'farmKgYear', label: ui('cvCompare.row.farmKgYear') });
+      metricRows.push({
+        id: 'farmKgMonth',
+        label: anyPcs ? ui('cvCompare.row.farmPcsMonth') : ui('cvCompare.row.farmKgMonth')
+      });
+      metricRows.push({
+        id: 'farmKgYear',
+        label: anyPcs ? ui('cvCompare.row.farmPcsYear') : ui('cvCompare.row.farmKgYear')
+      });
     }
     let html = '<thead><tr><th></th>';
     cols.forEach(function(col){
@@ -644,17 +699,21 @@
     legendEl.addEventListener('click', function(e){
       const btn = e.target.closest('.cmp-pill');
       if (!btn) return;
+      var legId = btn.getAttribute('data-id');
+      if (!legId) return;
       if (isPalletView()){
-        st().palletCv = btn.dataset.id;
+        st().palletCv = legId;
         resetPalletStdToSheetDefaults();
+        initPalletValuesFromSheet(getPalletCv());
+        updatePlantingGeomUI();
       } else if (isVF()){
-        st().vfCv = btn.dataset.id;
+        st().vfCv = legId;
         resetVfStdToSheetDefaults();
       } else {
-        st().cv = btn.dataset.id;
+        st().cv = legId;
       }
-      renderCultivars();
       deps.renderAll();
+      renderCultivars();
     });
   }
   function fillCompareLegend(activeCv){
@@ -689,11 +748,21 @@
     const val = $('compareErrorPct-v');
     if (val) val.textContent = String(v);
   }
-  function renderCvCompare(){
+  function syncGrowthCompareUi(){
+    var hint = document.querySelector('#block-panel-growth-body .growth-compare-hint');
+    if (hint) hint.classList.toggle('env-block-hidden', !!st().compareMode);
+    var cmpToggle = $('compareMode');
+    if (cmpToggle && document.activeElement !== cmpToggle) {
+      cmpToggle.checked = !!st().compareMode;
+    }
     renderComparePickGrid();
+    var leg = $('compare-legend');
+    if (leg) leg.style.display = st().compareMode ? '' : 'none';
+  }
+
+  function renderCvCompare(){
+    syncGrowthCompareUi();
     syncCompareMarginUI();
-    const chartWrap = $('cv-compare-chart-wrap');
-    if (chartWrap) chartWrap.classList.toggle('env-block-hidden', !st().compareMode);
     renderCvCompareTable();
   }
   function setCollapseBlock(blockId, collapsed){
@@ -737,14 +806,68 @@
     });
   }
 
+  function cvPanelRefreshNeeded(){
+    var el = document.activeElement;
+    if (el && el.closest) {
+      if (el.closest('#cultivars .cv-catalog-search')) return false;
+      /* Не пересобирать сетку, пока фокус на кнопке сорта — иначе клик «съедается» (особенно поддоны/VF). */
+      if (el.closest('#cultivars .cv-btn')) return false;
+    }
+    if (isPalletView() || isVF()) return true;
+    if (!el || !el.closest) return true;
+    if (el.closest('#cultivars')) {
+      var tag = (el.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return false;
+      return true;
+    }
+    var tag = (el.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return false;
+    return true;
+  }
+
+  function setCultivarsHtml(html, layout) {
+    var host = $('cultivars');
+    if (!host) return;
+    if (layout === 'catalog') {
+      host.className = 'cv-catalog-host';
+      host.innerHTML = html;
+      return;
+    }
+    host.className = 'cv-catalog-host';
+    host.innerHTML = '<div class="cultivar-grid cultivar-grid--pick">' + html + '</div>';
+  }
+
   /* ---- Render: cultivar buttons ---- */
   function renderCultivars(){
     function cvDelBtn(id){
       return '<button type="button" class="cv-del" data-cv-del="' + id + '" title="' + ui('ui.cv.delTitle') + '" aria-label="' + ui('ui.cv.delAria') + '">×</button>';
     }
+    function cvBadge(c){
+      if (global.DG_cvCalibratedBadgeHtml) {
+        return global.DG_cvCalibratedBadgeHtml(c, function (k) { return ui(k); });
+      }
+      return '';
+    }
+    function cvOptionTag(c){
+      if (c.calibrated === true) return ' · ' + ui('ui.cv.badgeCalibrated');
+      if (c.calibrated === false) return ' · ' + ui('ui.cv.badgeEstimated');
+      return '';
+    }
+    function cvBtn(c){
+      var noteTip = (c.notes && String(c.notes).trim())
+        ? ' title="' + htmlEsc(String(c.notes).trim()) + '"'
+        : '';
+      return '<button type="button" class="cv-btn ' + (c.id === st().cv ? 'on' : '') + (c.custom ? ' is-custom' : '') + '" data-id="' + c.id + '" data-readonly-allow data-preview-allow"' + noteTip + '>' +
+        (c.custom ? cvDelBtn(c.id) : '') +
+        '<span class="cv-name">' + c.name + cvBadge(c) + '</span>' +
+        '<span class="cv-sub">' + cvSubLine(c) + (c.multicut ? ui('ui.cv.multicutTag') : '') + '</span></button>';
+    }
     if (isPalletView() && allPalletCultivars().length){
+      var palActive = getPalletCv();
+      var palActiveId = palActive ? palActive.id : st().palletCv;
+      if (palActiveId && st().palletCv !== palActiveId) st().palletCv = palActiveId;
       function plBtn(c){
-        return '<button class="cv-btn ' + (c.id === st().palletCv ? 'on' : '') + '" data-pl-id="' + c.id + '">' +
+        return '<button type="button" class="cv-btn ' + (c.id === palActiveId ? 'on' : '') + '" data-pl-id="' + c.id + '" data-id="' + c.id + '" data-readonly-allow data-preview-allow">' +
           '<span class="cv-name">' + c.name + '</span>' +
           '<span class="cv-sub">' + cvSubLine(c) + (c.multicut ? ui('ui.cv.multicutTag') : '') + '</span></button>';
       }
@@ -755,12 +878,12 @@
         html += '<div class="cv-group-h">' + catalogSectionTitle(sec) + '</div>';
         html += list.map(plBtn).join('');
       });
-      $('cultivars').innerHTML = html;
+      setCultivarsHtml(html, 'grid');
       renderVfStdGrid();
       syncVfStdControls();
     } else if (isVF() && allVfCultivars().length){
       function vfBtn(c){
-        return '<button class="cv-btn ' + (c.id === st().vfCv ? 'on' : '') + (c.custom ? ' is-custom' : '') + '" data-vf-id="' + c.id + '">' +
+        return '<button type="button" class="cv-btn ' + (c.id === st().vfCv ? 'on' : '') + (c.custom ? ' is-custom' : '') + '" data-vf-id="' + c.id + '" data-readonly-allow data-preview-allow">' +
           (c.custom ? cvDelBtn(c.id) : '') +
           '<span class="cv-name">' + c.name + '</span>' +
           '<span class="cv-sub">' + cvSubLine(c) + (c.multicut ? ui('ui.cv.multicutTag') : '') + '</span></button>';
@@ -777,15 +900,68 @@
         html += '<div class="cv-group-h">' + ui('ui.cv.myCultivars') + '</div>';
         html += customVf.map(vfBtn).join('');
       }
-      $('cultivars').innerHTML = html;
+      setCultivarsHtml(html, 'grid');
       renderVfStdGrid();
       syncVfStdControls();
     } else {
-    function cvBtn(c){
-      return '<button class="cv-btn ' + (c.id === st().cv ? 'on' : '') + (c.custom ? ' is-custom' : '') + '" data-id="' + c.id + '">' +
-        (c.custom ? cvDelBtn(c.id) : '') +
-        '<span class="cv-name">' + c.name + '</span>' +
-        '<span class="cv-sub">' + cvSubLine(c) + (c.multicut ? ui('ui.cv.multicutTag') : '') + '</span></button>';
+    function renderGhCatalogGrouped(ghList){
+      var q = global.DG_getGhCvSearch ? global.DG_getGhCvSearch() : '';
+      var calOnly = global.DG_getGhCvCalibratedOnly && global.DG_getGhCvCalibratedOnly();
+      if (global.DG_filterGhCatalogList) {
+        ghList = global.DG_filterGhCatalogList(ghList, q, st().cv);
+      } else if (global.DG_filterGhCultivars) {
+        ghList = global.DG_filterGhCultivars(ghList, q);
+      }
+      var groups = global.DG_groupGhCultivars(ghList, st().cv);
+      var openIfSearch = q.length > 0;
+      var html = '<div class="cv-catalog-toolbar">';
+      html += '<div class="cv-catalog-toolbar-top">';
+      html += '<label class="cv-catalog-search-label">' + ui('ui.cv.search') + ' ';
+      html += '<input type="search" class="cv-catalog-search" value="' + htmlEsc(q) + '" placeholder="' +
+        htmlEsc(ui('ui.cv.searchPh')) + '" autocomplete="off" spellcheck="false"></label>';
+      html += '<label class="cv-catalog-filter-label"><input type="checkbox" class="cv-catalog-calibrated-only"' +
+        (calOnly ? ' checked' : '') + '> ' + ui('ui.cv.calibratedOnly') + '</label>';
+      html += '</div></div>';
+      html += '<p class="cv-catalog-hint">' + ui('ui.cv.catalogHint') + '</p>';
+      if (!ghList.length) {
+        html += '<p class="cv-catalog-empty">' + (calOnly ? ui('ui.cv.calibratedEmpty') : ui('ui.cv.searchEmpty')) + '</p>';
+      } else {
+        html += '<div class="cv-catalog-grouped">';
+        groups.forEach(function (grp) {
+          if (!grp.items.length) return;
+          var open = grp.hasActive || openIfSearch;
+          html += '<details class="cv-category"' + (open ? ' open' : '') + '>';
+          html += '<summary class="cv-category-summary"><span class="cv-category-title">' + htmlEsc(grp.label) + '</span>';
+          html += '<span class="cv-category-count">' + grp.items.length + '</span></summary>';
+          html += '<div class="cv-category-body">';
+          html += '<label class="cv-cat-select-label">' + ui('ui.cv.catSelect') + ' ';
+          html += '<select class="cv-cat-select" data-gh-cat="' + htmlEsc(grp.id) + '">';
+          grp.items.forEach(function (c) {
+            html += '<option value="' + htmlEsc(c.id) + '"' + (c.id === st().cv ? ' selected' : '') + '>' +
+              htmlEsc(c.name) + cvOptionTag(c) + '</option>';
+          });
+          html += '</select></label>';
+          html += '<div class="cultivar-grid cv-cat-grid">' + grp.items.map(cvBtn).join('') + '</div>';
+          html += '</div></details>';
+        });
+        html += '</div>';
+      }
+      var host = $('cultivars');
+      var prevFocus = document.activeElement;
+      var wasSearch = !!(prevFocus && prevFocus.closest && prevFocus.closest('#cultivars .cv-catalog-search'));
+      var caretStart = wasSearch ? prevFocus.selectionStart : null;
+      var caretEnd = wasSearch ? prevFocus.selectionEnd : null;
+      host.className = 'cv-catalog-host';
+      host.innerHTML = html;
+      if (wasSearch) {
+        var searchInp = host.querySelector('.cv-catalog-search');
+        if (searchInp) {
+          try { searchInp.focus({ preventScroll: true }); } catch (_) { searchInp.focus(); }
+          try {
+            if (caretStart != null) searchInp.setSelectionRange(caretStart, caretEnd != null ? caretEnd : caretStart);
+          } catch (_) {}
+        }
+      }
     }
     if (georgyModeRef() && georgyModeRef().isGeorgyGh()){
       const georgyList = georgyModeRef().filterGeorgyCultivars(allGhCultivars());
@@ -794,36 +970,69 @@
       let html = '';
       if (salad.length) html += '<div class="cv-group-h">' + ui('ui.cv.ghSalad') + '</div>' + salad.map(cvBtn).join('');
       if (baby.length) html += '<div class="cv-group-h">' + ui('ui.cv.ghBaby') + '</div>' + baby.map(cvBtn).join('');
-      $('cultivars').innerHTML = html;
+      setCultivarsHtml(html, 'grid');
     } else {
-    const builtSalad = CULTIVARS.filter(c => !c.babyGreen);
-    const builtBaby = CULTIVARS.filter(c => c.babyGreen);
-    const customGh = st().customGhCultivars || [];
-    const customSalad = customGh.filter(c => !c.babyGreen);
-    const customBaby = customGh.filter(c => c.babyGreen);
-    let html = '<div class="cv-group-h">' + ui('ui.cv.ghSalad') + '</div>' + builtSalad.map(cvBtn).join('');
-    if (customSalad.length) html += customSalad.map(cvBtn).join('');
-    html += '<div class="cv-group-h">' + ui('ui.cv.ghBaby') + '</div>' + builtBaby.map(cvBtn).join('');
-    if (customBaby.length) html += customBaby.map(cvBtn).join('');
-    $('cultivars').innerHTML = html;
+      const ghList = allGhCultivars();
+      if (global.DG_useGroupedGhCultivarUi && global.DG_useGroupedGhCultivarUi(ghList) && global.DG_groupGhCultivars) {
+        renderGhCatalogGrouped(ghList);
+      } else {
+        const builtSalad = ghList.filter(c => !c.babyGreen);
+        const builtBaby = ghList.filter(c => c.babyGreen);
+        let html = '<div class="cv-group-h">' + ui('ui.cv.ghSalad') + '</div>' + builtSalad.map(cvBtn).join('');
+        html += '<div class="cv-group-h">' + ui('ui.cv.ghBaby') + '</div>' + builtBaby.map(cvBtn).join('');
+        setCultivarsHtml(html, 'grid');
+      }
     }
     }
 
     const bWrap = $('cultivars-B');
     if (bWrap){
       const scenList = isPalletView() ? allPalletCultivars() : (isVF() ? allVfCultivars() : allGhCultivars());
-      bWrap.innerHTML = scenList.map(c =>
-        '<button class="cv-btn ' + (c.id === st().cvB ? 'on' : '') + '" data-id="' + c.id + '">' +
-        '<span class="cv-name">' + c.name + '</span>' +
-        '<span class="cv-sub">' + cvSubLine(c) + '</span></button>'
-      ).join('');
-      bWrap.querySelectorAll('.cv-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          st().cvB = btn.dataset.id;
-          renderCultivars();
-          deps.renderAll();
+      if (!isPalletView() && !isVF() && global.DG_groupGhCultivars && global.DG_useGroupedGhCultivarUi(scenList)) {
+        var cmpList = scenList;
+        var cq = global.DG_getGhCvSearch ? global.DG_getGhCvSearch() : '';
+        if (global.DG_filterGhCatalogList) {
+          cmpList = global.DG_filterGhCatalogList(scenList, cq, st().cvB);
+        } else if (global.DG_filterGhCultivars && cq) {
+          cmpList = global.DG_filterGhCultivars(scenList, cq);
+        }
+        const groups = global.DG_groupGhCultivars(cmpList, st().cvB);
+        let sel = '<label class="cv-cat-select-label">' + ui('ui.cv.comparePick') + ' ';
+        sel += '<select class="cv-compare-select" id="cvB-grouped-select">';
+        groups.forEach(function (grp) {
+          if (!grp.items.length) return;
+          sel += '<optgroup label="' + htmlEsc(grp.label) + '">';
+          grp.items.forEach(function (c) {
+            sel += '<option value="' + htmlEsc(c.id) + '"' + (c.id === st().cvB ? ' selected' : '') + '>' +
+              htmlEsc(c.name) + cvOptionTag(c) + '</option>';
+          });
+          sel += '</optgroup>';
         });
-      });
+        sel += '</select></label>';
+        bWrap.innerHTML = sel;
+        var cmpSel = document.getElementById('cvB-grouped-select');
+        if (cmpSel && !cmpSel.dataset.bound) {
+          cmpSel.dataset.bound = '1';
+          cmpSel.addEventListener('change', function () {
+            st().cvB = cmpSel.value;
+            renderCultivars();
+            deps.renderAll();
+          });
+        }
+      } else {
+        bWrap.innerHTML = scenList.map(c =>
+          '<button class="cv-btn ' + (c.id === st().cvB ? 'on' : '') + '" data-id="' + c.id + '">' +
+          '<span class="cv-name">' + c.name + '</span>' +
+          '<span class="cv-sub">' + cvSubLine(c) + '</span></button>'
+        ).join('');
+        bWrap.querySelectorAll('.cv-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            st().cvB = btn.dataset.id;
+            renderCultivars();
+            deps.renderAll();
+          });
+        });
+      }
     }
     syncVfStdControls();
   }
@@ -983,9 +1192,13 @@
     const dayRange = rangeDay();
 
     const outUnit = r.countUnit === 'шт' ? pm('u.pcs') : pm('unit.g');
-    const massLabel = st().useManualMass
-      ? (r.vfSheet ? pm('m.massCut') : pm('m.massHarvest'))
-      : (r.cv.babyGreen ? pm('m.massProduct') : pm('m.massHead'));
+    const massLabel = (function () {
+      if (countIsPieces(r.cv)) return pm('m.massPcsCut');
+      if (st().useManualMass) return (r.vfSheet || pallet) ? pm('m.massCut') : pm('m.massHarvest');
+      if (r.cv.babyGreen) return pm('m.massProduct');
+      if (pallet || isVF() || r.vfSheet) return pm('m.massCut');
+      return pm('m.massHead');
+    })();
     const massHtml = (st().useManualMass && !st().showRange)
       ? (round(r.mass) + '<span class="m-unit">' + outUnit + '</span><span class="m-range">' + pm('m.model') + ': ' + round(r.massAuto) + ' ' + outUnit + '</span>')
       : withRange(r.mass, massRange, outUnit) +
@@ -1089,20 +1302,26 @@
           const yPotMo = hy.unitIsPieces
             ? r1(hy.yieldPerPotMonth) + ' ' + pm('u.pcsMo')
             : round(hy.yieldPerPotMonth) + ' ' + pm('unit.g');
-          const kgYr = (r.yieldPerSqmYear > 0)
-            ? r.yieldPerSqmYear
-            : (hy.yieldPerSqmMonthKg > 0 ? hy.yieldPerSqmMonthKg * 12 : 0);
-          const kgMoSys = (hy.yieldPerPotMonth / 1000) * (r.total || 0);
-          const kgYrSys = kgMoSys * 12;
+          const kgYr = hy.unitIsPieces
+            ? (hy.yieldPerSqmMonthPcs > 0 ? hy.yieldPerSqmMonthPcs * 12 : (r.yieldPerSqmYear || 0))
+            : (r.yieldPerSqmYear > 0
+              ? r.yieldPerSqmYear
+              : (hy.yieldPerSqmMonthKg > 0 ? hy.yieldPerSqmMonthKg * 12 : 0));
+          const sysMo = hy.unitIsPieces
+            ? Math.round(hy.yieldPerPotMonth * (r.total || 0))
+            : (hy.yieldPerPotMonth / 1000) * (r.total || 0);
+          const sysYr = sysMo * 12;
+          const sysMoU = hy.unitIsPieces ? pm('u.pcs') + '/мес' : 'kg';
+          const yrSqmU = areaYieldSqmUnit(r.cv, hy);
           return [
             { l: pm('m.cutMass'), v: round(hy.harvestYieldPerCut), u: hy.yieldUnit, cls: 'hl' },
             { l: pm('m.cutInterval'), v: hy.harvestCutIntervalDays, u: pm('unit.days') },
             { l: pm('m.cutsMonth'), v: r1(hy.harvestCutsPerMonth), u: pm('u.pcs') },
             { l: pm('m.yieldPotMo'), v: yPotMo, u: '', cls: 'hl' },
             { l: pm('m.yieldMo'), v: ySqm, u: '', cls: 'hl' },
-            { l: pm('m.yieldSysMo'), v: r1(kgMoSys), u: 'kg', cls: 'hl' },
-            { l: pm('m.yieldSysYear'), v: r1(kgYrSys), u: 'kg', cls: 'hl' },
-            { l: pm('m.kgSqmYear'), v: r1(kgYr), u: 'kg/m²', cls: 'hl' },
+            { l: pm('m.yieldSysMo'), v: r1(sysMo), u: sysMoU, cls: 'hl' },
+            { l: pm('m.yieldSysYear'), v: r1(sysYr), u: sysMoU, cls: 'hl' },
+            { l: hy.unitIsPieces ? pm('m.pcsSqmYear') : pm('m.kgSqmYear'), v: r1(kgYr), u: yrSqmU, cls: 'hl' },
             ...(hy.yieldPerPotLife != null ? [
               { l: pm('m.lifeSum'), v: round(hy.yieldPerPotLife), u: hy.yieldUnit }
             ] : [])
@@ -1121,16 +1340,19 @@
             { l: pm('m.cutsMonth'), v: r1(hy.harvestCutsPerMonth), u: pm('u.pcs') },
             { l: pm('m.yieldPotMo'), v: yPotMo, u: '', cls: 'hl' },
             { l: pm('m.yieldMo'), v: ySqm, u: '', cls: 'hl' },
-            { l: pm('m.kgSqmYear'), v: r1(r.yieldPerSqmYear || 0), u: 'kg/m²', cls: '' }
+            { l: countIsPieces(r.cv) ? pm('m.pcsSqmYear') : pm('m.kgSqmYear'), v: r1(r.yieldPerSqmYear || 0), u: areaYieldSqmUnit(r.cv, hy), cls: '' }
           ];
         }
+        const pcsCv = countIsPieces(r.cv);
+        const cycleU = pcsCv ? pm('u.pcs') : 'kg';
+        const sqmU = areaYieldSqmUnit(r.cv, null);
         return [
           { l: pm('m.cyclesYear'), v: r1(r.cyclesPerYear || 0), u: pm('u.pcs'), cls: 'hl' },
-          { l: pm('m.yieldCycle'), v: (r.yieldPerCycleKg != null ? r.yieldPerCycleKg : 0).toFixed(1), u: 'kg', cls: 'hl' },
-          { l: pm('m.kgSqmCycle'), v: r1(r.yieldPerSqmCycle || 0), u: 'kg/m²' },
-          { l: pm('m.kgSqmYear'), v: r1(r.yieldPerSqmYear || 0), u: 'kg/m²', cls: 'hl' },
+          { l: pm('m.yieldCycle'), v: (r.yieldPerCycleKg != null ? r.yieldPerCycleKg : 0).toFixed(1), u: cycleU, cls: 'hl' },
+          { l: pcsCv ? pm('m.pcsSqmCycle') : pm('m.kgSqmCycle'), v: r1(r.yieldPerSqmCycle || 0), u: sqmU },
+          { l: pcsCv ? pm('m.pcsSqmYear') : pm('m.kgSqmYear'), v: r1(r.yieldPerSqmYear || 0), u: sqmU, cls: 'hl' },
           ...(pallet ? [
-            { l: pm('m.yieldPal'), v: ((r.yieldPerCycleKg || 0) / Math.max(1, r.totalPalletSlots || r.totalPallets || 1)).toFixed(2), u: pm('u.kgPal') }
+            { l: pm('m.yieldPal'), v: ((r.yieldPerCycleKg || 0) / Math.max(1, r.totalPalletSlots || r.totalPallets || 1)).toFixed(1), u: pcsCv ? pm('u.pcs') : pm('u.kgPal') }
           ] : [])
         ];
       })())
@@ -1302,6 +1524,7 @@
     const legendCompareOnly = '<span><span class="swatch mass"></span>' + ui('ui.chart.legendCompare') + '</span>';
     setGrowthChartLegendHtml(st().compareMode ? legendCompareOnly : legendMassCanopy);
     fillCompareLegend(cv);
+    syncGrowthCompareUi();
   }
 
   /* ---- Render: multi-cut schedule ---- */
@@ -1313,8 +1536,16 @@
     if (georgyModeRef() && georgyModeRef().renderMulticutBabyCutPreview){
       georgyModeRef().renderMulticutBabyCutPreview(r);
     }
+    var cutWrap = $('cut-schedule-wrap');
+    var cutEl = $('cut-schedule');
+    var mcHint = $('multicut-enable-hint');
+    function setCutScheduleVisible(on){
+      if (cutWrap) cutWrap.classList.toggle('env-block-hidden', !on);
+    }
     if (georgyModeRef() && georgyModeRef().isGeorgyGh()){
-      $('cut-schedule').innerHTML = '';
+      if (cutEl) cutEl.innerHTML = '';
+      setCutScheduleVisible(false);
+      if (mcHint) mcHint.classList.add('env-block-hidden');
       return;
     }
     if (isVF() && !supportsMulticut(cv)){
@@ -1325,9 +1556,16 @@
     syncMulticutDetailUI();
 
     if (!st().multicut){
-      $('cut-schedule').innerHTML = '<div style="color:var(--ink-faint);font-size:13px">' + ui('ui.cut.enableHint') + '</div>';
+      if (cutEl) cutEl.innerHTML = '';
+      setCutScheduleVisible(false);
+      if (mcHint){
+        mcHint.textContent = ui('ui.cut.enableHint');
+        mcHint.classList.remove('env-block-hidden');
+      }
       return;
     }
+    if (mcHint) mcHint.classList.add('env-block-hidden');
+    setCutScheduleVisible(true);
 
     const interval = Math.max(5, effectiveCutInterval());
     const intervalMods = cutIntervalMods(cv);
@@ -1359,7 +1597,7 @@
     }
 
     if (!cuts.length){
-      $('cut-schedule').innerHTML = '<div style="color:var(--ink-faint);font-size:13px">' + ui('ui.cut.noCutsHint', { dUnit: pm('unit.days'), ctx: vegContextLabel() }) + '</div>';
+      if (cutEl) cutEl.innerHTML = '<div class="multicut-meta">' + ui('ui.cut.noCutsHint', { dUnit: pm('unit.days'), ctx: vegContextLabel() }) + '</div>';
       return;
     }
 
@@ -1419,7 +1657,7 @@
     }
     html += '</div>';
 
-    $('cut-schedule').innerHTML = html;
+    if (cutEl) cutEl.innerHTML = html;
   }
 
   function collectSchemaHoleCenters(oX, oY, s, margin, lay, showCh, showN){
@@ -1477,7 +1715,7 @@
   function palletSchemaCanopyRadiusPx(canopyMm, sc){
     return Math.max(0.5, (canopyMm / 2) * sc);
   }
-  function palletSchemaPlantSvg(hx, hy, holeR, canopyRpx, leafGap, showLabel){
+  function palletSchemaPlantSvg(hx, hy, holeR, canopyRpx, leafGap, showLabel, canopyMm){
     const coreR = Math.max(1.2, holeR * 0.42);
     const capR = canopyRpx;
     const canopyClass = leafGap < 0 ? 'svg-pallet-canopy-over' : 'svg-pallet-canopy';
@@ -1485,7 +1723,7 @@
       '<circle cx="' + hx.toFixed(1) + '" cy="' + hy.toFixed(1) + '" r="' + holeR.toFixed(1) + '" class="svg-plant-hole"/>' +
       '<circle cx="' + hx.toFixed(1) + '" cy="' + hy.toFixed(1) + '" r="' + coreR.toFixed(1) + '" class="svg-plant-core"/>';
     if (showLabel && capR > 12){
-      s += '<text x="' + hx.toFixed(1) + '" y="' + (hy - capR - 4).toFixed(1) + '" text-anchor="middle" class="svg-canopy-label" font-size="10">⌀' + round(canopyRpx * 2 / sc) + '</text>';
+      s += '<text x="' + hx.toFixed(1) + '" y="' + (hy - capR - 4).toFixed(1) + '" text-anchor="middle" class="svg-canopy-label" font-size="10">⌀' + round(canopyMm) + '</text>';
     }
     return s;
   }
@@ -1547,7 +1785,7 @@
         const hx = cx0 + (pt.u / spanL) * cw;
         const hy = cy0 + (pt.v / spanW) * casH;
         const showLbl = c === 0 && idx === 0;
-        plantsSvg += palletSchemaPlantSvg(hx, hy, holeR, canopyRpx, r.leafGap, showLbl);
+        plantsSvg += palletSchemaPlantSvg(hx, hy, holeR, canopyRpx, r.leafGap, showLbl, canopyMm);
       });
     }
     svg += '<g class="pallet-schema-plants">' + plantsSvg + '</g>';
@@ -1992,7 +2230,7 @@
     if (r.cv.id === 'afilion') push('info', 'bulb', pr('rec.cv.afilion'));
     if (r.cv.id === 'starfighter') push('info', 'bulb', pr('rec.cv.starfighter', { days: round(r.tBoltCh - r.tHarvestCh) }));
     if (r.cv.id === 'grazion') push('info', 'bulb', pr('rec.cv.grazion', { max: r.cv.M_max }));
-    if (r.cv.id === 'romaine') push('info', 'bulb', pr('rec.cv.romaine', { ca: r.cv.ca }));
+    if (r.cv.id === 'little-gem') push('info', 'bulb', pr('rec.cv.little-gem', { ca: r.cv.ca }));
     if (r.cv.id === 'oakleaf') push('info', 'bulb', pr('rec.cv.oakleaf', { ca: r.cv.ca }));
     if (supportsMulticut(r.cv) && !st().multicut && !(georgyModeRef() && georgyModeRef().isGeorgyGh() && georgyModeRef().isGeorgyProfiled && georgyModeRef().isGeorgyProfiled(r.cv))){
       push('info', 'bulb', pr('rec.cv.multicut', { name: r.cv.name }));
@@ -2045,7 +2283,11 @@
     }
     st().facility = mode;
     const culturePanel = $('panel-culture');
-    if (culturePanel) culturePanel.classList.toggle('is-vf', mode === 'vertical' || isPalletView());
+    if (culturePanel) {
+      const sheetMode = mode === 'vertical' || isPalletView();
+      culturePanel.classList.toggle('is-vf', sheetMode);
+      culturePanel.classList.toggle('is-sheet-mode', sheetMode);
+    }
     try { localStorage.setItem(FACILITY_KEY, mode); } catch(_){}
     const gh = $('env-greenhouse');
     const vf = $('env-vertical');
@@ -2138,9 +2380,11 @@
     renderCvCompare();
     if (st().appView === 'economics') renderEconomics();
     syncMoneySliderDisplays();
-    if (isPlantingView()) renderCultivars();
+    if (isPlantingView() && cvPanelRefreshNeeded()) renderCultivars();
     if (typeof DG_applyUiI18n === 'function') DG_applyUiI18n();
     else if (typeof DG_applyPlantingI18n === 'function') DG_applyPlantingI18n();
+    syncGhYieldControls(r);
+    syncHarvestBlockUI(r);
     syncVfStdControls();
     updatePageSub();
   }

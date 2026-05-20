@@ -35,6 +35,29 @@
   margin-bottom: 0;
 }
 
+/* Верхние вкладки — сетка 4 колонки, короткие подписи без наложения */
+#app-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  flex-wrap: nowrap;
+}
+
+#app-tabs .app-tab {
+  flex: none;
+  min-width: 0;
+  white-space: normal;
+  font-size: 12px !important;
+  padding: 9px 8px !important;
+  line-height: 1.2;
+  hyphens: auto;
+}
+
+@media (max-width: 520px) {
+  #app-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .app-tab,
 .facility-btn {
   flex: 1 1 0;
@@ -103,6 +126,18 @@
   border-color: var(--brand) !important;
   color: var(--brand-text) !important;
   box-shadow: inset 0 0 0 1px rgba(39, 109, 92, 0.15);
+}
+
+#block-panel-growth-body .growth-compare-toggle {
+  margin: 0 0 10px;
+}
+
+#block-panel-growth-body .growth-compare-hint.env-block-hidden {
+  display: none !important;
+}
+
+#cv-compare-chart-wrap {
+  display: none !important;
 }
 
 .panel > .section-h,
@@ -485,4 +520,343 @@ html.read-only-mode #btn-readonly.on {
 ::selection {
   background: var(--brand-pale);
   color: var(--ink);
+}
+
+/* —— Panel rhythm (теплица / поддоны / вертикальная ферма) —— */
+:root {
+  --collapse-head-pad: 12px 16px;
+  --collapse-body-pad: 12px 16px 18px;
+  --ctrl-block-gap: 12px;
+}
+
+#env-panel > .collapse-block > .collapse-head,
+.panel > .collapse-block:not(.panel) > .collapse-head,
+.collapse-block:not(.panel) > .collapse-head {
+  padding: var(--collapse-head-pad);
+}
+
+#env-panel > .collapse-block > .collapse-body,
+.panel > .collapse-block:not(.panel) > .collapse-body,
+.collapse-block:not(.panel) > .collapse-body {
+  padding: var(--collapse-body-pad);
+}
+
+#panel-culture.is-sheet-mode .ctrl {
+  margin-bottom: var(--ctrl-block-gap);
+}
+
+/* —— Hints & notes —— */
+.ui-hint,
+.grow-flow-note,
+.multicut-meta,
+.multicut-enable-hint,
+.sys-pallet-hint,
+#mass-model-hint,
+#bio-margin-hint {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  margin: 0 0 12px;
+}
+
+.grow-flow-note {
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+
+.ui-hint--tight {
+  margin: 4px 0 10px;
+  font-size: 12px;
+}
+
+.toggle-wrap--spaced {
+  margin: 10px 0 12px;
+}
+
+.toggle-wrap--inset {
+  margin: 10px 0 8px;
+}
+
+/* —— Chip / option buttons —— */
+.pot-btn,
+.pallet-cell-btn,
+.pallet-mount-btn,
+.cut-count-btn {
+  padding: 7px 12px;
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.pot-btn:hover,
+.pallet-cell-btn:hover,
+.pallet-mount-btn:hover,
+.cut-count-btn:hover {
+  border-color: var(--brand);
+  color: var(--ink);
+}
+
+.pot-btn.on,
+.pallet-cell-btn.on,
+.pallet-mount-btn.on,
+.cut-count-btn.on {
+  background: var(--brand-pale);
+  border-color: var(--brand);
+  color: var(--brand-text);
+  font-weight: 600;
+}
+
+/* —— Number inputs in ctrl grid —— */
+.ctrl input.ctrl-num {
+  grid-column: 2 / 3;
+  width: 100%;
+  max-width: 140px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+/* —— Sheet standards block (поддоны + вертикальная ферма) —— */
+#block-panel-standards.sheet-standards-panel {
+  margin-top: 4px;
+}
+
+.sheet-standards-only .section-h::after {
+  display: none;
+}
+
+/* —— Вкладка «Справочник стандартов» —— */
+.page.page--stdcat,
+.page:has(#view-standards:not(.app-view-hidden)) {
+  max-width: min(1180px, 96vw);
+}
+
+#view-standards {
+  max-width: 100%;
+}
+
+.stdcat-intro {
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+
+.stdcat-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--segment-pad);
+  padding: var(--segment-pad);
+  margin-bottom: 8px;
+  background: var(--segment-bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.stdcat-mode-btn {
+  flex: 1 1 0;
+  min-width: min(100%, 100px);
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.25;
+  text-align: center;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.stdcat-mode-btn:hover {
+  color: var(--ink);
+  background: var(--card);
+  border-color: var(--rule);
+}
+
+.stdcat-mode-btn.on {
+  background: var(--card);
+  border-color: var(--brand);
+  color: var(--brand-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.stdcat-count {
+  font-weight: 500;
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.stdcat-mode-btn.on .stdcat-count {
+  color: var(--brand-text);
+  opacity: 0.85;
+}
+
+.stdcat-legend {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  margin: 0 0 10px;
+  line-height: 1.35;
+}
+
+.stdcat-panel {
+  display: none;
+}
+
+.stdcat-panel.on {
+  display: block;
+}
+
+.stdcat-details {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.stdcat-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink-soft);
+  user-select: none;
+}
+
+.stdcat-details[open] summary {
+  margin-bottom: 6px;
+}
+
+.stdcat-hint {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.stdcat-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.stdcat-scroll .stdcat-table.cal-table {
+  margin-top: 0;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.stdcat-table {
+  width: 100%;
+  min-width: 920px;
+  margin: 0;
+  font-size: 12px;
+  table-layout: auto;
+}
+
+.stdcat-table th,
+.stdcat-table td {
+  padding: 7px 10px !important;
+  vertical-align: middle;
+  border: 1px solid var(--rule) !important;
+  line-height: 1.25;
+}
+
+.stdcat-table.cal-table tr:last-child td {
+  border-bottom: 1px solid var(--rule) !important;
+}
+
+.stdcat-table thead th {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  background: var(--paper-deep);
+  border-bottom: 2px solid var(--rule-strong) !important;
+  white-space: nowrap;
+}
+
+.stdcat-table th.num,
+.stdcat-table td.num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.stdcat-table td.stdcat-yn {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.stdcat-table .stdcat-name {
+  white-space: nowrap;
+  min-width: 10.5rem;
+}
+
+.stdcat-name strong {
+  font-weight: 600;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.stdcat-grp td {
+  background: var(--paper-deep);
+  font-weight: 600;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  padding: 8px 12px !important;
+  white-space: nowrap;
+  border-top: 2px solid var(--rule-strong) !important;
+}
+
+.stdcat-table tbody tr:not(.stdcat-grp):hover td {
+  background: rgba(39, 109, 92, 0.04);
+}
+
+[data-theme="dark"] .stdcat-table tbody tr:not(.stdcat-grp):hover td {
+  background: rgba(159, 212, 196, 0.06);
+}
+
+.stdcat-note {
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: nowrap;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stdcat-note.muted {
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+.stdcat-range {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.stdcat-arrow {
+  display: inline-block;
+  margin: 0 0.2em;
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+
+.stdcat-empty {
+  text-align: center;
+  color: var(--ink-faint);
+  padding: 12px !important;
 }

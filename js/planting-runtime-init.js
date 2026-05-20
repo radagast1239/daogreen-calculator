@@ -300,6 +300,7 @@
     syncPalletCellButtons: syncPalletCellButtons,
     syncCutIntervalSlider: syncCutIntervalSlider,
     syncManualMassUI: syncManualMassUI,
+    syncCutMassUI: syncCutMassUI,
     syncCanopyUI: syncCanopyUI,
     syncMulticutDetailUI: syncMulticutDetailUI,
     manualHarvestMass: manualHarvestMass,

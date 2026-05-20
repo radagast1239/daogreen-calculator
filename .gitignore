@@ -5,3 +5,7 @@ Thumbs.db
 *.log
 .cursor/
 _tools/_xlsx_tmp/
+_tools/_audit_tmp/
+_tools/_audit.zip
+_tools/_calib_tmp/
+_tools/_calib.zip

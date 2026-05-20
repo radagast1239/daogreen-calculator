@@ -102,7 +102,18 @@
       cv = cv || deps.getActiveCv();
       var state = st();
       var noF = { skipIntervalMassF: true };
-      if (!state.multicut || !supportsMulticut(cv)) return cutMassPerPlant(cv, null, noF);
+      if (!state.multicut || !supportsMulticut(cv)) {
+        if (
+          deps.isPalletView() &&
+          deps.isPalletSheetCv(cv) &&
+          cv.countUnit === 'шт' &&
+          cv.yieldPerCutG > 0 &&
+          cv.cutInterval > 0
+        ) {
+          return cutMassPerPlant(cv, null, noF);
+        }
+        return cutMassPerPlant(cv, null, noF);
+      }
       var planned = deps.georgyPlannedCuts ? deps.georgyPlannedCuts(cv) : null;
       var sum = 0;
       var n = 0;

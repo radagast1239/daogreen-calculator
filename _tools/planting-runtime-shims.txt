@@ -1,0 +1,204 @@
+  function initCultivarRegistry(){ return _rt.initCultivarRegistry.apply(_rt, arguments); }
+  function initPalletValuesFromSheet(){ return _rt.initPalletValuesFromSheet.apply(_rt, arguments); }
+  function palletEffectiveGermination(){ return _rt.palletEffectiveGermination.apply(_rt, arguments); }
+  function palletEffectiveDay(){ return _rt.palletEffectiveDay.apply(_rt, arguments); }
+  function palletEffectiveDensity(){ return _rt.palletEffectiveDensity.apply(_rt, arguments); }
+  function palletEffectiveMass(){ return _rt.palletEffectiveMass.apply(_rt, arguments); }
+  function resetPalletStdToSheetDefaults(){ return _rt.resetPalletStdToSheetDefaults.apply(_rt, arguments); }
+  function applyPalletStandardsToStateOnly(){ return _rt.applyPalletStandardsToStateOnly.apply(_rt, arguments); }
+  function applyPalletStandardsFromSheet(){ return _rt.applyPalletStandardsFromSheet.apply(_rt, arguments); }
+  function effectivePalletHoleCount(){ return _rt.effectivePalletHoleCount.apply(_rt, arguments); }
+  function palletCellsForLayout(){ return _rt.palletCellsForLayout.apply(_rt, arguments); }
+  function calcFromPalletSheet(){ return _rt.calcFromPalletSheet.apply(_rt, arguments); }
+  function loadCustomCultivarsStore(){ return _rt.loadCustomCultivarsStore.apply(_rt, arguments); }
+  function saveCustomCultivarsStore(){ return _rt.saveCustomCultivarsStore.apply(_rt, arguments); }
+  function blankGhCultivarTemplate(){ return _rt.blankGhCultivarTemplate.apply(_rt, arguments); }
+  function blankVfCultivarTemplate(){ return _rt.blankVfCultivarTemplate.apply(_rt, arguments); }
+  function addCustomGhCultivar(){ return _rt.addCustomGhCultivar.apply(_rt, arguments); }
+  function addCustomVfCultivar(){ return _rt.addCustomVfCultivar.apply(_rt, arguments); }
+  function removeCustomCultivar(){ return _rt.removeCustomCultivar.apply(_rt, arguments); }
+  function cutModelFallbackRange(){ return _rt.cutModelFallbackRange.apply(_rt, arguments); }
+  function parseNumsFromStr(){ return _rt.parseNumsFromStr.apply(_rt, arguments); }
+  function vfCutIntervalFromCv(){ return _rt.vfCutIntervalFromCv.apply(_rt, arguments); }
+  function cutIntervalRange(){ return _rt.cutIntervalRange.apply(_rt, arguments); }
+  function cutIntervalMods(){ return _rt.cutIntervalMods.apply(_rt, arguments); }
+  function applyCutIntervalHarvestMods(){ return _rt.applyCutIntervalHarvestMods.apply(_rt, arguments); }
+  function supportsMulticut(){ return _rt.supportsMulticut.apply(_rt, arguments); }
+  function effectiveCutInterval(){ return _rt.effectiveCutInterval.apply(_rt, arguments); }
+  function cutMassPerPlant(){ return _rt.cutMassPerPlant.apply(_rt, arguments); }
+  function vfMulticutStats(){ return _rt.vfMulticutStats.apply(_rt, arguments); }
+  function getMulticutYieldPerPlant(){ return _rt.getMulticutYieldPerPlant.apply(_rt, arguments); }
+  function syncCutIntervalSlider(){ return _rt.syncCutIntervalSlider.apply(_rt, arguments); }
+  function getVfFieldStandard(){ return _rt.getVfFieldStandard.apply(_rt, arguments); }
+  function getVfFieldCurrent(){ return _rt.getVfFieldCurrent.apply(_rt, arguments); }
+  function isVfFieldAtStandard(){ return _rt.isVfFieldAtStandard.apply(_rt, arguments); }
+  function applyVfStandardField(){ return _rt.applyVfStandardField.apply(_rt, arguments); }
+  function syncVegPeriodTotal(){ return _rt.syncVegPeriodTotal.apply(_rt, arguments); }
+  function syncVfStdBadges(){ return _rt.syncVfStdBadges.apply(_rt, arguments); }
+  function bindVfStdBadges(){ return _rt.bindVfStdBadges.apply(_rt, arguments); }
+  function isVfSheetCv(){ return _rt.isVfSheetCv.apply(_rt, arguments); }
+  function preChannelDays(){ return _rt.preChannelDays.apply(_rt, arguments); }
+  function vfEffectiveGermination(){ return _rt.vfEffectiveGermination.apply(_rt, arguments); }
+  function vfEffectiveDay(){ return _rt.vfEffectiveDay.apply(_rt, arguments); }
+  function vfEffectiveDensity(){ return _rt.vfEffectiveDensity.apply(_rt, arguments); }
+  function vfEffectiveMass(){ return _rt.vfEffectiveMass.apply(_rt, arguments); }
+  function syncCutMassUI(){ return _rt.syncCutMassUI.apply(_rt, arguments); }
+  function syncMulticutDetailUI(){ return _rt.syncMulticutDetailUI.apply(_rt, arguments); }
+  function applyCutStandardsFromSheet(){ return _rt.applyCutStandardsFromSheet.apply(_rt, arguments); }
+  function syncVfStdControls(){ return _rt.syncVfStdControls.apply(_rt, arguments); }
+  function updateVfCvHint(){ return _rt.updateVfCvHint.apply(_rt, arguments); }
+  function renderVfStdGrid(){ return _rt.renderVfStdGrid.apply(_rt, arguments); }
+  function resetVfStdToSheetDefaults(){ return _rt.resetVfStdToSheetDefaults.apply(_rt, arguments); }
+  function applyVfStandardsFromSheet(){ return _rt.applyVfStandardsFromSheet.apply(_rt, arguments); }
+  function calcFromVfSheet(){ return _rt.calcFromVfSheet.apply(_rt, arguments); }
+  function manualHarvestMass(){ return _rt.manualHarvestMass.apply(_rt, arguments); }
+  function modelCanopyFromMass(){ return _rt.modelCanopyFromMass.apply(_rt, arguments); }
+  function standardCanopyMm(){ return _rt.standardCanopyMm.apply(_rt, arguments); }
+  function harvestCanopy(){ return _rt.harvestCanopy.apply(_rt, arguments); }
+  function applyCanopyStandard(){ return _rt.applyCanopyStandard.apply(_rt, arguments); }
+  function formatHarvestCtrlVal(){ return _rt.formatHarvestCtrlVal.apply(_rt, arguments); }
+  function syncManualMassUI(){ return _rt.syncManualMassUI.apply(_rt, arguments); }
+  function syncCanopyUI(){ return _rt.syncCanopyUI.apply(_rt, arguments); }
+  function syncManualCanopyUI(){ return _rt.syncManualCanopyUI.apply(_rt, arguments); }
+  function syncHarvestBlockUI(){ return _rt.syncHarvestBlockUI.apply(_rt, arguments); }
+  function updateMassModelHint(){ return _rt.updateMassModelHint.apply(_rt, arguments); }
+  function rangeMass(){ return _rt.rangeMass.apply(_rt, arguments); }
+  function rangeCanopy(){ return _rt.rangeCanopy.apply(_rt, arguments); }
+  function syncPalletCellButtons(){ return _rt.syncPalletCellButtons.apply(_rt, arguments); }
+  function plantLayoutPallet(){ return _rt.plantLayoutPallet.apply(_rt, arguments); }
+  function capturePlantingViewSnapshot(){ return _rt.capturePlantingViewSnapshot.apply(_rt, arguments); }
+  function restorePlantingViewSnapshot(){ return _rt.restorePlantingViewSnapshot.apply(_rt, arguments); }
+  function getActivePlantingCvId(){ return _rt.getActivePlantingCvId.apply(_rt, arguments); }
+  function dliFromPpfd(){ return _rt.dliFromPpfd.apply(_rt, arguments); }
+  function ppfdFromDli(){ return _rt.ppfdFromDli.apply(_rt, arguments); }
+  function ledEfficacy(){ return _rt.ledEfficacy.apply(_rt, arguments); }
+  function kwhPerSqmPerDayFromDli(){ return _rt.kwhPerSqmPerDayFromDli.apply(_rt, arguments); }
+  function showAsPalletCalc(){ return _rt.showAsPalletCalc.apply(_rt, arguments); }
+  function vegContextLabel(){ return _rt.vegContextLabel.apply(_rt, arguments); }
+  function vegContextLabelCap(){ return _rt.vegContextLabelCap.apply(_rt, arguments); }
+  function palletMountMode(){ return _rt.palletMountMode.apply(_rt, arguments); }
+  function plantsPerPalletCount(){ return _rt.plantsPerPalletCount.apply(_rt, arguments); }
+  function syncPalletZoneLength(){ return _rt.syncPalletZoneLength.apply(_rt, arguments); }
+  function syncPalletMountButtons(){ return _rt.syncPalletMountButtons.apply(_rt, arguments); }
+  function syncPalletMountUI(){ return _rt.syncPalletMountUI.apply(_rt, arguments); }
+  function syncPalletTierHint(){ return _rt.syncPalletTierHint.apply(_rt, arguments); }
+  function syncPalletPlantsHint(){ return _rt.syncPalletPlantsHint.apply(_rt, arguments); }
+  function schemaCanopyMm(){ return _rt.schemaCanopyMm.apply(_rt, arguments); }
+  function syncSchemaCanopyLegend(){ return _rt.syncSchemaCanopyLegend.apply(_rt, arguments); }
+  function getCellCenters(){ return _rt.getCellCenters.apply(_rt, arguments); }
+  function palletCellGeometry(){ return _rt.palletCellGeometry.apply(_rt, arguments); }
+  function plantsPerPallet(){ return _rt.plantsPerPallet.apply(_rt, arguments); }
+  function rangeDay(){ return _rt.rangeDay.apply(_rt, arguments); }
+  function loadGhUsefulArea(){ return _rt.loadGhUsefulArea.apply(_rt, arguments); }
+  function saveGhUsefulArea(){ return _rt.saveGhUsefulArea.apply(_rt, arguments); }
+  function getGhUsefulAreaM2(){ return _rt.getGhUsefulAreaM2.apply(_rt, arguments); }
+  function ghYieldWithMargin(){ return _rt.ghYieldWithMargin.apply(_rt, arguments); }
+  function ghYieldKgSqmYear(){ return _rt.ghYieldKgSqmYear.apply(_rt, arguments); }
+  function computeGhYieldTotals(){ return _rt.computeGhYieldTotals.apply(_rt, arguments); }
+  function syncGhYieldMarginSliders(){ return _rt.syncGhYieldMarginSliders.apply(_rt, arguments); }
+  function syncBioMarginVisibility(){ return _rt.syncBioMarginVisibility.apply(_rt, arguments); }
+  function updateGhYieldPanelCopy(){ return _rt.updateGhYieldPanelCopy.apply(_rt, arguments); }
+  function syncGhYieldControls(){ return _rt.syncGhYieldControls.apply(_rt, arguments); }
+  function naturalDLI(){ return _rt.naturalDLI.apply(_rt, arguments); }
+  function photoperiod(){ return _rt.photoperiod.apply(_rt, arguments); }
+  function eveningHours(){ return _rt.eveningHours.apply(_rt, arguments); }
+  function eveningSupplement(){ return _rt.eveningSupplement.apply(_rt, arguments); }
+  function daySupplement(){ return _rt.daySupplement.apply(_rt, arguments); }
+  function supplementDLI(){ return _rt.supplementDLI.apply(_rt, arguments); }
+  function effectiveDLI(){ return _rt.effectiveDLI.apply(_rt, arguments); }
+  function effectivePhotoperiod(){ return _rt.effectivePhotoperiod.apply(_rt, arguments); }
+  function lightingMolForEnergy(){ return _rt.lightingMolForEnergy.apply(_rt, arguments); }
+  function dliFactor(){ return _rt.dliFactor.apply(_rt, arguments); }
+  function photoperiodFactor(){ return _rt.photoperiodFactor.apply(_rt, arguments); }
+  function tempFactor(){ return _rt.tempFactor.apply(_rt, arguments); }
+  function greenhouseHeatYieldFactor(){ return _rt.greenhouseHeatYieldFactor.apply(_rt, arguments); }
+  function greenhouseHeatYieldLossPct(){ return _rt.greenhouseHeatYieldLossPct.apply(_rt, arguments); }
+  function isChannelGreenhouse(){ return _rt.isChannelGreenhouse.apply(_rt, arguments); }
+  function isControlledEnv(){ return _rt.isControlledEnv.apply(_rt, arguments); }
+  function isPlantingYieldView(){ return _rt.isPlantingYieldView.apply(_rt, arguments); }
+  function isGreenhousePlanting(){ return _rt.isGreenhousePlanting.apply(_rt, arguments); }
+  function effectiveTempFactor(){ return _rt.effectiveTempFactor.apply(_rt, arguments); }
+  function boltShift(){ return _rt.boltShift.apply(_rt, arguments); }
+  function envK(){ return _rt.envK.apply(_rt, arguments); }
+  function envBolt(){ return _rt.envBolt.apply(_rt, arguments); }
+  function envMultiplier(){ return _rt.envMultiplier.apply(_rt, arguments); }
+  function crowdingFactor(){ return _rt.crowdingFactor.apply(_rt, arguments); }
+  function effectiveCa(){ return _rt.effectiveCa.apply(_rt, arguments); }
+  function totalAge(){ return _rt.totalAge.apply(_rt, arguments); }
+  function massAtTotal(){ return _rt.massAtTotal.apply(_rt, arguments); }
+  function canopyAtTotal(){ return _rt.canopyAtTotal.apply(_rt, arguments); }
+  function rgrAtTotal(){ return _rt.rgrAtTotal.apply(_rt, arguments); }
+  function harvestTotal(){ return _rt.harvestTotal.apply(_rt, arguments); }
+  function harvestChannel(){ return _rt.harvestChannel.apply(_rt, arguments); }
+  function loadGhStandardsStore(){ return _rt.loadGhStandardsStore.apply(_rt, arguments); }
+  function saveGhStandardsStore(){ return _rt.saveGhStandardsStore.apply(_rt, arguments); }
+  function defaultGhCutMasses(){ return _rt.defaultGhCutMasses.apply(_rt, arguments); }
+  function buildDefaultGhStandards(){ return _rt.buildDefaultGhStandards.apply(_rt, arguments); }
+  function getGhCvStandards(){ return _rt.getGhCvStandards.apply(_rt, arguments); }
+  function readGhStandardsFromState(){ return _rt.readGhStandardsFromState.apply(_rt, arguments); }
+  function applyGhStandardsToState(){ return _rt.applyGhStandardsToState.apply(_rt, arguments); }
+  function applyGhStandardFromStore(){ return _rt.applyGhStandardFromStore.apply(_rt, arguments); }
+  function getGhCutMass(){ return _rt.getGhCutMass.apply(_rt, arguments); }
+  function ghCutCountMax(){ return _rt.ghCutCountMax.apply(_rt, arguments); }
+  function rebuildGhCutCountRow(){ return _rt.rebuildGhCutCountRow.apply(_rt, arguments); }
+  function syncMulticutBabyUi(){ return _rt.syncMulticutBabyUi.apply(_rt, arguments); }
+  function syncGhCutsUI(){ return _rt.syncGhCutsUI.apply(_rt, arguments); }
+  function syncGhFacilityPanels(){ return _rt.syncGhFacilityPanels.apply(_rt, arguments); }
+  function applyGhProfileToStateOnly(){ return _rt.applyGhProfileToStateOnly.apply(_rt, arguments); }
+  function renderGhStandardsPanel(){ return _rt.renderGhStandardsPanel.apply(_rt, arguments); }
+  function loadVfStandardsStore(){ return _rt.loadVfStandardsStore.apply(_rt, arguments); }
+  function saveVfStandardsStore(){ return _rt.saveVfStandardsStore.apply(_rt, arguments); }
+  function buildDefaultVfStandards(){ return _rt.buildDefaultVfStandards.apply(_rt, arguments); }
+  function getVfCvStandards(){ return _rt.getVfCvStandards.apply(_rt, arguments); }
+  function readVfStandardsFromState(){ return _rt.readVfStandardsFromState.apply(_rt, arguments); }
+  function applyVfProfileToStateOnly(){ return _rt.applyVfProfileToStateOnly.apply(_rt, arguments); }
+  function applyVfUserStandardsToState(){ return _rt.applyVfUserStandardsToState.apply(_rt, arguments); }
+  function applyVfStandardFromStore(){ return _rt.applyVfStandardFromStore.apply(_rt, arguments); }
+  function renderVfStandardsPanel(){ return _rt.renderVfStandardsPanel.apply(_rt, arguments); }
+  function boltChannel(){ return _rt.boltChannel.apply(_rt, arguments); }
+  function stageOf(){ return _rt.stageOf.apply(_rt, arguments); }
+  function holeDiameter(){ return _rt.holeDiameter.apply(_rt, arguments); }
+  function updatePlantingGeomUI(){ return _rt.updatePlantingGeomUI.apply(_rt, arguments); }
+  function georgyChannelTwoRows(){ return _rt.georgyChannelTwoRows.apply(_rt, arguments); }
+  function initPlantingLayoutApi(){ return _rt.initPlantingLayoutApi.apply(_rt, arguments); }
+  function plantLayout(){ return _rt.plantLayout.apply(_rt, arguments); }
+  function calcScenario(){ return _rt.calcScenario.apply(_rt, arguments); }
+  function calcScenarioVf(){ return _rt.calcScenarioVf.apply(_rt, arguments); }
+  function calcScenarioPallet(){ return _rt.calcScenarioPallet.apply(_rt, arguments); }
+  function calc(){ return _rt.calc.apply(_rt, arguments); }
+  var getCv = _rt.getCv;
+  var isPalletView = _rt.isPalletView;
+  var isVF = _rt.isVF;
+  var isVfCvId = _rt.isVfCvId;
+  var allGhCultivars = _rt.allGhCultivars;
+  var allVfCultivars = _rt.allVfCultivars;
+  var isPalletCvId = _rt.isPalletCvId;
+  var allPalletCultivars = _rt.allPalletCultivars;
+  var isPalletSheetCv = _rt.isPalletSheetCv;
+  var getPalletCv = _rt.getPalletCv;
+  var getVfCv = _rt.getVfCv;
+  var getActiveCv = _rt.getActiveCv;
+  var getSheetCv = _rt.getSheetCv;
+  var isSheetCv = _rt.isSheetCv;
+  var usePlantingSheet = _rt.usePlantingSheet;
+  var findCvById = _rt.findCvById;
+  var clamp = _rt.clamp;
+  var FACILITY_KEY = _rt.FACILITY_KEY;
+  var APP_VIEW_KEY = _rt.APP_VIEW_KEY;
+  var ICON = _rt.ICON;
+  var COLLAPSE_DEFAULTS = _rt.COLLAPSE_DEFAULTS;
+  var lightSync = _rt.lightSync;
+  var plantingSnapshots = _rt.plantingSnapshots;
+  var HARVEST_MONTH_DAYS = _rt.HARVEST_MONTH_DAYS;
+  var CUT_INTERVAL_SLACK = _rt.CUT_INTERVAL_SLACK;
+  var CUSTOM_CULTIVARS_STORAGE = _rt.CUSTOM_CULTIVARS_STORAGE;
+  var GH_STANDARDS_STORAGE = _rt.GH_STANDARDS_STORAGE;
+  var VF_STANDARDS_STORAGE = _rt.VF_STANDARDS_STORAGE;
+  var ECON_STORAGE = _rt.ECON_STORAGE;
+  var ECON_DEFAULT_CONSUMABLES_PER_POT = _rt.ECON_DEFAULT_CONSUMABLES_PER_POT;
+  var ECON_CONSUMABLES_PER_POT_HINT = _rt.ECON_CONSUMABLES_PER_POT_HINT;
+  var ECON_SALAD_MIX_ID = _rt.ECON_SALAD_MIX_ID;
+  var ECON_SALAD_MIX_CV_IDS = _rt.ECON_SALAD_MIX_CV_IDS;
+  var ECON_MONTH_DAYS = _rt.ECON_MONTH_DAYS;
+  var ECON_MAX_CULTURES = _rt.ECON_MAX_CULTURES;
+  var ECON_EQUIPMENT_GROUPS_FALLBACK = _rt.ECON_EQUIPMENT_GROUPS_FALLBACK;

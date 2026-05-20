@@ -159,23 +159,37 @@ function syncVfStdBadges(){
     });
   }
   syncVegPeriodTotal();
-  const locksTitle = document.querySelector('.vf-std-locks-title');
+  const locksTitle = deps.$('sheet-std-locks-title') || document.querySelector('.vf-std-locks-title');
   if (locksTitle) locksTitle.textContent = deps.isPalletView() ? deps.ui('ui.vf.stdLocksPal') : deps.ui('ui.vf.stdLocksVf');
-  const auditIntro = deps.$('vf-audit-standards-intro');
-  if (auditIntro){
-    const showIntro = (deps.isVF() || deps.isPalletView()) && deps.usePlantingSheet();
-    auditIntro.classList.toggle('env-block-hidden', !showIntro);
-    if (showIntro) auditIntro.innerHTML = deps.ui('standards.introHtml');
+  document.querySelectorAll('.collapse-sheet-only').forEach(function (el) {
+    el.classList.toggle('env-block-hidden', !show);
+    if (!show) return;
+    var isPal = deps.isPalletView();
+    if (el.closest('#block-grow-time')) {
+      el.textContent = isPal ? deps.ui('ui.grow.sheetHintPal') : deps.ui('ui.grow.sheetHintVf');
+    } else if (el.closest('#block-mass')) {
+      el.textContent = isPal ? deps.ui('ui.mass.sheetHintPal') : deps.ui('ui.mass.sheetHintVf');
+    }
+  });
+  var sheetTitle = deps.$('sheet-standards-section-title');
+  if (sheetTitle && show) {
+    var pt = typeof global.DG_plantT === 'function' ? global.DG_plantT : function (k) { return k; };
+    sheetTitle.textContent = deps.isPalletView() ? pt('std.vfPal') : pt('std.vf');
+  }
+  var sheetHint = deps.$('sheet-standards-hint');
+  if (sheetHint && show) {
+    sheetHint.innerHTML = deps.isPalletView() ? deps.ui('ui.std.vfHintPal') : deps.ui('ui.std.vfHint');
   }
 }
 function bindVfStdBadges(){
-  document.querySelectorAll('.vf-sheet-badge[data-vf-field]').forEach(btn => {
-    if (btn.dataset.badgeBound) return;
-    btn.dataset.badgeBound = '1';
-    btn.addEventListener('click', () => {
-      if (btn.disabled || btn.classList.contains('at-standard')) return;
-      applyVfStandardField(btn.dataset.vfField);
-    });
+  var root = document.getElementById('view-planting');
+  if (!root || root.dataset.vfBadgeDelegated) return;
+  root.dataset.vfBadgeDelegated = '1';
+  root.addEventListener('click', function (e) {
+    var btn = e.target.closest('.vf-sheet-badge[data-vf-field]');
+    if (!btn) return;
+    if (btn.disabled || btn.classList.contains('at-standard')) return;
+    applyVfStandardField(btn.dataset.vfField);
   });
 }
 
@@ -202,7 +216,7 @@ function vfEffectiveDensity(cv){
 }
 function vfEffectiveMass(cv, massAuto){
   cv = cv || deps.getVfCv();
-  if (stateRef().vfStd.mass) return cv.yieldPerCutG;
+  if (stateRef().vfStd.mass && !stateRef().useManualMass) return Math.round(cv.yieldPerCutG) || massAuto;
   if (stateRef().useManualMass) return deps.manualHarvestMass(massAuto);
   return massAuto;
 }

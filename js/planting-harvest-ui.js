@@ -25,6 +25,11 @@
     }
 
     function modelCanopyFromMass(cv, mass) {
+      var GLM = global.DG_growthLightModel;
+      var state = st();
+      if (GLM && GLM.canopyFromMass) {
+        return GLM.canopyFromMass(cv, mass, state.temp);
+      }
       return deps.effectiveCa(cv) * Math.sqrt(Math.max(mass, 1));
     }
 
@@ -51,8 +56,6 @@
       state.useManualCanopy = false;
       state.canopyPct = 100;
       state.manualCanopy = Math.round(standardCanopyMm(cv, massVal));
-      if (deps.isPalletView()) state.palletStd.mass = false;
-      else if (deps.isVF()) state.vfStd.mass = false;
       syncCanopyUI();
     }
 
@@ -101,16 +104,42 @@
       syncCanopyUI();
     }
 
+    function syncMassBlockLabels(cv) {
+      var pcs = !!(cv && cv.countUnit === 'шт');
+      var plantT =
+        typeof global.DG_plantT === 'function'
+          ? global.DG_plantT
+          : function (k) {
+              return k;
+            };
+      var massHead = document.querySelector('#block-mass .collapse-head > span:first-child');
+      if (massHead) massHead.textContent = plantT(pcs ? 'mass.titlePcs' : 'mass.title');
+      var toggleLbl = document.querySelector('#block-mass .toggle-label');
+      if (toggleLbl) toggleLbl.textContent = plantT(pcs ? 'mass.manualPcs' : 'mass.manual');
+      var potLbl = document.querySelector('#manual-mass-block .ctrl-label');
+      if (potLbl) {
+        var badge = potLbl.querySelector('.vf-sheet-badge');
+        while (potLbl.firstChild && potLbl.firstChild !== badge) potLbl.removeChild(potLbl.firstChild);
+        potLbl.insertBefore(document.createTextNode(plantT(pcs ? 'mass.perPotPcs' : 'mass.perPot')), badge);
+      }
+      var unitSpan = document.querySelector('#manual-mass-block .unit');
+      if (unitSpan) unitSpan.textContent = pcs ? deps.pm('u.pcs') : 'г';
+    }
+
     function syncHarvestBlockUI(r) {
       var state = st();
       var $ = deps.$;
+      if (r && r.cv) syncMassBlockLabels(r.cv);
       syncManualMassUI();
       syncManualCanopyUI();
       var cv = r.cv;
       var unit = r.countUnit === 'шт' ? deps.pm('u.pcs') : deps.pm('unit.g');
       var modelMass = r.massAuto;
       var modelCanopy = modelCanopyFromMass(cv, r.mass);
-      var massVal = state.useManualMass ? r.mass : modelMass;
+      var sheetMassStd =
+        (deps.isPalletView() && state.palletStd && state.palletStd.mass) ||
+        (deps.isVF() && state.vfStd && state.vfStd.mass);
+      var massVal = state.useManualMass || sheetMassStd ? r.mass : modelMass;
       var canopyVal = state.useManualCanopy ? r.canopy : modelCanopy;
       var mv = $('manualMass-v');
       if (mv) mv.textContent = formatHarvestCtrlVal(massVal, rangeMass);
@@ -145,9 +174,9 @@
       var state = st();
       var el = deps.$('mass-model-hint');
       if (!el) return;
-      var vfCv = deps.getVfCv();
+      var activeCv = deps.getActiveCv ? deps.getActiveCv() : null;
       var unit =
-        deps.isVF() && vfCv && vfCv.countUnit === 'шт' ? deps.pm('u.pcs') : deps.pm('unit.g');
+        activeCv && activeCv.countUnit === 'шт' ? deps.pm('u.pcs') : deps.pm('unit.g');
       var mm = deps.pm('unit.mm');
       var mDisp = state.showRange
         ? formatHarvestCtrlVal(mass, rangeMass) + ' ' + unit
@@ -195,6 +224,7 @@
       syncCanopyUI: syncCanopyUI,
       syncManualCanopyUI: syncManualCanopyUI,
       syncHarvestBlockUI: syncHarvestBlockUI,
+      syncMassBlockLabels: syncMassBlockLabels,
       updateMassModelHint: updateMassModelHint,
       rangeMass: rangeMass,
       rangeCanopy: rangeCanopy

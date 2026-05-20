@@ -76,6 +76,22 @@ server {
 
 Держите одну рабочую папку (не дублируйте «на рабочий стол» без синхронизации). После правок всегда `npm run build` и одна и та же сборка на сервере и у разработчиков.
 
+## Документация для разработки
+
+Главный индекс: **[docs/RECOVERY-MAP.md](docs/RECOVERY-MAP.md)** — карта зависимостей, `state`, boot, формулы, «что на что влияет».
+
+| Тема | Файл |
+|------|------|
+| Экономика | [docs/ECONOMICS-RECOVERY.md](docs/ECONOMICS-RECOVERY.md) |
+| Поддоны из Excel | [docs/PALLET-CULTIVARS-GENERATION.md](docs/PALLET-CULTIVARS-GENERATION.md) |
+| VF из Excel | [docs/VF-CULTIVARS-GENERATION.md](docs/VF-CULTIVARS-GENERATION.md) |
+| GH каталог | [docs/GH-CULTIVARS-RECOVERY.md](docs/GH-CULTIVARS-RECOVERY.md) |
+| Режим Георгия | [docs/GEORGY-MODE-RECOVERY.md](docs/GEORGY-MODE-RECOVERY.md) |
+| Share / auth / readonly | [docs/SHARE-AUTH-READONLY-RECOVERY.md](docs/SHARE-AUTH-READONLY-RECOVERY.md) |
+| PDF и проекты JSON | [docs/PDF-PROJECTS-RECOVERY.md](docs/PDF-PROJECTS-RECOVERY.md) |
+| Тесты (`npm run check`) | [docs/TESTING-RECOVERY.md](docs/TESTING-RECOVERY.md) |
+| Справочник сортов | [docs/CULTIVAR_CATALOG.md](docs/CULTIVAR_CATALOG.md) |
+
 ---
 
 ## Вход по логину (серверная проверка)

@@ -50,10 +50,17 @@
       var hostCh = $('nch-host-channel');
       var hostPal = $('nch-host-pallet');
       if (nchWrap && hostCh && hostPal) {
-        (pallet ? hostPal : hostCh).appendChild(nchWrap);
+        var nchHost = pallet ? hostPal : hostCh;
+        /* Не appendChild на каждый renderAll — иначе ползунок nch «залипает» при перетаскивании */
+        if (nchWrap.parentElement !== nchHost) nchHost.appendChild(nchWrap);
       }
       var extraCtrl = $('ctrl-extraB');
       if (extraCtrl) extraCtrl.classList.toggle('env-block-hidden', pallet);
+      var autoDayRow = document.querySelector('.grow-auto-day-row');
+      if (autoDayRow) {
+        /* Поддоны/VF: дни с листа — бейдж «стандарт»; кнопка дублировала и на поддонах брала чужой сорт (модель GH) */
+        autoDayRow.classList.toggle('env-block-hidden', pallet || deps.isVF());
+      }
       if (pallet) {
         deps.syncPalletZoneLength();
         deps.syncPalletMountButtons();

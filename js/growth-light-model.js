@@ -110,8 +110,13 @@
     return ca * (1 + 0.012 * excess);
   }
 
+  function canopyMassExponent(cv){
+    var exp = cv && cv.canopyExp != null ? parseFloat(cv.canopyExp) : NaN;
+    return exp > 0 && exp < 1.2 ? exp : 0.5;
+  }
+
   function canopyFromMass(cv, mass, temp){
-    return canopyCoeff(cv, temp) * Math.sqrt(Math.max(mass, 0.1));
+    return canopyCoeff(cv, temp) * Math.pow(Math.max(mass, 0.1), canopyMassExponent(cv));
   }
 
   function logisticMass(cv, tDays, kEff){
@@ -137,6 +142,7 @@
     growthTempCeiling: growthTempCeiling,
     tempResponseFactor: tempResponseFactor,
     canopyCoeff: canopyCoeff,
+    canopyMassExponent: canopyMassExponent,
     canopyFromMass: canopyFromMass,
     logisticMass: logisticMass,
     envGrowthMultiplier: envGrowthMultiplier

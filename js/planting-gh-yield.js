@@ -113,13 +113,25 @@
           mainHallOnly: r.mainHallIntervalDays > 0
         };
       }
-      var kgYear = (r.yieldPerSqmYear || 0) * area;
+      var areaYear = (r.yieldPerSqmYear || 0) * area;
+      if (cv.countUnit === 'шт') {
+        return {
+          hasArea: true,
+          area: area,
+          unitIsPieces: true,
+          kgMonth: 0,
+          kgYear: 0,
+          pcsMonth: areaYear / 12,
+          pcsYear: areaYear,
+          mainHallOnly: false
+        };
+      }
       return {
         hasArea: true,
         area: area,
-        unitIsPieces: cv.countUnit === 'шт',
-        kgMonth: kgYear / 12,
-        kgYear: kgYear,
+        unitIsPieces: false,
+        kgMonth: areaYear / 12,
+        kgYear: areaYear,
         pcsMonth: 0,
         pcsYear: 0,
         mainHallOnly: false
@@ -147,35 +159,58 @@
         el.classList.toggle('env-block-hidden', hide);
       });
       var hint = $('bio-margin-hint');
-      if (hint) hint.classList.toggle('env-block-hidden', hide);
+      if (hint) {
+        hint.classList.toggle('env-block-hidden', hide);
+        if (!hide) {
+          var hintKey =
+            isPalletView() || isVF() ? 'ui.bio.hintFarm' : 'ui.bio.hint';
+          hint.setAttribute('data-i18n', hintKey);
+          hint.textContent = ui(hintKey);
+        }
+      }
+    }
+
+    function bindGhYieldI18n(el, key) {
+      if (!el || !key) return;
+      el.setAttribute('data-i18n', key);
+      el.textContent = ui(key);
     }
 
     function updateGhYieldPanelCopy(r) {
       var title = $('gh-yield-section-title');
       var intro = $('gh-yield-intro');
       var btn = $('gh-useful-area-from-geom');
+      var areaLbl = document.querySelector('label[for="gh-useful-area"]');
       var cmpIntro = $('gh-yield-compare-intro');
       if (isPalletView()) {
-        if (title) title.textContent = ui('gh.yield.titlePallet');
-        if (intro) intro.textContent = ui('gh.yield.introPallet');
-        if (btn) btn.textContent = ui('gh.yield.fromGeomPallet');
+        var palCv = (r && r.cv) || getCv();
+        bindGhYieldI18n(title, 'gh.yield.titlePallet');
+        bindGhYieldI18n(
+          intro,
+          palCv && palCv.countUnit === 'шт' ? 'gh.yield.introPalletPcs' : 'gh.yield.introPallet'
+        );
+        bindGhYieldI18n(btn, 'gh.yield.fromGeomPallet');
+        bindGhYieldI18n(areaLbl, 'gh.yield.areaLabelFarm');
       } else if (isVF()) {
-        if (title) title.textContent = ui('gh.yield.titleVf');
-        if (intro) intro.textContent = ui('gh.yield.introVf');
-        if (btn) btn.textContent = ui('gh.yield.fromGeomVf');
+        bindGhYieldI18n(title, 'gh.yield.titleVf');
+        bindGhYieldI18n(intro, 'gh.yield.introVf');
+        bindGhYieldI18n(btn, 'gh.yield.fromGeomVf');
+        bindGhYieldI18n(areaLbl, 'gh.yield.areaLabel');
       } else {
-        if (title) title.textContent = ui('gh.yield.title');
-        if (intro) intro.textContent = ui('gh.yield.intro');
-        if (btn) btn.textContent = ui('gh.yield.fromGeom');
+        bindGhYieldI18n(title, 'gh.yield.title');
+        bindGhYieldI18n(intro, 'gh.yield.intro');
+        bindGhYieldI18n(btn, 'gh.yield.fromGeom');
+        bindGhYieldI18n(areaLbl, 'gh.yield.areaLabel');
       }
       if (cmpIntro) {
-        cmpIntro.textContent = isChannelGreenhouse()
-          ? ui('gh.yield.compareIntroCanopy')
+        var cmpKey = isChannelGreenhouse()
+          ? 'gh.yield.compareIntroCanopy'
           : isPalletView()
-            ? ui('gh.yield.introPallet') + ' ' + ui('gh.yield.palletEnvNote')
+            ? 'gh.yield.compareIntroPallet'
             : isVF()
-              ? ui('gh.yield.compareIntroVf')
-              : ui('gh.yield.compareIntroGeneral');
+              ? 'gh.yield.compareIntroVf'
+              : 'gh.yield.compareIntroGeneral';
+        bindGhYieldI18n(cmpIntro, cmpKey);
       }
       var hint = $('gh-useful-area-geom-hint');
       if (hint && r && r.sysArea > 0) {
