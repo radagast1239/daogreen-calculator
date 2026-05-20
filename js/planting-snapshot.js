@@ -27,7 +27,9 @@
       var useMc = state.multicut && deps.supportsMulticut(cv);
       if (useMc){
         var cutIntervalDays = Math.max(1, Math.round(deps.effectiveCutInterval()));
-        var cm = deps.cutMassPerPlant(cv, null);
+        var cm = deps.cutMassForMonthlyYield
+          ? deps.cutMassForMonthlyYield(cv)
+          : deps.cutMassPerPlant(cv, null);
         var yieldPerCut = cm.val;
         var yieldUnit = cm.unit;
         var cutsPerMonth = HMD / cutIntervalDays;
@@ -50,7 +52,8 @@
           yieldPerSqmMonthKg: yieldPerSqmMonthKg,
           yieldPerSqmMonthPcs: yieldPerSqmMonthPcs,
           yieldUnit: yieldUnit,
-          unitIsPieces: pieces
+          unitIsPieces: pieces,
+          cyclesPerMonth: cutsPerMonth
         };
       }
       var yieldPerPotCycle = r.mass;
@@ -64,10 +67,11 @@
       var yieldPerSqmMonthPcs2 = 0;
       if (yieldUnit === 'шт') yieldPerSqmMonthPcs2 = yieldPerPotMonth * r.rhoA;
       else yieldPerSqmMonthKg2 = (yieldPerPotMonth / 1000) * r.rhoA;
+      var mainHallDays = r.mainHallIntervalDays > 0 ? r.mainHallIntervalDays : 0;
       return {
         multicutHarvest: false,
         harvestYieldPerCut: yieldPerPotCycle,
-        harvestCutIntervalDays: Math.max(1, r.totalCycleDays || 1),
+        harvestCutIntervalDays: mainHallDays > 0 ? mainHallDays : Math.max(1, r.totalCycleDays || 1),
         harvestCutsPerMonth: cyclesPerMonth,
         yieldPerCut: yieldPerPotCycle,
         yieldPerPotCycle: yieldPerPotCycle,
@@ -87,9 +91,11 @@
       var kwhPerSqmDay = deps.kwhPerSqmPerDayFromDli(suppDli);
       var lightHoursDay = deps.effectivePhotoperiod();
       var kwhPerM2Hour = lightHoursDay > 0 ? kwhPerSqmDay / lightHoursDay : 0;
-      var cyclesPerMonth = hy.cyclesPerMonth != null
-        ? hy.cyclesPerMonth
-        : (r.totalCycleDays > 0 ? HMD / r.totalCycleDays : 0);
+      var cyclesPerMonth = hy.harvestCutsPerMonth > 0
+        ? hy.harvestCutsPerMonth
+        : (hy.cyclesPerMonth != null
+          ? hy.cyclesPerMonth
+          : (r.totalCycleDays > 0 ? HMD / r.totalCycleDays : 0));
       var facLabel = facilityLabel();
       return {
         cvId: cv.id,
@@ -98,6 +104,8 @@
         unitIsPieces: hy.unitIsPieces,
         rhoA: r.rhoA,
         totalCycleDays: r.totalCycleDays,
+        mainHallIntervalDays: r.mainHallIntervalDays > 0 ? r.mainHallIntervalDays : 0,
+        usefulAreaBasis: r.usefulAreaBasis || (hy.multicutHarvest ? 'main_hall' : ''),
         multicutHarvest: hy.multicutHarvest,
         harvestYieldPerCut: hy.harvestYieldPerCut,
         harvestCutIntervalDays: hy.harvestCutIntervalDays,

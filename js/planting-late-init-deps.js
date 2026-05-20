@@ -16,6 +16,7 @@
       supportsMulticut: ctx.supportsMulticut,
       effectiveCutInterval: ctx.effectiveCutInterval,
       cutMassPerPlant: ctx.cutMassPerPlant,
+      cutMassForMonthlyYield: ctx.cutMassForMonthlyYield || ctx.cutMassPerPlant,
       getMulticutYieldPerPlant: ctx.getMulticutYieldPerPlant,
       isVfSheetCv: ctx.isVfSheetCv,
       isPalletView: ctx.isPalletView,

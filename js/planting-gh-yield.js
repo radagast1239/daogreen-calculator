@@ -88,13 +88,9 @@
 
     function ghYieldKgSqmYear(rc, cv) {
       if (!rc || !cv) return 0;
-      var hy =
-        st().multicut && supportsMulticut(cv) && deps.plantingHarvestYieldParams
-          ? plantingHarvestYieldParams(cv, rc)
-          : null;
-      if (hy && hy.multicutHarvest && hy.yieldPerSqmMonthKg > 0) {
-        return hy.yieldPerSqmMonthKg * 12;
-      }
+      var hy = plantingHarvestYieldParams ? plantingHarvestYieldParams(cv, rc) : null;
+      if (hy && hy.yieldPerSqmMonthKg > 0) return hy.yieldPerSqmMonthKg * 12;
+      if (hy && hy.yieldPerSqmMonthPcs > 0) return hy.yieldPerSqmMonthPcs * 12;
       return rc.yieldPerSqmYear || 0;
     }
 
@@ -102,8 +98,8 @@
       var area = getGhUsefulAreaM2();
       if (!(area > 0)) return { hasArea: false };
       var cv = r.cv || getCv();
-      var hy = st().multicut && supportsMulticut(cv) ? plantingHarvestYieldParams(cv, r) : null;
-      if (hy && hy.multicutHarvest) {
+      var hy = plantingHarvestYieldParams ? plantingHarvestYieldParams(cv, r) : null;
+      if (hy && (hy.yieldPerSqmMonthKg > 0 || hy.yieldPerSqmMonthPcs > 0)) {
         var kgMonth = (hy.yieldPerSqmMonthKg || 0) * area;
         var pcsMonth = (hy.yieldPerSqmMonthPcs || 0) * area;
         return {
@@ -113,7 +109,8 @@
           kgMonth: kgMonth,
           kgYear: kgMonth * 12,
           pcsMonth: pcsMonth,
-          pcsYear: pcsMonth * 12
+          pcsYear: pcsMonth * 12,
+          mainHallOnly: r.mainHallIntervalDays > 0
         };
       }
       var kgYear = (r.yieldPerSqmYear || 0) * area;
@@ -124,7 +121,8 @@
         kgMonth: kgYear / 12,
         kgYear: kgYear,
         pcsMonth: 0,
-        pcsYear: 0
+        pcsYear: 0,
+        mainHallOnly: false
       };
     }
 

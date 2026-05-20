@@ -14,7 +14,7 @@
   var HEAD_GERM_MIN = 1;
   var HEAD_GERM_MAX = 4;
   var HEAD_NURSERY_MIN = 1;
-  var HEAD_NURSERY_MAX = 21;
+  var HEAD_NURSERY_MAX = 28;
   var HEAD_CHANNEL_MIN = 1;
   var HEAD_CHANNEL_MAX = 28;
   var HEAD_MAIN_HARVEST_INTERVAL_D = 20;
@@ -294,6 +294,52 @@
       st().day = clamp(Math.round(st().day), HEAD_CHANNEL_MIN, HEAD_CHANNEL_MAX);
     }
 
+    /** Синхронизация state с ползунками Георгия (проращивание + рассада + канал). */
+    function readGeorgyHeadCycleFromDom(){
+      if (!isGeorgyGh()) return;
+      var cv = deps.getCv();
+      if (getGeorgyProfile(cv)) return;
+      var germInp = document.getElementById('georgy-germ');
+      var nurInp = document.getElementById('georgy-nursery');
+      var dayInp = document.getElementById('georgy-day');
+      if (germInp) st().germination = clamp(parseInt(germInp.value, 10) || GERM_DAYS, HEAD_GERM_MIN, HEAD_GERM_MAX);
+      if (nurInp) st().nursery = clamp(parseInt(nurInp.value, 10) || HEAD_NURSERY_DEFAULT_D, HEAD_NURSERY_MIN, HEAD_NURSERY_MAX);
+      if (dayInp) st().day = clamp(parseInt(dayInp.value, 10) || st().day, HEAD_CHANNEL_MIN, HEAD_CHANNEL_MAX);
+      clampGeorgyHeadCycleInputs();
+    }
+
+    /** Масса и шапка салата: t = проращ. + рассада + канал; crowding на плотности rho. */
+    function headHarvestGeorgy(cv, rho){
+      cv = cv || deps.getCv();
+      if (!cv || getGeorgyProfile(cv)) return null;
+      var tTotal = totalDaysFromSowGeorgy(cv);
+      if (!(tTotal > 0)) tTotal = preChannelDaysGeorgy() + Math.round(st().day);
+      rho = rho != null ? rho : PLACEHOLDER_DENSITY;
+      var saved = { density: st().density, extraB: st().extraB };
+      st().density = rho;
+      st().extraB = 0;
+      try {
+        var massRaw = deps.massAtTotal(cv, tTotal);
+        var lay = deps.plantLayout(cv);
+        var canopyAtMax = deps.effectiveCa(cv) * Math.sqrt(cv.M_max);
+        var crowdF = deps.crowdingFactor(canopyAtMax, lay.nearest);
+        var massAuto = massRaw * crowdF;
+        var mass = deps.manualHarvestMass ? deps.manualHarvestMass(massAuto) : massAuto;
+        var canopy = deps.harvestCanopy(cv, massAuto);
+        return {
+          tTotal: tTotal,
+          massRaw: massRaw,
+          massAuto: massAuto,
+          mass: Math.round(mass),
+          canopy: Math.round(canopy),
+          crowdF: crowdF
+        };
+      } finally {
+        st().density = saved.density;
+        st().extraB = saved.extraB;
+      }
+    }
+
     function syncGeorgyHeadSlidersToState(){
       var cv = deps.getCv();
       var profile = getGeorgyProfile(cv);
@@ -354,24 +400,11 @@
       if (profile){
         massAuto = normativeBabyCutMass(profile, cv, 0);
       } else {
-        var tTotal = totalDaysFromSowGeorgy(cv);
-        if (tTotal == null || !(tTotal > 0)) tTotal = preChannelDaysGeorgy() + Math.round(st().day);
-        var massRaw = deps.massAtTotal(cv, tTotal);
-        var saved = { density: st().density, extraB: st().extraB };
-        st().density = PLACEHOLDER_DENSITY;
-        st().extraB = 0;
-        var lay = deps.plantLayout(cv);
-        var canopyAtMax = deps.effectiveCa(cv) * Math.sqrt(cv.M_max);
-        var crowdF = deps.crowdingFactor(canopyAtMax, lay.nearest);
-        massAuto = massRaw * crowdF;
-        st().density = saved.density;
-        st().extraB = saved.extraB;
-        var canopy = deps.harvestCanopy(cv, massAuto);
-        return {
-          mass: Math.round(massAuto),
-          canopy: Math.round(canopy),
-          massAuto: massAuto
-        };
+        var h = headHarvestGeorgy(cv, PLACEHOLDER_DENSITY);
+        if (h){
+          return { mass: h.mass, canopy: h.canopy, massAuto: h.massAuto };
+        }
+        massAuto = 0;
       }
       var saved = { density: st().density, extraB: st().extraB };
       st().density = PLACEHOLDER_DENSITY;
@@ -394,7 +427,8 @@
     function layoutAtDensity(cv, rho){
       var saved = { density: st().density, extraB: st().extraB };
       st().density = rho;
-      var canopy = estimateHarvestCanopy(cv);
+      var hHead = headHarvestGeorgy(cv, rho);
+      var canopy = hHead ? hHead.canopy : estimateHarvestCanopy(cv);
       st().extraB = extraBFromCanopy(cv, canopy);
       var lay = deps.plantLayout(cv);
       var gap = lay.nearest - canopy;
@@ -533,6 +567,7 @@
 
     function applyGeorgyBeforeCalc(){
       if (!isGeorgyGh()) return;
+      readGeorgyHeadCycleFromDom();
       var cv = deps.getCv();
       if (!isGeorgyCvAllowed(cv)){
         st().cv = RUCOLA_BABY_ID;
@@ -869,7 +904,11 @@
       }
       if (densV) densV.textContent = String(targetRho);
       var densAutoBtn = document.getElementById('georgy-density-auto');
-      if (densAutoBtn) densAutoBtn.disabled = !(st().day >= (profile ? 8 : HEAD_CHANNEL_MIN));
+      if (densAutoBtn){
+        var minTotal = profile ? 8 : HEAD_CHANNEL_MIN;
+        var tdOk = totalDaysFromSowGeorgy(cv);
+        densAutoBtn.disabled = !(tdOk != null && tdOk >= minTotal);
+      }
       var densHint = document.getElementById('georgy-density-hint');
       if (densHint){
         var autoRho = st().georgyAutoDensity;
@@ -1121,12 +1160,25 @@
     }
 
     function onGeorgyHeadCycleChanged(){
-      onGeorgyDayChanged();
+      readGeorgyHeadCycleFromDom();
+      st().georgyDensityFitted = false;
+      st().georgyTargetDensity = null;
+      st().georgyAutoDensity = null;
+      st().georgyLastFitGap = null;
+      var cv = deps.getCv();
+      if (!getGeorgyProfile(cv)) previewGeorgyAutoDensity(cv);
       var totalDaysEl = document.getElementById('georgy-total-days');
       if (totalDaysEl){
-        var td = totalDaysFromSowGeorgy(deps.getCv());
+        var td = totalDaysFromSowGeorgy(cv);
         totalDaysEl.textContent = td != null ? String(Math.round(td)) : '—';
       }
+      var harvest = estimateGeorgyHarvest(cv);
+      var pm = deps.plantMetric || function(k){ return k; };
+      var massEl = document.getElementById('georgy-preview-mass');
+      var canopyEl = document.getElementById('georgy-preview-canopy');
+      if (massEl) massEl.textContent = harvest.mass + ' ' + (pm('unit.g') || 'г');
+      if (canopyEl) canopyEl.textContent = harvest.canopy + ' ' + (pm('unit.mm') || 'мм');
+      syncGeorgyHeadSlidersToState();
     }
 
     /** Сброс ручных масс срезок беби к авто-нормативу (тепло, свет). */
@@ -1183,6 +1235,8 @@
       densityFromCanopy: densityFromCanopy,
       layoutAtDensity: layoutAtDensity,
       estimateGeorgyHarvest: estimateGeorgyHarvest,
+      headHarvestGeorgy: headHarvestGeorgy,
+      readGeorgyHeadCycleFromDom: readGeorgyHeadCycleFromDom,
       MAX_LEAF_OVERLAP_MM: MAX_LEAF_OVERLAP_MM,
       onGeorgyDayChanged: onGeorgyDayChanged,
       onGeorgyHeadCycleChanged: onGeorgyHeadCycleChanged,

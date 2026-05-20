@@ -306,10 +306,19 @@
     const noteEl = $('gh-yield-note');
     if (noteEl){
       const cv = r.cv || getCv();
-      const hy = st().multicut && supportsMulticut(cv) && plantingHarvestYieldParams
-        ? plantingHarvestYieldParams(cv, r) : null;
-      if (georgyModeRef() && georgyModeRef().isGeorgyGh() && georgyModeRef().isGeorgyProfiled(cv) && hy && hy.multicutHarvest){
-        noteEl.textContent = ui('gh.yield.noteGeorgyBaby');
+      const hy = plantingHarvestYieldParams ? plantingHarvestYieldParams(cv, r) : null;
+      if (hy && hy.multicutHarvest){
+        noteEl.textContent = ui('gh.yield.noteMulticut', {
+          interval: hy.harvestCutIntervalDays,
+          cutsMo: r1(hy.harvestCutsPerMonth),
+          mass: round(hy.harvestYieldPerCut),
+          potMo: round(hy.yieldPerPotMonth)
+        });
+      } else if (r.mainHallIntervalDays > 0 && r.usefulAreaBasis === 'main_hall'){
+        noteEl.textContent = ui('gh.yield.noteMainHall', {
+          mainDays: r.mainHallIntervalDays,
+          cutsMo: r1(r.harvestCyclesPerMonth || 0)
+        });
       } else {
         noteEl.textContent = ui('gh.yield.note');
       }
@@ -556,8 +565,7 @@
     const activeId = comparePickActiveId();
     const cols = selected.map(function(c){
       const r = calcForCompareCv(c);
-      const hy = st().multicut && supportsMulticut(c) && plantingHarvestYieldParams
-        ? plantingHarvestYieldParams(c, r) : null;
+      const hy = plantingHarvestYieldParams ? plantingHarvestYieldParams(c, r) : null;
       var rhoRec = null;
       if (georgyModeRef() && georgyModeRef().canUseCanopyDensityPick && georgyModeRef().canUseCanopyDensityPick(c)){
         rhoRec = georgyModeRef().densityFromCanopy(c);
@@ -1065,19 +1073,39 @@
           return r.totalCycleDays != null ? r.totalCycleDays : '—';
         })(), u: pm('unit.days') },
       ...((function(){
-        const hy = st().multicut && supportsMulticut(r.cv) ? plantingHarvestYieldParams(r.cv, r) : null;
+        const hy = plantingHarvestYieldParams ? plantingHarvestYieldParams(r.cv, r) : null;
         if (hy && hy.multicutHarvest){
           const ySqm = hy.unitIsPieces
             ? r1(hy.yieldPerSqmMonthPcs) + ' ' + pm('u.pcsMo')
             : r2(hy.yieldPerSqmMonthKg) + ' ' + pm('u.kgSqmMo');
+          const yPotMo = hy.unitIsPieces
+            ? r1(hy.yieldPerPotMonth) + ' ' + pm('u.pcsMo')
+            : round(hy.yieldPerPotMonth) + ' ' + pm('unit.g');
           return [
             { l: pm('m.cutMass'), v: round(hy.harvestYieldPerCut), u: hy.yieldUnit, cls: 'hl' },
             { l: pm('m.cutInterval'), v: hy.harvestCutIntervalDays, u: pm('unit.days') },
             { l: pm('m.cutsMonth'), v: r1(hy.harvestCutsPerMonth), u: pm('u.pcs') },
+            { l: pm('m.yieldPotMo'), v: yPotMo, u: '', cls: 'hl' },
             { l: pm('m.yieldMo'), v: ySqm, u: '', cls: 'hl' },
             ...(hy.yieldPerPotLife != null ? [
               { l: pm('m.lifeSum'), v: round(hy.yieldPerPotLife), u: hy.yieldUnit }
             ] : [])
+          ];
+        }
+        if (hy && r.mainHallIntervalDays > 0 && r.usefulAreaBasis === 'main_hall'){
+          const ySqm = hy.unitIsPieces
+            ? r1(hy.yieldPerSqmMonthPcs) + ' ' + pm('u.pcsMo')
+            : r2(hy.yieldPerSqmMonthKg) + ' ' + pm('u.kgSqmMo');
+          const yPotMo = hy.unitIsPieces
+            ? r1(hy.yieldPerPotMonth) + ' ' + pm('u.pcsMo')
+            : round(hy.yieldPerPotMonth) + ' ' + pm('unit.g');
+          return [
+            { l: pm('m.cutMass'), v: round(hy.harvestYieldPerCut), u: hy.yieldUnit, cls: 'hl' },
+            { l: ui('georgy.mainHallTurnover'), v: hy.harvestCutIntervalDays, u: pm('unit.days') },
+            { l: pm('m.cutsMonth'), v: r1(hy.harvestCutsPerMonth), u: pm('u.pcs') },
+            { l: pm('m.yieldPotMo'), v: yPotMo, u: '', cls: 'hl' },
+            { l: pm('m.yieldMo'), v: ySqm, u: '', cls: 'hl' },
+            { l: pm('m.kgSqmYear'), v: r1(r.yieldPerSqmYear || 0), u: 'kg/m²', cls: '' }
           ];
         }
         return [
@@ -1096,7 +1124,7 @@
     ).join('');
     const sysEl = $('metrics-sys');
     if (sysEl){
-      const hyMcHint = st().multicut && supportsMulticut(r.cv) ? plantingHarvestYieldParams(r.cv, r) : null;
+      const hyMcHint = plantingHarvestYieldParams ? plantingHarvestYieldParams(r.cv, r) : null;
       const showYearHint = !(hyMcHint && hyMcHint.multicutHarvest) && (r.cyclesPerYear > 0 || r.yieldPerSqmYear > 0);
       if (showYearHint) sysEl.insertAdjacentHTML('beforeend', '<p class="planting-year-month-hint">' + pm('m.yearMonthHint') + '</p>');
     }

@@ -140,9 +140,27 @@
   function supportsMulticut(cv){ return _cutModel ? _cutModel.supportsMulticut(cv) : false; }
   function effectiveCutInterval(){ return _cutModel ? _cutModel.effectiveCutInterval() : deps.getState().cutInterval; }
   function cutMassPerPlant(cv, cutIndex){ return _cutModel ? _cutModel.cutMassPerPlant(cv, cutIndex) : { val: 0, unit: 'г' }; }
+  function cutMassForMonthlyYield(cv){ return _cutModel ? _cutModel.cutMassForMonthlyYield(cv) : cutMassPerPlant(cv, null); }
   function multicutHorizon(cv){ return _cutModel ? _cutModel.multicutHorizon(cv) : null; }
   function vfMulticutStats(cv){ return _cutModel ? _cutModel.vfMulticutStats(cv) : { cutsPerMonth: 0, cutsInCycle: 1, monthsToReplace: 0, interval: 12 }; }
   function getMulticutYieldPerPlant(cv){ return _cutModel ? _cutModel.getMulticutYieldPerPlant(cv) : null; }
+
+  var _usefulYield;
+  if (global.DG_createPlantingUsefulYield){
+    _usefulYield = global.DG_createPlantingUsefulYield({
+      getState: deps.getState,
+      getGeorgyMode: function(){ return deps.getGeorgyMode(); },
+      georgyMode: deps.getGeorgyMode(),
+      getCv: getCv,
+      isVF: isVF,
+      isPalletView: isPalletView,
+      preChannelDays: preChannelDays,
+      supportsMulticut: supportsMulticut,
+      effectiveCutInterval: effectiveCutInterval,
+      cutMassForMonthlyYield: cutMassForMonthlyYield,
+      HARVEST_MONTH_DAYS: HARVEST_MONTH_DAYS
+    });
+  }
 
   const VF_STD_FIELDS = global.DG_VF_STD_FIELDS || [];
   var _cutIntervalUi = global.DG_createPlantingCutIntervalUi({
@@ -669,7 +687,8 @@
     restorePlantingStateEconSlice: function(s){ return deps.restorePlantingStateEconSlice(s); },
     canopyAtTotal: canopyAtTotal, applyCutIntervalHarvestMods: applyCutIntervalHarvestMods,
     rgrAtTotal: rgrAtTotal, boltChannel: boltChannel, stageOf: stageOf, holeDiameter: holeDiameter,
-    harvestCanopy: harvestCanopy, MAX_WIDTH: MAX_WIDTH, CH_W: CH_W
+    harvestCanopy: harvestCanopy, MAX_WIDTH: MAX_WIDTH, CH_W: CH_W,
+    usefulYield: _usefulYield
   });
 
     return {
@@ -701,6 +720,7 @@
       supportsMulticut: supportsMulticut,
       effectiveCutInterval: effectiveCutInterval,
       cutMassPerPlant: cutMassPerPlant,
+      cutMassForMonthlyYield: cutMassForMonthlyYield,
       multicutHorizon: multicutHorizon,
       vfMulticutStats: vfMulticutStats,
       getMulticutYieldPerPlant: getMulticutYieldPerPlant,

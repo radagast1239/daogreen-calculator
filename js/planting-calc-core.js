@@ -48,6 +48,15 @@
     function stageOf(a, b, c, cv) { return deps.stageOf(a, b, c, cv); }
     function holeDiameter(cv) { return deps.holeDiameter(cv); }
     function harvestCanopy(cv, m) { return deps.harvestCanopy(cv, m); }
+    function withUsefulAreaYield(r, cv) {
+      if (!r || !deps.usefulYield) return r;
+      var patch = deps.usefulYield.applyToCalcResult(cv || r.cv, r, {
+        mass: r.mass,
+        rhoA: r.rhoA,
+        yieldPerSqmCycle: r.yieldPerSqmCycle
+      });
+      return Object.assign({}, r, patch);
+    }
     var MAX_WIDTH = deps.MAX_WIDTH || 2000;
     var CH_W = deps.CH_W || 110;
 
@@ -179,9 +188,9 @@
       else r = Object.assign(plantLayoutPallet(), { cv: { name: '—', M_max: 40, ca: 10, bolt: 90, t_opt: 22 }, t_ch: st().day, mass: 0, canopy: 0, massAuto: 0, palletSheet: true });
       r.palletMode = true;
       r.vfMode = false;
-      return r;
+      return withUsefulAreaYield(r, r.cv);
     }
-    if (isVF() && allVfCultivars().length) return calcFromVfSheet(getVfCv());
+    if (isVF() && allVfCultivars().length) return withUsefulAreaYield(calcFromVfSheet(getVfCv()), getVfCv());
     const cv = getCv();
     const t_ch = st().day;
     let t_total = totalAge(t_ch);
@@ -220,29 +229,20 @@
     const widthClose = !widthExceeds && sysWmm > MAX_WIDTH - 200;
     const maxChannelsFit = Math.max(2, Math.floor((MAX_WIDTH - CH_W) / b) + 1);
 
-    /* Cycle metrics */
-    const HMD = (global.DG_CUT && global.DG_CUT.HARVEST_MONTH_DAYS) || 30.5;
+    /* Cycle metrics (полный цикл — для календаря; урожай с площади — в withUsefulAreaYield) */
     const totalCycleDays = preChannelDays() + Math.round(tHarvestCh);
     const totalDaysFromSow = preChannelDays() + Math.round(t_ch);
-    let cyclesPerYear = totalCycleDays > 0 ? 365 / totalCycleDays : 0;
-    let harvestCyclesPerMonth = totalCycleDays > 0 ? HMD / totalCycleDays : 0;
     const yieldPerCycleKg = mass * total / 1000;
-    const yieldPerSqmCycle = mass * rhoA / 1000;  /* kg/m² per cycle */
-    let yieldPerSqmYear = yieldPerSqmCycle * cyclesPerYear;
-    if (georgyModeRef() && georgyModeRef().isGeorgyHeadSalad && georgyModeRef().isGeorgyHeadSalad(cv)){
-      const mainInt = georgyModeRef().mainHarvestIntervalDays();
-      harvestCyclesPerMonth = georgyModeRef().headHarvestCyclesPerMonth();
-      cyclesPerYear = 365 / mainInt;
-      yieldPerSqmYear = yieldPerSqmCycle * cyclesPerYear;
-    }
+    const yieldPerSqmCycle = mass * rhoA / 1000;
 
-    return { cv, t_ch, t_total, mass, massAuto, canopy, massRaw, canopyRaw, crowdF,
+    return withUsefulAreaYield({ cv, t_ch, t_total, mass, massAuto, canopy, massRaw, canopyRaw, crowdF,
              rgrMass, rgrCanopy, tHarvestCh, tBoltCh, st: growthStage,
              a, b, diag, nearest, edgeGap, offMm, constrained,
              rhoT, rhoA, leafGap,
              perChan, perRow, total, sysWmm, sysArea, vfMode,
              widthExceeds, widthClose, maxChannelsFit,
-             totalCycleDays, totalDaysFromSow, harvestCyclesPerMonth, cyclesPerYear, yieldPerCycleKg, yieldPerSqmCycle, yieldPerSqmYear };
+             totalCycleDays, totalDaysFromSow,
+             yieldPerCycleKg, yieldPerSqmCycle }, cv);
   }
     return {
       calcScenario: calcScenario,

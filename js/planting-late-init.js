@@ -23,6 +23,7 @@
     var supportsMulticut = deps.supportsMulticut;
     var effectiveCutInterval = deps.effectiveCutInterval;
     var cutMassPerPlant = deps.cutMassPerPlant;
+    var cutMassForMonthlyYield = deps.cutMassForMonthlyYield || cutMassPerPlant;
     var getMulticutYieldPerPlant = deps.getMulticutYieldPerPlant;
     var isVfSheetCv = deps.isVfSheetCv;
     var isPalletView = deps.isPalletView;
@@ -92,6 +93,7 @@
       supportsMulticut: supportsMulticut,
       effectiveCutInterval: effectiveCutInterval,
       cutMassPerPlant: cutMassPerPlant,
+      cutMassForMonthlyYield: cutMassForMonthlyYield,
       getMulticutYieldPerPlant: getMulticutYieldPerPlant,
       isVfSheetCv: isVfSheetCv,
       isPalletView: isPalletView,
@@ -189,7 +191,7 @@
     bindGeorgyRange('georgy-nursery', function(){
       var cv = getCv();
       if (georgyMode.getGeorgyProfile(cv)) return;
-      deps.getState().nursery = clamp(parseInt($('georgy-nursery').value, 10) || 14, 1, 21);
+      deps.getState().nursery = clamp(parseInt($('georgy-nursery').value, 10) || 14, 1, 28);
       if ($('georgy-nursery-v')) $('georgy-nursery-v').textContent = String(deps.getState().nursery);
       if ($('nursery')) $('nursery').value = deps.getState().nursery;
       if ($('nursery-v')) $('nursery-v').textContent = String(deps.getState().nursery);

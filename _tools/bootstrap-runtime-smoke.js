@@ -74,6 +74,7 @@ const chain = [
   'js/growth-light-model.js',
   'js/planting-dli-light.js',
   'js/planting-growth-core.js',
+  'js/planting-useful-yield.js',
   'js/planting-ui-helpers.js',
   'js/planting-cut-interval-ui.js',
   'js/planting-vf-standards.js',

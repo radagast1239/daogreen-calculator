@@ -201,8 +201,11 @@
   }
 
   function econSheetCutIntervalDays(cv, snap){
-    if (snap && snap.multicutHarvest && snap.harvestCutIntervalDays > 0){
+    if (snap && snap.harvestCutIntervalDays > 0){
       return Math.max(1, Math.round(snap.harvestCutIntervalDays));
+    }
+    if (snap && snap.mainHallIntervalDays > 0){
+      return Math.max(1, Math.round(snap.mainHallIntervalDays));
     }
     if (cv && cv.multicut && deps.supportsMulticut(cv) && cv.cutInterval > 0){
       return Math.max(1, Math.round(cv.cutInterval));
@@ -229,13 +232,16 @@
   function econYieldParamsForCvId(cvId, snap){
     snap = snap || deps.getPlantingSnapshotForCvId(cvId);
     const cv = deps.findCvById(cvId);
+    if (!cv){
+      return { yieldPerCut: 0, cutIntervalDays: 15 };
+    }
     if (snap && snap.multicutHarvest){
       return {
         yieldPerCut: econSheetYieldPerCut(cv, snap),
         cutIntervalDays: econSheetCutIntervalDays(cv, snap)
       };
     }
-    if (deps.isPalletCvId(cvId) && cv){
+    if (snap && (snap.mainHallIntervalDays > 0 || snap.usefulAreaBasis === 'main_hall')){
       return {
         yieldPerCut: econSheetYieldPerCut(cv, snap),
         cutIntervalDays: econSheetCutIntervalDays(cv, snap)
@@ -250,20 +256,10 @@
           cutIntervalDays: Math.max(1, std.cutInterval || deps.cutIntervalRange(gh).mid)
         };
       }
-      return {
-        yieldPerCut: econSheetYieldPerCut(cv, snap),
-        cutIntervalDays: Math.max(1, (snap && snap.totalCycleDays) || std.cutInterval || deps.cutIntervalRange(gh).mid)
-      };
-    }
-    if (deps.isVfCvId(cvId) && cv){
-      return {
-        yieldPerCut: econSheetYieldPerCut(cv, snap),
-        cutIntervalDays: econSheetCutIntervalDays(cv, snap)
-      };
     }
     return {
       yieldPerCut: econSheetYieldPerCut(cv, snap),
-      cutIntervalDays: Math.max(1, (snap && snap.totalCycleDays) || 15)
+      cutIntervalDays: econSheetCutIntervalDays(cv, snap)
     };
   }
 
@@ -315,13 +311,14 @@
     }
     const cv = deps.allGhCultivars().find(c => c.id === cvId);
     if (!cv || deps.isVfCvId(cvId)) return light;
-    const std = deps.getGhCvStandards(cv);
     const snap = deps.getPlantingSnapshotForCvId(cvId);
+    const yp = econYieldParamsForCvId(cvId, snap);
+    const std = deps.getGhCvStandards(cv);
     return Object.assign({
-      density: std.density,
-      yieldPerCut: econGhYieldPerCutFromStd(cv, std),
-      cutIntervalDays: Math.max(1, std.cutInterval || deps.cutIntervalRange(cv).mid),
-      unitIsPieces: false,
+      density: snapDensity(snap, std.density),
+      yieldPerCut: yp.yieldPerCut,
+      cutIntervalDays: yp.cutIntervalDays,
+      unitIsPieces: !!(snap && snap.unitIsPieces),
       potHarvestMonths: parsePotHarvestMonthsFromCv(cv, snap),
       consumablesPerPot: ECON_DEFAULT_CONSUMABLES_PER_POT
     }, light);

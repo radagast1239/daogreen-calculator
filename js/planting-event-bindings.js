@@ -184,6 +184,11 @@ const dlg = $('cv-add-dialog');
         if (georgyMode && georgyMode.onGeorgyDayChanged) georgyMode.onGeorgyDayChanged();
         else if (canopyDensityUi && canopyDensityUi.onDayChanged) canopyDensityUi.onDayChanged();
       }
+      if (georgyMode && georgyMode.isGeorgyGh && georgyMode.isGeorgyGh() &&
+          georgyMode.isGeorgyHeadSalad && georgyMode.isGeorgyHeadSalad(getCv()) &&
+          (id === 'nursery' || id === 'germination') && georgyMode.onGeorgyHeadCycleChanged){
+        georgyMode.onGeorgyHeadCycleChanged();
+      }
       if (id === 'density' && state.georgyDensityFitted && !(georgyMode && georgyMode.isGeorgyGh())){
         state.georgyTargetDensity = clamp(v, 15, 220);
       }
