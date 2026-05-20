@@ -133,6 +133,7 @@
   function initGeorgyMode(){
     if (!window.DG_createGeorgyMode) return;
     georgyMode = window.DG_createGeorgyMode({
+      $: $,
       getState: deps.getState,
       getCv: getCv,
       findCvById: findCvById,

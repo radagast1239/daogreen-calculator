@@ -280,9 +280,6 @@
     deps.migrateEconOtherElectricity(st().econ);
     const wrap = deps.$('econ-elec-cats-inputs');
     if (!wrap) return;
-    var ft = formToken();
-    if (wrap.dataset.built === ft) return;
-    wrap.dataset.built = ft;
     let html = '<p class="econ-elec-cats-intro">' + L('econ.elec.catsIntro') + '</p><div class="econ-elec-cats-grid">';
     ECON_ELEC_CAT_IDS.forEach(function(id){
       const c = (st().econ.elecCats && st().econ.elecCats[id]) || { kw: 0, h: 24 };
@@ -318,9 +315,6 @@
     deps.migrateEconOtherElectricity(st().econ);
     const wrap = deps.$('econ-payroll-body');
     if (!wrap) return;
-    var ft = formToken();
-    if (wrap.dataset.built === ft) return;
-    wrap.dataset.built = ft;
     const head = '<div class="econ-payroll-row econ-payroll-row--head"><span>' + L('econ.staff.role') + '</span><span>' + L('econ.staff.salary') + ', ' + moneySym() + '</span><span></span></div>';
     let staffHtml = head;
     (st().econ.staffLines || []).forEach(function(row){ staffHtml += renderPayrollStaffRow(row); });
@@ -525,10 +519,30 @@
     });
   }
 
+  function ensureEconSubPanels(ft){
+    const elecWrap = deps.$('econ-elec-cats-inputs');
+    const payWrap = deps.$('econ-payroll-body');
+    if (elecWrap && elecWrap.dataset.built !== ft){
+      elecWrap.dataset.built = ft;
+      renderElecCatsInputs();
+    }
+    if (payWrap && payWrap.dataset.built !== ft){
+      payWrap.dataset.built = ft;
+      renderPayrollSection();
+    }
+  }
+
   function renderEconomicsForm(){
     const gen = deps.$('econ-inputs-general');
     var ft = formToken();
-    if (!gen || gen.dataset.built === ft) return;
+    if (!gen){
+      ensureEconSubPanels(ft);
+      return;
+    }
+    if (gen.dataset.built === ft){
+      ensureEconSubPanels(ft);
+      return;
+    }
     gen.dataset.built = ft;
     gen.innerHTML =
       econNumInput('priceKwh', moneyLabel('econ.priceKwh', 'econ.perKwh'), { step: 0.1 }) +
@@ -556,12 +570,7 @@
       econNumInput('profitTaxPct', L('econ.profitTaxPct'), { step: 0.5 });
     }
 
-    const elecWrap = deps.$('econ-elec-cats-inputs');
-    const payWrap = deps.$('econ-payroll-body');
-    if (elecWrap) elecWrap.dataset.built = '';
-    if (payWrap) payWrap.dataset.built = '';
-    renderElecCatsInputs();
-    renderPayrollSection();
+    ensureEconSubPanels(ft);
 
     const tax = deps.$('econ-payroll-tax');
     if (tax){

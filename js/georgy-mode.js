@@ -311,10 +311,14 @@
           nurInp.value = st().nursery;
           if (nurV) nurV.textContent = String(st().nursery);
         }
-        if (deps.$('germination')) deps.$('germination').value = st().germination;
-        if (deps.$('germination-v')) deps.$('germination-v').textContent = String(st().germination);
-        if (deps.$('nursery')) deps.$('nursery').value = st().nursery;
-        if (deps.$('nursery-v')) deps.$('nursery-v').textContent = String(st().nursery);
+        var germMain = document.getElementById('germination');
+        var germMainV = document.getElementById('germination-v');
+        var nurMain = document.getElementById('nursery');
+        var nurMainV = document.getElementById('nursery-v');
+        if (germMain) germMain.value = st().germination;
+        if (germMainV) germMainV.textContent = String(st().germination);
+        if (nurMain) nurMain.value = st().nursery;
+        if (nurMainV) nurMainV.textContent = String(st().nursery);
       }
     }
 
