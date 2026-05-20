@@ -44,7 +44,10 @@
       }
       if (state.multicut && deps.supportsMulticut && deps.supportsMulticut(cv)) {
         meta.multicutMode = true;
-        meta.mainHallIntervalDays = Math.max(1, Math.round(deps.effectiveCutInterval()));
+        var iv = deps.effectiveCutInterval
+          ? deps.effectiveCutInterval()
+          : state.cutInterval;
+        meta.mainHallIntervalDays = Math.max(1, Math.round(iv || 12));
         meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
         meta.usefulAreaBasis = 'main_hall';
         return meta;
@@ -78,8 +81,10 @@
       if (meta.multicutMode && deps.cutMassForMonthlyYield) {
         var cm = deps.cutMassForMonthlyYield(cv);
         var ypm = cm.val * meta.harvestCyclesPerMonth;
+        out.harvestYieldPerCut = cm.val;
+        out.yieldPerSqmMonthKg = (ypm / 1000) * rhoA;
         out.cyclesPerYear = meta.mainHallIntervalDays > 0 ? 365 / meta.mainHallIntervalDays : 0;
-        out.yieldPerSqmYear = (ypm / 1000) * rhoA * 12;
+        out.yieldPerSqmYear = out.yieldPerSqmMonthKg * 12;
         return out;
       }
       if (meta.usefulAreaBasis === 'main_hall' && meta.mainHallIntervalDays > 0) {

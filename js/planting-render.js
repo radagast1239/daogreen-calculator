@@ -127,6 +127,9 @@
     function totalAge(d) { return deps.totalAge(d); }
     function preChannelDays() { return deps.preChannelDays(); }
     function effectiveCutInterval() { return deps.effectiveCutInterval(); }
+    function syncCutIntervalSlider(cv) {
+      if (typeof deps.syncCutIntervalSlider === 'function') deps.syncCutIntervalSlider(cv);
+    }
     function cutMassPerPlant(cv, i) { return deps.cutMassPerPlant(cv, i); }
     function multicutHorizon(cv) {
       if (typeof deps.multicutHorizon === 'function') return deps.multicutHorizon(cv);
@@ -1086,12 +1089,16 @@
           const yPotMo = hy.unitIsPieces
             ? r1(hy.yieldPerPotMonth) + ' ' + pm('u.pcsMo')
             : round(hy.yieldPerPotMonth) + ' ' + pm('unit.g');
+          const kgYr = (r.yieldPerSqmYear > 0)
+            ? r.yieldPerSqmYear
+            : (hy.yieldPerSqmMonthKg > 0 ? hy.yieldPerSqmMonthKg * 12 : 0);
           return [
             { l: pm('m.cutMass'), v: round(hy.harvestYieldPerCut), u: hy.yieldUnit, cls: 'hl' },
             { l: pm('m.cutInterval'), v: hy.harvestCutIntervalDays, u: pm('unit.days') },
             { l: pm('m.cutsMonth'), v: r1(hy.harvestCutsPerMonth), u: pm('u.pcs') },
             { l: pm('m.yieldPotMo'), v: yPotMo, u: '', cls: 'hl' },
             { l: pm('m.yieldMo'), v: ySqm, u: '', cls: 'hl' },
+            { l: pm('m.kgSqmYear'), v: r1(kgYr), u: 'kg/m²', cls: 'hl' },
             ...(hy.yieldPerPotLife != null ? [
               { l: pm('m.lifeSum'), v: round(hy.yieldPerPotLife), u: hy.yieldUnit }
             ] : [])
@@ -2137,6 +2144,7 @@
     updatePlantingGeomUI();
     syncGhFacilityPanels();
     syncGhCutsUI();
+    if (st().multicut && supportsMulticut(r.cv)) syncCutIntervalSlider(r.cv);
     syncCanopyUI();
     syncVfStdControls();
     if (!georgyModeRef() || !georgyModeRef().isGeorgyGh()){

@@ -26,13 +26,20 @@
       var unitIsPieces = cv.countUnit === 'шт';
       var useMc = state.multicut && deps.supportsMulticut(cv);
       if (useMc){
-        var cutIntervalDays = Math.max(1, Math.round(deps.effectiveCutInterval()));
+        var stateInterval = Math.max(1, Math.round(state.cutInterval || 12));
+        var cutIntervalDays = (r && r.mainHallIntervalDays > 0)
+          ? Math.max(1, Math.round(r.mainHallIntervalDays))
+          : (deps.effectiveCutInterval
+            ? Math.max(1, Math.round(deps.effectiveCutInterval()))
+            : stateInterval);
         var cm = deps.cutMassForMonthlyYield
           ? deps.cutMassForMonthlyYield(cv)
           : deps.cutMassPerPlant(cv, null);
         var yieldPerCut = cm.val;
         var yieldUnit = cm.unit;
-        var cutsPerMonth = HMD / cutIntervalDays;
+        var cutsPerMonth = (r && r.harvestCyclesPerMonth > 0)
+          ? r.harvestCyclesPerMonth
+          : (HMD / cutIntervalDays);
         var yieldPerPotMonth = yieldPerCut * cutsPerMonth;
         var pieces = unitIsPieces || yieldUnit === 'шт';
         var yieldPerSqmMonthKg = 0;

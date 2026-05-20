@@ -82,7 +82,8 @@
       };
     }
 
-    function cutMassPerPlant(cv, cutIndex){
+    function cutMassPerPlant(cv, cutIndex, opts){
+      opts = opts || {};
       cv = cv || deps.getActiveCv();
       var state = st();
       var u = cv.countUnit === 'шт' ? 'шт' : 'г';
@@ -92,15 +93,16 @@
       else if (deps.isPalletView() && deps.isPalletSheetCv(cv) && cv.yieldPerCutG > 0) val = cv.yieldPerCutG;
       else if (deps.usePlantingSheet() && deps.isSheetCv(cv) && deps.getPlantingStd().cutMass && cv.yieldPerCutG > 0) val = cv.yieldPerCutG;
       else val = Math.round((cv.M_max / 2) * deps.envMultiplier(cv));
-      if (state.multicut && supportsMulticut(cv)) val *= cutIntervalMods(cv).massF;
+      if (!opts.skipIntervalMassF && state.multicut && supportsMulticut(cv)) val *= cutIntervalMods(cv).massF;
       return { val: Math.round(val), unit: u };
     }
 
-    /** Средняя масса одной срезки для месячного урожая (таблица срезок / беби / ручная). */
+    /** Средняя масса одной срезки для месячного урожая: 30,5/интервал × масса (без massF по интервалу). */
     function cutMassForMonthlyYield(cv){
       cv = cv || deps.getActiveCv();
       var state = st();
-      if (!state.multicut || !supportsMulticut(cv)) return cutMassPerPlant(cv, null);
+      var noF = { skipIntervalMassF: true };
+      if (!state.multicut || !supportsMulticut(cv)) return cutMassPerPlant(cv, null, noF);
       var planned = deps.georgyPlannedCuts ? deps.georgyPlannedCuts(cv) : null;
       var sum = 0;
       var n = 0;
@@ -109,7 +111,7 @@
       if (planned){
         var nAvg = Math.min(planned.maxCuts, 16);
         for (i = 0; i < nAvg; i++){
-          var cmP = cutMassPerPlant(cv, i);
+          var cmP = cutMassPerPlant(cv, i, noF);
           sum += cmP.val;
           unit = cmP.unit;
           n++;
@@ -117,18 +119,18 @@
       } else if (!deps.isVF() && !deps.isPalletView()){
         var cnt = Math.max(1, Math.min(24, state.ghCutCount || 5));
         for (i = 0; i < cnt; i++){
-          var cmG = cutMassPerPlant(cv, i);
+          var cmG = cutMassPerPlant(cv, i, noF);
           sum += cmG.val;
           unit = cmG.unit;
           n++;
         }
       } else if (deps.isPalletView() && deps.isPalletSheetCv(cv) && cv.yieldPerCutG > 0){
-        return cutMassPerPlant(cv, null);
+        return cutMassPerPlant(cv, null, noF);
       } else if (deps.usePlantingSheet() && deps.isSheetCv(cv) && cv.yieldPerCutG > 0){
-        return cutMassPerPlant(cv, null);
+        return cutMassPerPlant(cv, null, noF);
       }
       if (n > 0) return { val: Math.round(sum / n), unit: unit };
-      return cutMassPerPlant(cv, 0);
+      return cutMassPerPlant(cv, 0, noF);
     }
 
     /** Горизонт многосрезки: первый срез и последний день вегетации (из replaceNote → potHarvestMonths). */

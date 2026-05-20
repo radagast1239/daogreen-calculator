@@ -155,6 +155,7 @@ const dlg = $('cv-add-dialog');
     function syncHarvestBlockUI() { return deps.syncHarvestBlockUI.apply(deps, arguments); }
     function syncManualMassUI() { return deps.syncManualMassUI.apply(deps, arguments); }
     function syncMulticutDetailUI() { return deps.syncMulticutDetailUI.apply(deps, arguments); }
+    function syncCutIntervalSlider(cv) { return deps.syncCutIntervalSlider(cv); }
     function syncPalletPlantsHint() { return deps.syncPalletPlantsHint.apply(deps, arguments); }
     function syncPalletZoneLength() { return deps.syncPalletZoneLength.apply(deps, arguments); }
     function syncVfSlidersFromState() { return deps.syncVfSlidersFromState.apply(deps, arguments); }
@@ -213,6 +214,7 @@ const dlg = $('cv-add-dialog');
           syncVfSlidersFromState();
         }
       }
+      if (id === 'cutInterval' && state.multicut) syncCutIntervalSlider(getCv());
       if (id === 'palletsAlong') syncPalletZoneLength();
       else {
         const valEl = $(id + '-v');

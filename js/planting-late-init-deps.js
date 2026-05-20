@@ -163,6 +163,7 @@
       harvestChannel: ctx.harvestChannel,
       totalAge: ctx.totalAge,
       preChannelDays: ctx.preChannelDays,
+      syncCutIntervalSlider: ctx.syncCutIntervalSlider,
       multicutHorizon: ctx.multicutHorizon,
       vfMulticutStats: ctx.vfMulticutStats,
       ICON: ctx.ICON,

@@ -4,7 +4,7 @@
   "description": "Planting calculator: NFT channels, pallets, vertical farms, farm economics. Калькулятор посадки и экономики.",
   "lang": "ru",
   "dir": "ltr",
-  "start_url": "./calculator-110x55_12.html?v=2026-05-20-p105-multicut-cycle-fix",
+  "start_url": "./calculator-110x55_12.html?v=2026-05-20-p106-multicut-interval-yield",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",

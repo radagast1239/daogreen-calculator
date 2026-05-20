@@ -384,6 +384,7 @@
         massAtTotal: deps.massAtTotal, canopyAtTotal: deps.canopyAtTotal, harvestChannel: deps.harvestChannel,
         boltChannel: deps.boltChannel, totalAge: deps.totalAge, preChannelDays: deps.preChannelDays,
         effectiveCutInterval: deps.effectiveCutInterval, cutMassPerPlant: deps.cutMassPerPlant,
+        syncCutIntervalSlider: deps.syncCutIntervalSlider,
         multicutHorizon: deps.multicutHorizon,
         vfMulticutStats: deps.vfMulticutStats,
         ICON: deps.ICON, CV_COLORS: deps.CV_COLORS, COLLAPSE_DEFAULTS: deps.COLLAPSE_DEFAULTS,
