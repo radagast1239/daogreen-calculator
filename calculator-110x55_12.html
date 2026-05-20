@@ -317,6 +317,38 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var
 .georgy-guide th { background: var(--paper-deep); color: var(--ink); font-weight: 600; }
 .georgy-guide .georgy-guide-note { padding: 10px 12px; background: var(--honey-pale); border: 1px solid rgba(180, 120, 0, 0.2); border-radius: var(--radius); color: var(--ink); margin-bottom: 12px; font-size: 12.5px; }
 .georgy-guide code, .georgy-guide .formula { font-size: 12px; }
+/* Гайды каналов / поддонов — те же карточки секций, что и гайд Георгия */
+.planting-guide-body.collapse-body {
+  padding: 12px 14px 16px;
+}
+.planting-guide-body > .georgy-guide-sec {
+  margin: 10px 0 0;
+  padding: 11px 13px;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  background: var(--paper-deep);
+  box-sizing: border-box;
+}
+.planting-guide-body > .georgy-guide-sec:first-child {
+  margin-top: 0;
+}
+.planting-guide-body > .georgy-guide-sec > p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.62;
+  color: var(--ink-soft);
+}
+.planting-guide-body > .georgy-guide-sec strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+#panel-channel-guide > .collapse-head,
+#panel-pallet-guide > .collapse-head {
+  background: var(--paper-deep);
+}
+#block-panel-growth > .collapse-head {
+  background: var(--paper-deep);
+}
 .georgy-cut-preview { margin: 12px 0; padding: 10px 12px; background: var(--paper-deep); border: 1px solid var(--rule); border-radius: var(--radius); font-size: 12.5px; }
 .georgy-cut-preview-title { font-weight: 600; color: var(--ink); margin-bottom: 8px; }
 .georgy-cut-preview-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -1098,8 +1130,35 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   vertical-align: -2px;
   border: 1px solid rgba(0,0,0,0.08);
 }
-.chart-legend .swatch.mass { background: #6B7B2E; }
+.chart-legend .swatch.mass { background: var(--olive); }
 .chart-legend .swatch.canopy { background: #3F6896; }
+/* Кривая роста (основная и сравнение сортов) — в том же ключе, что блоки режима Георгия */
+.viz-frame--chart {
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.viz-frame--chart #growth-chart,
+.viz-frame--chart #cv-compare-growth-chart {
+  max-height: 320px;
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+.viz-frame--chart .chart-legend {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+.viz-frame--chart #compare-legend,
+.viz-frame--chart #cv-compare-legend {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--rule);
+}
 .viz-caption { margin-top: 10px; font-size: 12.5px; color: var(--ink-faint); line-height: 1.5; }
 #panel-schema.is-pallet-schema .viz-frame { display: flex; flex-direction: column; gap: 4px; }
 #panel-schema.is-pallet-schema .viz-caption { margin-top: 14px; order: 2; }
@@ -1469,22 +1528,22 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 
 .env-gh-only, .env-vf-only, .collapse-vf-only, .gh-geom-only, .scen-gh-only, .scen-vf-only {}
 
-.svg-axis-t { fill: var(--ink-faint); font-size: 11px; font-family: var(--font-body); }
-.svg-grid { stroke: var(--rule); stroke-width: 1; }
+.svg-axis-t { fill: var(--ink-soft); font-size: 11px; font-family: var(--font-body); opacity: 0.88; }
+.svg-grid { stroke: var(--rule); stroke-width: 1; opacity: 0.55; stroke-dasharray: none; }
 .svg-curve-mass { fill: none; stroke-width: 2.2; }
 .svg-curve-canopy { fill: none; stroke-width: 2.2; stroke-dasharray: 6 5; }
 .svg-marker-dot, .svg-marker-dot-c { opacity: 0.95; }
 
 .svg-axis { stroke: var(--ink-faint); stroke-width: 1.2; fill: none; }
-.svg-curve { fill: none; stroke: #6B7B2E; stroke-width: 2.4; }
-.svg-curve-canopy { fill: none; stroke: #3F6896; stroke-width: 2.2; stroke-dasharray: 6 5; }
+.svg-curve { fill: none; stroke: var(--olive); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.svg-curve-canopy { fill: none; stroke: #3F6896; stroke-width: 2.3; stroke-dasharray: 6 5; stroke-linecap: round; stroke-linejoin: round; }
 .svg-bolt-zone { fill: var(--brick-pale); opacity: 0.35; }
-.svg-band { fill: #6B7B2E; opacity: 0.14; stroke: none; }
+.svg-band { fill: var(--olive); opacity: 0.12; stroke: none; }
 .svg-band-canopy { fill: #3F6896; opacity: 0.1; stroke: none; }
 .svg-marker { stroke: var(--olive); stroke-width: 1.4; stroke-dasharray: 4 3; opacity: 0.75; fill: none; }
-.svg-marker-dot { fill: #6B7B2E; stroke: var(--card); stroke-width: 1.5; }
+.svg-marker-dot { fill: var(--olive); stroke: var(--card); stroke-width: 1.5; }
 .svg-marker-dot-c { fill: #3F6896; stroke: var(--card); stroke-width: 1.5; }
-.svg-marker-label { fill: var(--ink-soft); font-size: 11px; font-family: var(--font-body); }
+.svg-marker-label { fill: var(--ink); font-size: 11px; font-weight: 500; opacity: 0.9; font-family: var(--font-body); }
 
 .svg-channel { fill: var(--paper-deep); stroke: var(--rule-strong); stroke-width: 1.2; }
 .svg-pallet { fill: var(--paper-deep); stroke: var(--olive); stroke-width: 1.4; }
@@ -1502,7 +1561,6 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .svg-dim-t, .svg-dim-t-diag { fill: var(--ink-faint); font-size: 11px; font-family: var(--font-body); }
 .svg-ellipsis { fill: var(--ink-faint); font-family: var(--font-body); }
 
-#growth-chart { max-height: 320px; }
 #compare-legend {
   display: flex;
   flex-wrap: wrap;
@@ -2247,7 +2305,7 @@ html.auth-preview .page { padding-top: 0 !important; }
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="block-panel-growth-body">
-    <div class="viz-frame">
+    <div class="viz-frame viz-frame--chart">
       <svg id="growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
       <div class="chart-legend" id="chart-legend">
         <span><span class="swatch mass"></span>Масса, г</span>
@@ -2404,7 +2462,7 @@ html.auth-preview .page { padding-top: 0 !important; }
       <span data-i18n="guide.channel.title">Гайд · каналы в теплице</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
-    <div class="collapse-body georgy-guide-wrap" id="panel-channel-guide-body"></div>
+    <div class="collapse-body planting-guide-body" id="panel-channel-guide-body"></div>
   </section>
 
   <section class="panel collapse-block sys-pallet-only env-block-hidden" id="panel-pallet-guide">
@@ -2412,7 +2470,7 @@ html.auth-preview .page { padding-top: 0 !important; }
       <span data-i18n="guide.pallet.title">Гайд · поддоны 130×65</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
-    <div class="collapse-body georgy-guide-wrap" id="panel-pallet-guide-body"></div>
+    <div class="collapse-body planting-guide-body" id="panel-pallet-guide-body"></div>
   </section>
 
   <section class="panel gh-yield-panel plant-yield-only" id="panel-gh-yield-totals">
@@ -2489,7 +2547,7 @@ html.auth-preview .page { padding-top: 0 !important; }
     </div>
     <div id="cv-compare-chart-wrap" class="cv-compare-chart-wrap env-block-hidden">
       <div class="section-h cv-compare-chart-title" data-i18n="ui.chart.title">Кривая роста</div>
-      <div class="viz-frame">
+      <div class="viz-frame viz-frame--chart">
         <svg id="cv-compare-growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
         <div class="chart-legend" id="cv-compare-chart-legend"></div>
         <div id="cv-compare-legend"></div>
