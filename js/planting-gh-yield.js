@@ -133,11 +133,11 @@
       if (!Number.isFinite(ep)) ep = 12;
       var v = clamp(Math.round(ep), 0, 20);
       st().errorPct = v;
-      ['errorPct', 'errorPctGh', 'compareErrorPct'].forEach(function (id) {
+      ['errorPct', 'errorPctGh', 'compareErrorPct', 'ghYieldFarmErrorPct'].forEach(function (id) {
         var el = $(id);
         if (el && document.activeElement !== el && parseInt(el.value, 10) !== v) el.value = v;
       });
-      ['errorPct-v', 'errorPctGh-v', 'compareErrorPct-v'].forEach(function (id) {
+      ['errorPct-v', 'errorPctGh-v', 'compareErrorPct-v', 'ghYieldFarmErrorPct-v'].forEach(function (id) {
         var el = $(id);
         if (el) el.textContent = v;
       });

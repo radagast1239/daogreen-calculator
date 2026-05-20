@@ -596,6 +596,18 @@ const dlg = $('cv-add-dialog');
     });
   }
 
+  const ghYieldFarmErrorPctEl = $('ghYieldFarmErrorPct');
+  if (ghYieldFarmErrorPctEl){
+    ghYieldFarmErrorPctEl.addEventListener('input', function(e){
+      state.errorPct = (function(){
+        var n = parseInt(e.target.value, 10);
+        return clamp(Number.isFinite(n) ? n : 12, 0, 20);
+      })();
+      syncGhYieldMarginSliders();
+      try { renderAll(); } catch (err) { showError('ghYieldFarmErrorPct', err); }
+    });
+  }
+
   const errorPctGhEl = $('errorPctGh');
   if (errorPctGhEl){
     errorPctGhEl.addEventListener('input', function(e){

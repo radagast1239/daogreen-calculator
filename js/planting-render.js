@@ -166,7 +166,7 @@
     const block = $('gh-yield-cultivar-compare');
     const table = $('gh-yield-compare-table');
     if (!block || !table) return;
-    const show = isGreenhousePlanting() && getCompareList().length > 1;
+    const show = isGreenhousePlanting() && getCompareList().length >= 1;
     block.classList.toggle('env-block-hidden', !show);
     if (!show) return;
 
