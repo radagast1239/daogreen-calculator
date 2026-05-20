@@ -16,6 +16,11 @@
   var useClientMode = false;
   var loginComplete = false;
 
+  /** Временно: в HTML задайте window.DG_AUTH_DISABLED = true */
+  function authDisabled() {
+    return global.DG_AUTH_DISABLED === true;
+  }
+
   function getClientCfg() {
     return global.DG_AUTH_CLIENT || null;
   }
@@ -61,6 +66,7 @@
   }
 
   function isAuthed() {
+    if (authDisabled()) return true;
     return serverAuth === true || clientAuth === true;
   }
 
@@ -479,6 +485,12 @@
     bindLogout();
     bindPreviewGuards();
     bindPreviewUi();
+
+    if (authDisabled()) {
+      clientAuth = true;
+      unlock();
+      return;
+    }
 
     function finishInit() {
       return checkClientSession().then(function (clientOk) {
