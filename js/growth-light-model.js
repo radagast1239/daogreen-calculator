@@ -29,19 +29,17 @@
   }
 
   /**
-   * Доп. прирост от вечернего продления дня (моль уже учтены в DLI).
-   * Сильнее в тёплые месяцы (май–авг), когда естественный день длинный.
+   * Доп. прирост биомассы от вечернего продления фотопериода (Both 1997; Samuoliene 2011–2013).
+   * Действует даже когда дневной DLI уже насыщён (лето): ориентир +7–10% при 1–2 ч вечера.
    */
   function photoperiodExtensionFactor(opts){
     opts = opts || {};
     if (!opts.lighting || !(opts.eveningH > 0)) return 1;
     var warm = opts.month >= 4 && opts.month <= 8;
     var natPh = opts.natPh || 12;
-    var perHour = warm ? 0.028 : 0.015;
-    if (natPh >= 14) perHour *= 1.12;
-    var effPh = opts.effPh || natPh;
-    if (effPh > PHOTO_OPT_H + 1) perHour *= 0.6;
-    return clamp(1 + perHour * opts.eveningH, 1, 1.12);
+    var perHour = warm ? 0.058 : 0.032;
+    if (natPh >= 13 && natPh < 15) perHour *= 1.08;
+    return clamp(1 + perHour * opts.eveningH, 1, 1.10);
   }
 
   /** S-кривая на [0,1]: производные по краям равны 0 — без «ступеньки» на шагах 0,5 °C. */

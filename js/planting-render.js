@@ -1255,7 +1255,12 @@
     ).join('');
 
     let leafCls = 'hl';
-    if (r.leafGap < -25) leafCls = 'bad-tint';
+    var georgyHeadGap = georgyModeRef() && georgyModeRef().isGeorgyGh() &&
+      georgyModeRef().isGeorgyHeadSalad && georgyModeRef().isGeorgyHeadSalad(r.cv);
+    if (georgyHeadGap) {
+      if (r.leafGap < -20) leafCls = 'bad-tint';
+      else if (r.leafGap < 0) leafCls = 'warn-tint';
+    } else if (r.leafGap < -25) leafCls = 'bad-tint';
     else if (r.leafGap < 0) leafCls = 'warn-tint';
 
     const canopyArr = [

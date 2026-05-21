@@ -151,8 +151,14 @@
 
     function massAtTotal(cv, t) {
       var GLM = glm();
-      if (GLM) return GLM.logisticMass(cv, t, envK(cv));
-      return cv.M_max / (1 + Math.exp(-envK(cv) * (t - cv.t50)));
+      var m = GLM
+        ? GLM.logisticMass(cv, t, envK(cv))
+        : cv.M_max / (1 + Math.exp(-envK(cv) * (t - cv.t50)));
+      if (!deps.isVF() && !deps.isPalletView()) {
+        m *= photoperiodFactor();
+        if (m > cv.M_max) m = cv.M_max;
+      }
+      return m;
     }
 
     function canopyAtTotal(cv, t) {

@@ -249,10 +249,21 @@ const dlg = $('cv-add-dialog');
     });
   });
 
-  $('lighting').addEventListener('change', e => {
-    state.lighting = e.target.checked;
+  function syncLightingCheckboxes(){
+    var on = !!state.lighting;
+    var main = $('lighting');
+    var geo = $('georgy-lighting');
+    if (main && document.activeElement !== main) main.checked = on;
+    if (geo && document.activeElement !== geo) geo.checked = on;
+  }
+  function onLightingChanged(checked){
+    state.lighting = !!checked;
+    syncLightingCheckboxes();
     renderAll();
-  });
+  }
+  $('lighting').addEventListener('change', e => { onLightingChanged(e.target.checked); });
+  var georgyLighting = $('georgy-lighting');
+  if (georgyLighting) georgyLighting.addEventListener('change', e => { onLightingChanged(e.target.checked); });
 
   $('multicut').addEventListener('change', e => {
     state.multicut = e.target.checked;

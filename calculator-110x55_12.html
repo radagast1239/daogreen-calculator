@@ -2168,7 +2168,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     <p class="georgy-step-label" data-i18n="georgy.step3">3. Плотность стояния</p>
     <div class="georgy-density-block is-locked" id="georgy-density-block">
       <div class="ctrl-row-extra georgy-btn-row georgy-only">
-        <button type="button" class="auto-btn" id="georgy-density-auto" data-i18n="georgy.densityAutoBtn">Подобрать по шапке (≤20 мм)</button>
+        <button type="button" class="auto-btn" id="georgy-density-auto" data-i18n="georgy.densityAutoBtn">Подобрать по шапке (без касания)</button>
         <span class="georgy-density-hint" id="georgy-density-hint" data-i18n="georgy.densityHintBefore">Сначала настройте дни роста выше, затем нажмите кнопку.</span>
       </div>
       <div class="ctrl georgy-density-ctrl">
@@ -2179,9 +2179,19 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     </div>
     <div id="georgy-cut-preview" class="georgy-cut-preview env-block-hidden"></div>
     <div id="georgy-cut-warnings" class="env-block-hidden"></div>
+    <div class="ctrl georgy-light-ctrl">
+      <span class="ctrl-label" data-i18n="georgy.lightingLabel">Вечерняя досветка</span>
+      <label class="toggle" style="grid-column: 2 / 4">
+        <input type="checkbox" id="georgy-lighting" aria-describedby="georgy-lighting-hint">
+        <span class="toggle-switch"></span>
+        <span class="toggle-label" id="georgy-lighting-label" data-i18n="georgy.lightingOff">Выключена</span>
+      </label>
+    </div>
+    <p class="georgy-density-hint" id="georgy-lighting-hint"></p>
     <div class="georgy-auto-strip" id="georgy-auto-strip">
       <span data-i18n="georgy.auto.dli">DLI цель:</span> <strong id="georgy-auto-dli">—</strong>
       <span data-i18n="georgy.auto.ph">Фотопериод:</span> <strong id="georgy-auto-ph">16 ч/сут</strong>
+      <span data-i18n="georgy.auto.lightYield">Свет на урожай:</span> <strong id="georgy-auto-light-yield">—</strong>
       <span data-i18n="georgy.auto.rhoActual">Факт в схеме:</span> <strong id="georgy-auto-density">—</strong>
       <span data-i18n="georgy.auto.gap">Зазор листьев:</span> <strong id="georgy-auto-leafgap">—</strong>
     </div>

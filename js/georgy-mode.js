@@ -16,7 +16,7 @@
   var HEAD_NURSERY_MIN = 1;
   var HEAD_NURSERY_MAX = 28;
   var HEAD_CHANNEL_MIN = 1;
-  var HEAD_CHANNEL_MAX = 28;
+  var HEAD_CHANNEL_MAX = 40;
   var HEAD_NURSERY_DEFAULT_D = 14;
   /** Макс. плотность (шт/м²) для подбора по шапке — по морфотипу (не беби-профили). */
   var HEAD_DENSITY_MAX_BY_TYPE = {
@@ -44,7 +44,7 @@
     leaf: 21,
     other: 28
   };
-  /** Верх разбега кроны (см); подбор плотности — по середине lo…hi (модель × mult). */
+  /** Верх разбега кроны; подбор в Георгии: ромэн — по hi, остальные — по mid. */
   var HEAD_CANOPY_RANGE_HI_MULT_BY_TYPE = {
     butterhead: 1.30,
     oakleaf: 1.30,
@@ -64,7 +64,10 @@
   var POT_MM = 50;
   var PHOTOPERIOD_H = 16;
   var TARGET_DLI = 17;
+  /** Допустимое перекрытие при ручной плотности (жёлтое предупреждение до этого значения). */
   var MAX_LEAF_OVERLAP_MM = 20;
+  /** Подбор в режиме Георгия: листья не касаются (зазор ≥ 0). */
+  var GEORGY_FIT_MIN_GAP_MM = 0;
   var PLACEHOLDER_DENSITY = 40;
 
   var GEORGY_HIDDEN_CV = {
@@ -221,12 +224,16 @@
       return Math.round((1 - georgyYieldFactor(profile, temp)) * 100);
     }
 
-    /** DLI и вечернее продление дня — на норматив беби (зима/лето, досветка вкл/выкл). */
+    /** DLI × вечернее продление (досветка вкл/выкл) — беби и головные салаты в режиме Георгия. */
     function georgyLightYieldFactor(){
       if (!deps.dliFactor) return 1;
       var df = deps.dliFactor();
       var pf = deps.photoperiodFactor ? deps.photoperiodFactor() : 1;
       return clamp(df * pf, 0.72, 1.15);
+    }
+
+    function georgyLightYieldPct(){
+      return Math.round((georgyLightYieldFactor() - 1) * 100);
     }
 
     function clampBabyNch(n, profile){
@@ -352,7 +359,7 @@
       return Math.round(deps.harvestCanopy(cv, mass));
     }
 
-    /** Крона: модель (lo), верх hi; подбор плотности — по середине диапазона mid (≤20 мм перекрытия). */
+    /** Крона: модель (lo), верх hi; в UI — диапазон lo…hi. */
     function headCanopyFitRange(cv, massRaw){
       cv = cv || deps.getCv();
       massRaw = massRaw != null ? massRaw : headMassRawAtHarvest(cv);
@@ -366,8 +373,17 @@
       return { base: base, lo: lo, hi: hi, mid: mid };
     }
 
+    /** Ромэн в Георгии — подбор по верху кроны; остальные головные — по середине диапазона. */
+    function headCanopyUsesHiForGeorgyFit(cv){
+      return headCvType(cv) === 'romaine';
+    }
+
+    /** Диаметр кроны для геометрии подбора (без касания): ромэн — верх диапазона, остальные — середина; не ниже модели по массе без затенения. */
     function headCanopyForDensityFit(cv){
-      return headCanopyFitRange(cv).mid;
+      var range = headCanopyFitRange(cv);
+      var fitMm = (isGeorgyGh() && headCanopyUsesHiForGeorgyFit(cv)) ? range.hi : range.mid;
+      var rawCanopy = headCanopyBaseMm(cv, headMassRawAtHarvest(cv));
+      return Math.max(fitMm, rawCanopy);
     }
 
     function headCanopyFitRangeLabel(cv, massRaw){
@@ -573,9 +589,9 @@
       return layoutAtDensity(cv, rho).gap;
     }
 
-    /** Макс. касание листьев соседей при подборе плотности (мм), едино для всех сортов. */
+    /** Макс. перекрытие при подборе: в Георгии 0 (без касания), в обычной теплице — до 20 мм. */
     function leafOverlapMaxMm(){
-      return MAX_LEAF_OVERLAP_MM;
+      return isGeorgyGh() ? GEORGY_FIT_MIN_GAP_MM : MAX_LEAF_OVERLAP_MM;
     }
 
     function densityFromCanopy(cv){
@@ -586,11 +602,7 @@
         : headDensityBounds(cv);
       var lo = bounds.lo;
       var hi = bounds.hi;
-      var gapLo = leafGapForDensity(cv, lo);
-      var gapHi = leafGapForDensity(cv, hi);
-
-      if (gapLo < minGap) return lo;
-      if (gapHi >= minGap) return hi;
+      if (leafGapForDensity(cv, lo) < minGap) return lo;
 
       var best = lo;
       var l = lo;
@@ -605,6 +617,7 @@
         }
       }
       while (best > lo && leafGapForDensity(cv, best) < minGap) best--;
+      while (best < hi && leafGapForDensity(cv, best + 1) >= minGap) best++;
       return best;
     }
 
@@ -649,6 +662,7 @@
       var profile = getGeorgyProfile(cv);
       var rho = densityFromCanopy(cv);
       if (profile) rho = clampProfiledDensity(profile, rho);
+      else rho = clamp(Math.round(rho), 15, headDensityMaxForCv(cv));
       var lay = layoutAtDensity(cv, rho);
       st().georgyAutoDensity = rho;
       st().georgyLastFitGap = Math.round(lay.gap);
@@ -1070,6 +1084,9 @@
         if (fitted){
           var gapShown = st().georgyLastFitGap != null ? st().georgyLastFitGap : leafGapForDensity(cv, st().georgyTargetDensity);
           var cHint = !profile ? headCanopyFitRangeLabel(cv) : null;
+          var fitCm = cHint
+            ? (headCanopyUsesHiForGeorgyFit(cv) ? cHint.hiCm : cHint.midCm)
+            : '';
           densHint.textContent = T('georgy.densityHint', {
             auto: autoRho,
             target: st().georgyTargetDensity,
@@ -1077,15 +1094,20 @@
             canopy: harvest.canopy,
             canopyLoCm: cHint ? cHint.loCm : '',
             canopyHiCm: cHint ? cHint.hiCm : '',
+            hiCm: cHint ? cHint.hiCm : '',
             midCm: cHint ? cHint.midCm : '',
+            fitCm: fitCm,
             name: cv ? cv.name : ''
-          }, '«' + (cv ? cv.name : '') + '»: ' + st().georgyTargetDensity + ' шт/м², подбор по ' +
-            (cHint ? cHint.midCm + ' см (' + cHint.loCm + '–' + cHint.hiCm + ')' : harvest.canopy + ' мм') + ', зазор ' + gapShown + ' мм');
+          }, '«' + (cv ? cv.name : '') + '»: ' + st().georgyTargetDensity + ' шт/м², подбор без касания по ' +
+            fitCm + ' см (' + (cHint ? cHint.loCm + '–' + cHint.hiCm : '') + '), зазор ' + gapShown + ' мм');
         } else {
           var cBefore = !profile ? headCanopyFitRangeLabel(cv) : null;
           densHint.textContent = cBefore
-            ? T('georgy.densityHintBeforeRange', cBefore,
-              'Крона ' + cBefore.loCm + '–' + cBefore.hiCm + ' см, подбор по ' + cBefore.midCm + ' см.')
+            ? T('georgy.densityHintBeforeRange', Object.assign({}, cBefore, {
+              fitCm: headCanopyUsesHiForGeorgyFit(cv) ? cBefore.hiCm : cBefore.midCm
+            }),
+              'Крона ' + cBefore.loCm + '–' + cBefore.hiCm + ' см, подбор по ' +
+              (headCanopyUsesHiForGeorgyFit(cv) ? 'верху ' + cBefore.hiCm : 'середине ' + cBefore.midCm) + ' см.')
             : T('georgy.densityHintBefore', null,
               'Задайте дни роста, проверьте массу и шапку, затем нажмите кнопку подбора.');
         }
@@ -1102,6 +1124,28 @@
       if (autoDli) autoDli.textContent = r2(st().targetDli) + ' ' + T('georgy.unit.mol', null, 'моль/сут');
       var autoPh = document.getElementById('georgy-auto-ph');
       if (autoPh) autoPh.textContent = String(PHOTOPERIOD_H) + ' ' + T('georgy.unit.h', null, 'ч/сут');
+      var gLight = document.getElementById('georgy-lighting');
+      var mainLight = document.getElementById('lighting');
+      if (gLight && document.activeElement !== gLight) gLight.checked = !!st().lighting;
+      if (mainLight && document.activeElement !== mainLight) mainLight.checked = !!st().lighting;
+      var gLightLbl = document.getElementById('georgy-lighting-label');
+      if (gLightLbl){
+        gLightLbl.textContent = st().lighting
+          ? T('georgy.lightingOn', null, 'Включена (вечер до 16 ч)')
+          : T('georgy.lightingOff', null, 'Выключена — только естественный свет');
+      }
+      var lightHint = document.getElementById('georgy-lighting-hint');
+      if (lightHint){
+        var ly = georgyLightYieldPct();
+        lightHint.textContent = st().lighting
+          ? T('georgy.lightingHintOn', { pct: ly }, 'Вечерняя досветка: +' + ly + '% к массе (DLI и продление дня).')
+          : T('georgy.lightingHintOff', { pct: ly }, 'Без досветки: ' + ly + '% к массе относительно цели с вечерним светом.');
+      }
+      var autoLightYield = document.getElementById('georgy-auto-light-yield');
+      if (autoLightYield){
+        var pct = georgyLightYieldPct();
+        autoLightYield.textContent = (pct >= 0 ? '+' : '') + pct + '%';
+      }
       var autoRhoEl = document.getElementById('georgy-auto-density');
       if (autoRhoEl && r) autoRhoEl.textContent = Math.round(r.rhoA) + ' ' + T('georgy.unit.pcsSqm', null, 'шт/м²');
       var autoGap = document.getElementById('georgy-auto-leafgap');
@@ -1212,13 +1256,15 @@
         }});
       }
 
-      if (st().georgyDensityFitted){
-        var gapFit = st().georgyLastFitGap != null ? st().georgyLastFitGap : r.leafGap;
-        if (gapFit < -MAX_LEAF_OVERLAP_MM){
-          items.push({ t: 'bad', k: 'georgy.warn.overlap', vars: { mm: Math.abs(Math.round(gapFit)) } });
-        } else if (gapFit < 0){
-          items.push({ t: 'info', k: 'georgy.warn.overlapOk', vars: { mm: Math.abs(Math.round(gapFit)) } });
+      if (!profile && r && Number.isFinite(r.leafGap)){
+        var gapNow = Math.round(r.leafGap);
+        if (gapNow < -MAX_LEAF_OVERLAP_MM){
+          items.push({ t: 'bad', k: 'georgy.warn.overlap', vars: { mm: Math.abs(gapNow) } });
+        } else if (gapNow < 0){
+          items.push({ t: 'warn', k: 'georgy.warn.overlapLight', vars: { mm: Math.abs(gapNow) } });
         }
+      }
+      if (st().georgyDensityFitted){
         if (!profile){
           var boltCh = deps.boltChannel(cv);
           if (st().day >= boltCh - 5){
@@ -1439,8 +1485,10 @@
       headCanopyFitRange: headCanopyFitRange,
       headCanopyFitRangeLabel: headCanopyFitRangeLabel,
       headCanopyForDensityFit: headCanopyForDensityFit,
+      headCanopyUsesHiForGeorgyFit: headCanopyUsesHiForGeorgyFit,
       readGeorgyHeadCycleFromDom: readGeorgyHeadCycleFromDom,
       MAX_LEAF_OVERLAP_MM: MAX_LEAF_OVERLAP_MM,
+      GEORGY_FIT_MIN_GAP_MM: GEORGY_FIT_MIN_GAP_MM,
       onGeorgyDayChanged: onGeorgyDayChanged,
       onGeorgyHeadCycleChanged: onGeorgyHeadCycleChanged,
       GERM_DAYS: GERM_DAYS
