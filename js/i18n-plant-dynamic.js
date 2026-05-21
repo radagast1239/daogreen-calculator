@@ -174,7 +174,7 @@
       'georgy.preview.massModel': 'Масса на срез (модель)',
       'georgy.preview.canopy': 'Шапка ⌀ (подбор плотности)',
       'georgy.densityHintBefore': 'Задайте дни роста, проверьте массу и шапку, затем нажмите кнопку подбора.',
-      'georgy.densityHintBeforeRange': 'Крона <strong>{loCm}–{hiCm} см</strong> (модель ~{baseCm} см). Подбор без касания — по <strong>{fitCm} см</strong> (ромэн — верх, остальные — середина).',
+      'georgy.densityHintBeforeRange': 'Крона <strong>{loCm}–{hiCm} см</strong> (модель ~{baseCm} см). Подбор без касания — по <strong>{fitCm} см</strong> (ромэн — верх диапазона, остальные головные — середина; метка «оценка» не меняет правило).',
       'georgy.preview.canopyFit': '{loCm}–{hiCm} см',
       'georgy.multicutWip': '',
       'georgy.baby.params': 'Беби в стаканах (руккола / салат)',
