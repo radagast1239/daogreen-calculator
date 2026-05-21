@@ -208,8 +208,12 @@ const dlg = $('cv-add-dialog');
           (id === 'nursery' || id === 'germination') && georgyMode.onGeorgyHeadCycleChanged){
         georgyMode.onGeorgyHeadCycleChanged();
       }
-      if (id === 'density' && state.georgyDensityFitted && !(georgyMode && georgyMode.isGeorgyGh())){
-        state.georgyTargetDensity = clamp(v, 15, 220);
+      if (id === 'density' && georgyMode && georgyMode.canUseCanopyDensityPick &&
+          georgyMode.canUseCanopyDensityPick(getCv()) && !(georgyMode.isGeorgyGh && georgyMode.isGeorgyGh())){
+        var rhoHi = georgyMode.headDensityMaxForCv
+          ? georgyMode.headDensityMaxForCv(getCv())
+          : 220;
+        state.georgyTargetDensity = clamp(v, 15, rhoHi);
       }
       if (id === 'errorPct') syncGhYieldMarginSliders();
       if (isPalletView()){

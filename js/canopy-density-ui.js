@@ -25,16 +25,19 @@
       if (wrap) wrap.classList.toggle('env-block-hidden', !show);
       if (!show) return;
 
-      var fitted = !!st().georgyDensityFitted;
-      if (block) block.classList.toggle('is-locked', !fitted);
-      if (densCtrl) densCtrl.classList.toggle('canopy-density-locked', !fitted);
+      if (block) block.classList.remove('is-locked');
+      if (densCtrl) densCtrl.classList.remove('canopy-density-locked');
 
+      var fitted = !!st().georgyDensityFitted;
       var autoRho = st().georgyAutoDensity;
       if (autoRho == null && deps.georgyMode.densityFromCanopy){
         autoRho = deps.georgyMode.densityFromCanopy(cv);
         st().georgyAutoDensity = autoRho;
       }
       if (hint){
+        var cRg = deps.georgyMode.headCanopyFitRangeLabel
+          ? deps.georgyMode.headCanopyFitRangeLabel(cv)
+          : null;
         if (fitted && st().georgyTargetDensity > 0){
           var gap = st().georgyLastFitGap != null ? st().georgyLastFitGap
             : (r ? Math.round(r.leafGap) : '—');
@@ -42,11 +45,23 @@
             target: st().georgyTargetDensity,
             auto: autoRho,
             gap: gap,
-            max: deps.georgyMode.MAX_LEAF_OVERLAP_MM || 20
-          }, 'Плотность ' + st().georgyTargetDensity + ' шт/м², зазор ' + gap + ' мм');
+            max: deps.georgyMode.MAX_LEAF_OVERLAP_MM || 20,
+            lo: cRg ? cRg.loCm : '',
+            hi: cRg ? cRg.hiCm : '',
+            mid: cRg ? cRg.midCm : ''
+          }, 'Плотность ' + st().georgyTargetDensity + ' шт/м², подбор по кроне ' +
+            (cRg ? cRg.midCm + ' см (' + cRg.loCm + '–' + cRg.hiCm + ')' : '') + ', зазор ' + gap + ' мм');
         } else {
-          hint.textContent = t('canopy.density.hintBefore', null,
-            'Задайте срок роста и массу, затем нажмите подбор по шапке (перекрытие листьев до 20 мм).');
+          hint.textContent = cRg
+            ? t('canopy.density.hintBeforeRange', {
+              lo: cRg.loCm,
+              hi: cRg.hiCm,
+              mid: cRg.midCm,
+              base: cRg.baseCm,
+              max: deps.georgyMode.MAX_LEAF_OVERLAP_MM || 20
+            }, 'Диапазон кроны ' + cRg.loCm + '–' + cRg.hiCm + ' см, подбор по ' + cRg.midCm + ' см.')
+            : t('canopy.density.hintBefore', { max: deps.georgyMode.MAX_LEAF_OVERLAP_MM || 20 },
+              'Задайте срок роста и массу, затем нажмите подбор по шапке.');
         }
       }
       if (btn) btn.disabled = !(st().day >= 8);

@@ -57,7 +57,7 @@ HTML: класс `georgy-active` на `<html>`, блоки `.georgy-only` / `.ge
 | Список сортов | `filterGeorgyCultivars` — скрывает «лишние» id (`GEORGY_HIDDEN_CV`) |
 | Плотность | авто из шапки или `georgyTargetDensity` |
 | Беби | `normativeBabyCutMass`, фикс. `ghCutMasses`, интервал срезки |
-| Салат головной | `totalDaysFromSowGeorgy`, интервал main hall ~20 сут |
+| Салат головной | `totalDaysFromSowGeorgy`; оборот = `headMainChannelDays()`; подбор плотности по **середине** кроны `headCanopyFitRange().mid` (напр. ~13,5 см при 12–15) |
 | Урожай с площади | `mainHarvestIntervalDays`, `headHarvestCyclesPerMonth` в `planting-useful-yield` |
 | Жара | `georgyYieldFactor(profile, temp)` вместо обычного `tempFactor` |
 

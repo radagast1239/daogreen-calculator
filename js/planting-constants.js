@@ -47,7 +47,7 @@
     'block-panel-growth': true,
     'block-panel-multicut': false,
     'block-panel-recs': true,
-    'block-panel-standards': false,
+    'block-panel-standards': true,
     'block-grow-time': false,
     'block-mass': false,
     'block-stage': false,

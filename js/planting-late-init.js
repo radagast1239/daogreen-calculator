@@ -207,7 +207,6 @@
         var dMax = gp ? 40 : 28;
         deps.getState().day = clamp(parseInt(gDay.value, 10) || 21, dMin, dMax);
         if (georgyMode.onGeorgyDayChanged) georgyMode.onGeorgyDayChanged();
-        if (georgyMode.onGeorgyHeadCycleChanged) georgyMode.onGeorgyHeadCycleChanged();
         if ($('georgy-day-v')) $('georgy-day-v').textContent = String(deps.getState().day);
         if ($('day')) $('day').value = deps.getState().day;
         if ($('day-v')) $('day-v').textContent = String(deps.getState().day);
@@ -231,7 +230,11 @@
     var gDens = $('georgy-density');
     if (gDens){
       gDens.addEventListener('input', function(){
-        var v = clamp(parseInt(gDens.value, 10) || 80, 15, 220);
+        var cv = getCv();
+        var hi = georgyMode.headDensityMaxForCv
+          ? georgyMode.headDensityMaxForCv(cv)
+          : 220;
+        var v = clamp(parseInt(gDens.value, 10) || 80, 15, hi);
         georgyMode.setGeorgyTargetDensity(v);
         deps.getState().georgyDensityFitted = true;
         deps.getState().density = v;

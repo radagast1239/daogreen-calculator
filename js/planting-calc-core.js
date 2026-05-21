@@ -230,7 +230,16 @@
     const growthStage = stageOf(t_ch, mass, tBoltCh, cv);
 
     const edgeGap = nearest - holeDiameter(cv);
-    const leafGap = nearest - canopy;
+    let leafGap = nearest - canopy;
+    if (gm && st().georgyDensityFitted && st().georgyTargetDensity > 0 && gm.layoutAtDensity){
+      var fitCv = cv;
+      var useFitGap = (gm.isGeorgyHeadSalad && gm.isGeorgyHeadSalad(fitCv)) ||
+        (gm.canUseCanopyDensityPick && gm.canUseCanopyDensityPick(fitCv));
+      if (useFitGap){
+        var layFit = gm.layoutAtDensity(fitCv, st().georgyTargetDensity);
+        leafGap = layFit.gap;
+      }
+    }
 
     const widthExceeds = sysWmm > MAX_WIDTH;
     const widthClose = !widthExceeds && sysWmm > MAX_WIDTH - 200;

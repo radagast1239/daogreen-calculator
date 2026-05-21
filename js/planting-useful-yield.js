@@ -36,9 +36,18 @@
         multicutMode: false
       };
       var gm = georgyModeRef();
-      if (gm && gm.isGeorgyHeadSalad && gm.isGeorgyHeadSalad(cv)) {
-        meta.mainHallIntervalDays = gm.mainHarvestIntervalDays();
-        meta.harvestCyclesPerMonth = gm.headHarvestCyclesPerMonth();
+      var headHallYield = gm && cv && state.georgyDensityFitted && state.georgyTargetDensity > 0 &&
+        (
+          (state.georgyMode && !gm.getGeorgyProfile(cv)) ||
+          (gm.canUseCanopyDensityPick && gm.canUseCanopyDensityPick(cv))
+        );
+      if (headHallYield) {
+        meta.mainHallIntervalDays = gm.headMainChannelDays
+          ? gm.headMainChannelDays()
+          : Math.max(1, Math.round(state.day));
+        meta.harvestCyclesPerMonth = meta.mainHallIntervalDays > 0
+          ? HMD / meta.mainHallIntervalDays
+          : 0;
         meta.usefulAreaBasis = 'main_hall';
         return meta;
       }
@@ -121,8 +130,22 @@
         return out;
       }
       if (meta.usefulAreaBasis === 'main_hall' && meta.mainHallIntervalDays > 0) {
+        var cpm = meta.harvestCyclesPerMonth;
         out.cyclesPerYear = 365 / meta.mainHallIntervalDays;
         out.yieldPerSqmYear = yieldPerSqmCycle * out.cyclesPerYear;
+        out.harvestYieldPerCut = mass;
+        out.harvestCutIntervalDays = meta.mainHallIntervalDays;
+        out.harvestCutsPerMonth = cpm;
+        if (cpm > 0 && mass > 0) {
+          out.yieldPerPotMonth = mass * cpm;
+          if (rhoA > 0) {
+            if (cv && cv.countUnit === 'шт') {
+              out.yieldPerSqmMonthPcs = mass * cpm * rhoA;
+            } else {
+              out.yieldPerSqmMonthKg = (mass * cpm * rhoA) / 1000;
+            }
+          }
+        }
         return out;
       }
       var tcd = r.totalCycleDays > 0 ? r.totalCycleDays : 0;
