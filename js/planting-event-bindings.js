@@ -696,14 +696,16 @@ const dlg = $('cv-add-dialog');
 
   function syncProjectMetaInputs(){
     var client = $('project-client');
+    var city = $('project-city');
     var title = $('project-title');
     var note = $('project-note');
     if (client && document.activeElement !== client) client.value = state.projectClient || '';
+    if (city && document.activeElement !== city) city.value = state.projectCity || '';
     if (title && document.activeElement !== title) title.value = state.projectTitle || '';
     if (note && document.activeElement !== note) note.value = state.projectNote || '';
   }
   function bindProjectMetaInputs(){
-    [['project-client', 'projectClient'], ['project-title', 'projectTitle'], ['project-note', 'projectNote']].forEach(function(pair){
+    [['project-client', 'projectClient'], ['project-city', 'projectCity'], ['project-title', 'projectTitle'], ['project-note', 'projectNote']].forEach(function(pair){
       var el = $(pair[0]);
       if (!el || el.dataset.projectBound) return;
       el.dataset.projectBound = '1';

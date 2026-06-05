@@ -252,12 +252,14 @@
       if (brand){
         var title = meta.projectTitle || meta.title || pdfT('pdf.cover');
         var client = meta.client ? String(meta.client).trim() : '';
+        var city = meta.city ? String(meta.city).trim() : '';
         var note = meta.projectNote ? String(meta.projectNote).trim() : '';
         wrap.innerHTML =
           '<div class="pdf-cover-topbar"></div>' +
           '<div class="pdf-cover-brand">Daogreen</div>' +
           '<h1 class="pdf-cover-title">' + htmlEsc(title) + '</h1>' +
           (client ? '<p class="pdf-cover-client">' + htmlEsc(client) + '</p>' : '') +
+          (city ? '<p class="pdf-cover-city">' + htmlEsc(city) + '</p>' : '') +
           (meta.subtitle ? '<p class="pdf-cover-sub">' + htmlEsc(meta.subtitle) + '</p>' : '') +
           '<p class="pdf-cover-date">' + htmlEsc(meta.date || '') + '</p>' +
           (kpis.length ? ('<div class="pdf-cover-kpi-grid">' + kpis.map(function(k){
@@ -685,7 +687,7 @@
         var ctx = deps.getPdfExportContext ? deps.getPdfExportContext() : null;
         var fnameBase = (deps.pdfFilename ? deps.pdfFilename(ctx) : 'daogreen-calc');
         var fname = fnameBase + (String(fnameBase).slice(-4) === '.pdf' ? '' : '.pdf');
-        var docTitle = meta.projectTitle || meta.title || pdfT('pdf.cover');
+        var docTitle = meta.projectTitle || meta.client || meta.title || pdfT('pdf.cover');
         await buildPdfFromSections(orderedIds, secMap, fname, docTitle);
       } finally {
         if (deps.restorePlantingAfterPdfExport && pdfPlantingToken){

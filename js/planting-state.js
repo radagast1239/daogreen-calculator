@@ -107,6 +107,7 @@
       /** Поля для PDF и «последних проектов» */
       projectClient: '',
       projectTitle: '',
+      projectCity: '',
       projectNote: ''
     };
   }

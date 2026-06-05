@@ -31,8 +31,12 @@
       if (!snap || !snap.state) return T('proj.recent.unnamed');
       var st = snap.state;
       var client = String(st.projectClient || '').trim();
+      var city = String(st.projectCity || '').trim();
       var title = String(st.projectTitle || '').trim();
+      if (client && city && title) return client + ' · ' + city + ' · ' + title;
       if (client && title) return client + ' · ' + title;
+      if (city && title) return city + ' · ' + title;
+      if (client && city) return client + ' · ' + city;
       if (client) return client;
       if (title) return title;
       if (deps.getProjectLabel) return deps.getProjectLabel(st);

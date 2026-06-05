@@ -160,6 +160,14 @@
   border-bottom: 1px dashed rgba(39, 109, 92, 0.18);
 }
 
+#view-economics .econ-project-meta--hero {
+  margin: 12px 0 14px;
+  padding: 12px 14px 14px;
+  border: 1px solid rgba(39, 109, 92, 0.16);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.55);
+}
+
 #view-economics .econ-field--wide {
   grid-column: 1 / -1;
 }

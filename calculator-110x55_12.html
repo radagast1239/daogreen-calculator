@@ -2025,7 +2025,8 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .pdf-cover-topbar { height: 10px; background: #276D5C; margin: 0 -8px 28px; border-radius: 0; }
 .pdf-cover-brand { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #276D5C; margin-bottom: 12px; font-weight: 600; }
 .pdf-cover-title { font-size: 28px; margin: 0 0 8px; font-weight: 600; color: #111; line-height: 1.25; }
-.pdf-cover-client { font-size: 16px; color: #276D5C; margin: 0 0 10px; font-weight: 500; }
+.pdf-cover-client { font-size: 16px; color: #276D5C; margin: 0 0 4px; font-weight: 600; }
+.pdf-cover-city { font-size: 14px; color: #444; margin: 0 0 10px; font-weight: 500; }
 .pdf-cover-sub, .pdf-cover-date { font-size: 14px; color: #444; margin: 0 0 6px; }
 .pdf-cover-kpi-grid { margin: 28px 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .pdf-cover-kpi { background: #f4faf8; border: 1px solid rgba(39,109,92,.22); border-radius: 10px; padding: 14px 16px; }
@@ -3298,6 +3299,12 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   <div id="view-economics" class="app-view app-view-hidden">
     <div class="econ-hero">
       <p class="econ-intro" id="econ-intro" data-i18n="econ.intro">Экономика считается <strong>отдельно от вкладки «Посадка»</strong>: плотность, урожай, свет и затраты вводите сами или подставляете кнопкой «Импорт из посадки». Выбор сорта в списке <strong>не меняет</strong> числа автоматически.</p>
+      <div class="econ-project-meta econ-project-meta--hero" id="econ-project-meta">
+        <div class="econ-field"><label for="project-client" data-i18n="proj.client">Клиент</label><input type="text" id="project-client" maxlength="120" autocomplete="organization" placeholder=""></div>
+        <div class="econ-field"><label for="project-city" data-i18n="proj.city">Город</label><input type="text" id="project-city" maxlength="80" autocomplete="address-level2" placeholder=""></div>
+        <div class="econ-field"><label for="project-title" data-i18n="proj.title">Название проекта</label><input type="text" id="project-title" maxlength="120" autocomplete="off" placeholder=""></div>
+        <div class="econ-field econ-field--wide"><label for="project-note" data-i18n="proj.note">Комментарий для PDF</label><input type="text" id="project-note" maxlength="240" autocomplete="off" placeholder=""></div>
+      </div>
     <ul class="econ-warnings" id="econ-warnings" hidden></ul>
     <div class="econ-planting-sync" id="econ-planting-sync" hidden></div>
       <div class="econ-toolbar">
@@ -3324,11 +3331,6 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 
     <section class="panel econ-panel" id="econ-panel-general">
       <div class="section-h" data-i18n="econ.section.general">Общие параметры</div>
-      <div class="econ-project-meta" id="econ-project-meta">
-        <div class="econ-field"><label for="project-client" data-i18n="proj.client">Клиент</label><input type="text" id="project-client" maxlength="120" autocomplete="organization" placeholder=""></div>
-        <div class="econ-field"><label for="project-title" data-i18n="proj.title">Название проекта</label><input type="text" id="project-title" maxlength="120" autocomplete="off" placeholder=""></div>
-        <div class="econ-field econ-field--wide"><label for="project-note" data-i18n="proj.note">Комментарий для PDF</label><input type="text" id="project-note" maxlength="240" autocomplete="off" placeholder=""></div>
-      </div>
       <div class="econ-grid" id="econ-inputs-general"></div>
     </section>
 
@@ -4192,6 +4194,75 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   function slugFromName(name){
     return String(name || '').replace(/[^a-zA-ZЀ-ӿ0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 28);
   }
+  function projectMetaFields(){
+    return {
+      client: String(state.projectClient || '').trim(),
+      city: String(state.projectCity || '').trim(),
+      title: String(state.projectTitle || '').trim(),
+      note: String(state.projectNote || '').trim()
+    };
+  }
+  function econCoverSubtitle(farm){
+    var bits = [];
+    if (farm.plantingArea > 0) bits.push(r1(farm.plantingArea) + ' ' + tr('sum.unit.sqm'));
+    var n = (farm.parts || []).length;
+    if (n > 1) bits.push(n + ' ' + ui('ui.pdf.meta.culturesShort'));
+    else if (n === 1 && farm.parts[0]) bits.push(farm.parts[0].name);
+    return bits.join(' · ');
+  }
+  function econCoverTitle(pm){
+    if (pm.title) return pm.title;
+    return pt('econ.title');
+  }
+  function econCoverLines(farm, pm){
+    var lines = [];
+    if (pm.client) lines.push({ label: ui('proj.client'), value: pm.client, unit: '' });
+    if (pm.city) lines.push({ label: ui('proj.city'), value: pm.city, unit: '' });
+    if (farm.plantingArea > 0){
+      lines.push({ label: ui('ui.pdf.meta.farmArea'), value: r1(farm.plantingArea), unit: tr('sum.unit.sqm') });
+    }
+    if ((farm.parts || []).length > 1){
+      lines.push({ label: ui('ui.pdf.meta.culturesN'), value: String(farm.parts.length), unit: '' });
+    } else if (farm.parts && farm.parts[0]){
+      lines.push({ label: ui('ui.pdf.meta.cultivar'), value: farm.parts[0].name, unit: '' });
+    }
+    if (farm.revenue > 0){
+      lines.push({
+        label: ui('ui.pdf.kpi.revenue'),
+        value: window.DG_fmtMoneyPlain ? DG_fmtMoneyPlain(farm.revenue, { decimals: 0 }) : String(Math.round(farm.revenue)),
+        unit: ui('ui.pdf.kpi.perMonth')
+      });
+    }
+    lines.push({
+      label: ui('ui.pdf.kpi.margin'),
+      value: window.DG_fmtMoneyPlain ? DG_fmtMoneyPlain(farm.margin, { decimals: 0 }) : String(Math.round(farm.margin)),
+      unit: ui('ui.pdf.kpi.perMonth')
+    });
+    return lines;
+  }
+  function econCoverKpiCards(farm){
+    var money = function(n, dec){
+      if (window.DG_fmtMoneyPlain) return DG_fmtMoneyPlain(n, { decimals: dec != null ? dec : 0 });
+      return String(Math.round(n));
+    };
+    var cards = [];
+    if (farm.revenue > 0){
+      cards.push({ label: ui('ui.pdf.kpi.revenue'), value: money(farm.revenue), unit: ui('ui.pdf.kpi.perMonth') });
+    }
+    cards.push({ label: ui('ui.pdf.kpi.margin'), value: money(farm.margin), unit: ui('ui.pdf.kpi.perMonth') });
+    if (farm.plantingArea > 0){
+      cards.push({ label: ui('ui.pdf.meta.farmArea'), value: r1(farm.plantingArea), unit: tr('sum.unit.sqm') });
+    }
+    if (farm.sellPcs > 0){
+      cards.push({ label: ui('ui.pdf.meta.outputMo'), value: fmtNum(farm.sellPcs), unit: tr('sum.unit.pcsMo') });
+    } else if (farm.sellKg > 0){
+      cards.push({ label: ui('ui.pdf.meta.outputMo'), value: fmtNum(farm.sellKg, { decimals: 1 }), unit: tr('sum.unit.kgMo') });
+    }
+    if ((farm.parts || []).length > 1){
+      cards.push({ label: ui('ui.pdf.meta.culturesN'), value: String(farm.parts.length), unit: '' });
+    }
+    return cards.slice(0, 4);
+  }
 
   function initPlantingPdfExport(){
     if (!window.DG_initPdfExport) return;
@@ -4205,92 +4276,22 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       getExportMeta: function(){
         var ctx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
         if (pdfExportIsEconLed(ctx) && typeof calcFarmEconomics === 'function'){
-          var row = primaryEconCultureRow();
-          if (row && row.cvId){
-            var farm = calcFarmEconomics(state.econ);
-            var part = (farm.parts || []).find(function(p){ return p.cvId === row.cvId; }) || (farm.parts && farm.parts[0]);
-            var cv = findCvById(row.cvId);
-            var name = (typeof econCvDisplayName === 'function') ? econCvDisplayName(row.cvId) : (cv ? cv.name : row.cvId);
-            var lines = [];
-            var wf = 1 - (parseFloat(farm.wastePct) || 0) / 100;
-            lines.push({ label: ui('ui.pdf.meta.cultivar'), value: name, unit: '' });
-            if (part && part.slice){
-              var sell = part.slice.monthlyOutput * wf;
-              var isPcs = part.slice.outputUnit === 'шт';
-              lines.push({
-                label: ui('ui.pdf.meta.outputMo'),
-                value: sell > 0 ? fmtNum(sell) : '—',
-                unit: isPcs ? tr('sum.unit.pcsMo') : tr('sum.unit.kgMo')
-              });
-              if (part.slice.unitCostFull > 0){
-                lines.push({
-                  label: ui('ui.pdf.meta.unitCost'),
-                  value: isPcs ? r2(part.slice.unitCostFull) : r2(part.slice.unitCostFull),
-                  unit: isPcs ? '₽/шт' : '₽/кг'
-                });
-              }
-              if (parseFloat(row.salePrice) > 0){
-                lines.push({
-                  label: ui('ui.pdf.meta.salePrice'),
-                  value: r2(parseFloat(row.salePrice)),
-                  unit: isPcs ? '₽/шт' : '₽/кг'
-                });
-              }
-              lines.push({
-                label: ui('ui.pdf.meta.plantingArea'),
-                value: r1(part.pct) + '% · ' + r1(part.slice.area),
-                unit: tr('sum.unit.sqm')
-              });
-            }
-            if (farm.parts && farm.parts.length > 1){
-              lines.push({ label: ui('ui.pdf.meta.culturesN'), value: String(farm.parts.length), unit: '' });
-            }
-            lines.push({ label: ui('ui.pdf.meta.mode'), value: tr('mode.economics'), unit: '' });
-            var sub = name;
-            if (farm.parts && farm.parts.length > 1) sub += ' · ' + farm.parts.length + ' культ.';
-            var money = function(n, dec){
-              if (window.DG_fmtMoneyPlain) return DG_fmtMoneyPlain(n, { decimals: dec != null ? dec : 0 });
-              return String(Math.round(n));
-            };
-            var kpiCards = [];
-            if (farm.revenue > 0){
-              kpiCards.push({ label: ui('ui.pdf.kpi.revenue'), value: money(farm.revenue), unit: ui('ui.pdf.kpi.perMonth') });
-            }
-            kpiCards.push({ label: ui('ui.pdf.kpi.margin'), value: money(farm.margin), unit: ui('ui.pdf.kpi.perMonth') });
-            if (part && part.slice && part.slice.unitCostFull > 0){
-              var isPcsKpi = part.slice.outputUnit === 'шт';
-              kpiCards.push({
-                label: ui('ui.pdf.meta.unitCost'),
-                value: money(part.slice.unitCostFull, isPcsKpi ? 2 : 2),
-                unit: isPcsKpi ? '₽/шт' : '₽/кг'
-              });
-            }
-            if (part && part.slice){
-              var sellKpi = part.slice.monthlyOutput * wf;
-              var isPcsOut = part.slice.outputUnit === 'шт';
-              kpiCards.push({
-                label: ui('ui.pdf.meta.outputMo'),
-                value: sellKpi > 0 ? fmtNum(sellKpi) : '—',
-                unit: isPcsOut ? tr('sum.unit.pcsMo') : tr('sum.unit.kgMo')
-              });
-              kpiCards.push({
-                label: ui('ui.pdf.meta.plantingArea'),
-                value: r1(part.slice.area),
-                unit: tr('sum.unit.sqm')
-              });
-            }
+          var farm = calcFarmEconomics(state.econ);
+          if (farm && (farm.parts || []).length){
+            var pm = projectMetaFields();
             var clientMode = ctx && ctx.clientMode;
             return {
-              title: pt('econ.title'),
-              projectTitle: (state.projectTitle || '').trim() || pt('econ.title'),
-              client: (state.projectClient || '').trim(),
-              projectNote: (state.projectNote || '').trim(),
-              subtitle: sub,
+              title: econCoverTitle(pm),
+              projectTitle: econCoverTitle(pm),
+              client: pm.client,
+              city: pm.city,
+              projectNote: pm.note,
+              subtitle: econCoverSubtitle(farm),
               date: new Date().toLocaleDateString((window.DG_getLocale && DG_getLocale() === 'en') ? 'en-US' : 'ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }),
               build: CALC_BUILD,
-              lines: lines,
-              kpiCards: kpiCards,
-              brandCover: !!clientMode
+              lines: econCoverLines(farm, pm),
+              kpiCards: econCoverKpiCards(farm),
+              brandCover: true
             };
           }
         }
@@ -4319,12 +4320,15 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       pdfFilename: function(ctx){
         var clientMode = ctx && ctx.clientMode;
         if (clientMode){
-          var client = String(state.projectClient || state.projectTitle || '').trim();
-          var row = primaryEconCultureRow();
-          if (!client && row && row.cvId && typeof econCvDisplayName === 'function'){
-            client = econCvDisplayName(row.cvId);
+          var pm = projectMetaFields();
+          var slugSrc = pm.client || pm.city || pm.title;
+          if (!slugSrc){
+            var row = primaryEconCultureRow();
+            if (row && row.cvId && typeof econCvDisplayName === 'function'){
+              slugSrc = econCvDisplayName(row.cvId);
+            }
           }
-          var slug = slugFromName(client) || 'client';
+          var slug = slugFromName(slugSrc) || 'client';
           return 'Daogreen-' + slug + '-' + new Date().toISOString().slice(0, 10);
         }
         var pdfCtx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
