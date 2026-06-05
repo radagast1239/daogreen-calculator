@@ -63,6 +63,11 @@
       'ui.env.tempMoldHint': 'T {temp}°C — риск плесени',
       'ui.schema.trayLotTitle': '{per} лотков на поддон',
       'ui.schema.trayLotDensity': '{density} лотков/м²',
+      'ui.planting.geomTitle': 'Размер системы',
+      'ui.planting.metricsTitle': 'Показатели',
+      'ui.planting.schemaTitle': 'Схема — вид сверху',
+      'ui.planting.bioMarginTitle': 'Биологический разброс',
+      'ui.planting.advancedTitle': 'Дополнительно',
       'ui.scen.a': 'Сценарий A',
       'ui.scen.b': 'Сценарий B',
       'ui.scen.diff': 'Разница',
@@ -267,6 +272,11 @@
       'ui.env.tempMoldHint': 'T {temp}°C — mold risk',
       'ui.schema.trayLotTitle': '{per} trays per pallet',
       'ui.schema.trayLotDensity': '{density} trays/m²',
+      'ui.planting.geomTitle': 'System size',
+      'ui.planting.metricsTitle': 'Metrics',
+      'ui.planting.schemaTitle': 'Layout — top view',
+      'ui.planting.bioMarginTitle': 'Biological variation',
+      'ui.planting.advancedTitle': 'Advanced',
       'ui.scen.a': 'Scenario A',
       'ui.scen.b': 'Scenario B',
       'ui.scen.diff': 'Difference',
@@ -461,11 +471,7 @@
     if (fVert && global.DG_t) fVert.textContent = global.DG_t('facility.vertical');
 
     setTxt('#block-env-climate .collapse-head > span:first-child', 'ui.env.climate');
-    setTxt('section.panel > .section-h', 'ui.bio.section');
-    document.querySelectorAll('section.panel > .section-h').forEach(function(h){
-      if (h.textContent.indexOf('Биологический') >= 0 || h.textContent.indexOf('Biological') >= 0) h.textContent = uiT('ui.bio.section');
-    });
-    var bioPanel = document.querySelector('#view-planting section.panel');
+    setTxt('#panel-bio-margin .collapse-head > span:first-child', 'ui.planting.bioMarginTitle');
     document.querySelectorAll('#view-planting .toggle-label').forEach(function(el){
       var t = el.textContent.trim();
       if (t.indexOf('диапазон') >= 0 || t.indexOf('range') >= 0) el.textContent = uiT('ui.bio.showRange');
@@ -474,8 +480,7 @@
       if (t.indexOf('вес одного среза') >= 0 || t.indexOf('mass per cut') >= 0) el.textContent = uiT('ui.mc.manualCut');
       if (t.indexOf('2 ряда') >= 0 || t.indexOf('2 hole rows') >= 0) el.textContent = uiT('ui.sys.twoRows');
     });
-    var bioHint = document.querySelector('#view-planting section.panel div[style*="line-height:1.55"]');
-    if (bioHint && bioHint.textContent.indexOf('семена') >= 0) bioHint.textContent = uiT('ui.bio.hint');
+    if (typeof global.DG_syncBioMarginVisibility === 'function') global.DG_syncBioMarginVisibility();
 
     setTxt('#block-panel-growth .collapse-head > span:first-child', 'ui.chart.title');
     setTxt('#compare-pick-summary', 'ui.chart.pickSummary');

@@ -709,8 +709,12 @@
     setText('#block-env-climate-body > .ctrl:nth-child(1) .ctrl-label', 'env.temp');
     setText('#block-env-climate-body > .env-vf-only .ctrl-label', 'env.rh');
 
-    setText('#block-bio .collapse-head > span:first-child', 'bio.title');
-    setText('#block-bio .ctrl-label', 'bio.range');
+    setText('#panel-bio-margin .collapse-head > span:first-child', 'bio.title');
+    setText('#panel-bio-margin .bio-margin-ctrl .ctrl-label', 'bio.range');
+    setText('#block-panel-geom .collapse-head > span:first-child', 'ui.planting.geomTitle');
+    setText('#panel-metrics .collapse-head > span:first-child', 'ui.planting.metricsTitle');
+    setText('#panel-schema .collapse-head > span:first-child', 'ui.planting.schemaTitle');
+    setText('#panel-planting-advanced .collapse-head > span:first-child', 'ui.planting.advancedTitle');
 
     setText('#block-dates .collapse-head > span:first-child', 'dates.title');
     setText('#ctrl-sowDate .ctrl-label', 'sowDate');
@@ -800,6 +804,7 @@
 
     syncPlantingUnits();
     if (typeof global.DG_syncScenarioPriceUnits === 'function') global.DG_syncScenarioPriceUnits();
+    if (typeof global.DG_syncBioMarginVisibility === 'function') global.DG_syncBioMarginVisibility();
   }
 
   function syncPlantingUnits(){

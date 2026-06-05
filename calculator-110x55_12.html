@@ -496,11 +496,16 @@ html.georgy-active #gh-cuts-block { display: none !important; }
 .canopy-overlap-status--bad { color: #9b3826; background: var(--brick-pale); padding: 6px 8px; border-radius: var(--radius); border: 1px solid rgba(155, 56, 38, 0.25); }
 .canopy-overlap-status--muted { color: var(--ink-faint); font-size: 12px; }
 .multicut-baby-only.env-block-hidden { display: none !important; }
+#panel-gh-yield-totals + .farm-cal-nudge { margin-bottom: 18px; }
 html.simple-ui-active #block-panel-growth,
 html.simple-ui-active #panel-cv-compare,
 html.simple-ui-active #panel-scenarios,
-html.simple-ui-active #panel-gh-standards,
+html.simple-ui-active #block-panel-standards,
+html.simple-ui-active #panel-planting-advanced,
 html.simple-ui-active .cv-custom-bar { display: none !important; }
+html.simple-ui-active #panel-bio-margin { display: block !important; }
+html.simple-ui-active #panel-bio-margin > .collapse-body { display: block !important; }
+html.simple-ui-active #panel-bio-margin > .collapse-head .collapse-chev { display: none; }
 html.simple-ui-active #simple-ui-hint { display: block; }
 #simple-ui-hint { display: none; font-size: 12px; color: var(--ink-faint); margin: 0 0 12px; line-height: 1.5; }
 .env-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 10px; font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -531,6 +536,25 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .panel.collapse-block > .collapse-body > .section-h:first-child { margin-top: 0; }
 #env-panel > .collapse-block { margin: 0 0 12px; }
 #env-panel > .collapse-block:last-of-type { margin-bottom: 0; }
+.planting-subpanel.panel {
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  margin: 0 0 18px;
+}
+.planting-subpanel.panel:last-child { margin-bottom: 0; }
+#block-panel-geom-body > .planting-subpanel + .planting-subpanel {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--rule);
+}
+#panel-planting-advanced-body > .planting-subpanel,
+#panel-planting-advanced-body > .collapse-block {
+  margin-bottom: 14px;
+}
+#panel-planting-advanced-body > :last-child { margin-bottom: 0; }
+#panel-metrics-body > .collapse-block { margin-bottom: 16px; }
 .standards-sub { margin-bottom: 18px; }
 .standards-sub:last-child { margin-bottom: 0; }
 .standards-sub .section-h { margin-bottom: 10px; }
@@ -2749,10 +2773,6 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     </div>
   </div>
 
-  <section class="planting-hero env-block-hidden" id="planting-hero" aria-label="Ключевые показатели">
-    <div class="planting-hero-grid" id="planting-hero-grid"></div>
-  </section>
-
   <section class="panel collapse-block" id="panel-cultivars">
     <div class="collapse-head" data-collapse-target="panel-cultivars">
       <span>Культуры</span>
@@ -2767,7 +2787,9 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <p class="vf-cv-std-hint ui-hint env-block-hidden" id="vf-cv-std-hint"></p>
     </div>
   </section>
-
+  <section class="planting-hero env-block-hidden" id="planting-hero" aria-label="Ключевые показатели">
+    <div class="planting-hero-grid" id="planting-hero-grid"></div>
+  </section>
   <section class="panel georgy-only georgy-panel" id="panel-georgy-simple">
     <div class="section-h" data-i18n="georgy.panel.title">Расчёт для Георгия</div>
     <p class="georgy-mode-intro" data-i18n="georgy.panel.lead">Салаты — один срез и подбор по шапке. Руккола и салат беби — стаканы, 2 ряда, многосрезка 80–110&nbsp;шт/м².</p>
@@ -2852,9 +2874,113 @@ html.share-mode .page { user-select: text; padding-top: 0; }
         <div id="georgy-guide-body" class="georgy-guide" role="article" aria-live="polite"></div>
       </div>
     </section>
+  <section class="panel" id="env-panel">
+    <div class="collapse-block vf-only env-block-hidden" id="block-env-vf-light">
+      <div class="collapse-head" data-collapse-target="block-env-vf-light">
+        <span>Искусственный свет (закрытое помещение)</span>
+        <span class="collapse-chev" aria-hidden="true">▼</span>
+      </div>
+      <div class="collapse-body" id="block-env-vf-light-body">
+    <div id="env-vertical">
+    <div class="ui-hint ui-hint--tight">DLI и PPFD связаны: DLI = PPFD × часы × 0,0036. Ориентиры для листового салата: Cornell CEA Handbook — DLI 12–17 моль/м²·сут, фотопериод 16–18 ч; ниже 12 моль рост резко падает.</div>
 
+    <div class="ctrl">
+      <span class="ctrl-label">DLI на кроне</span>
+      <input type="range" id="targetDliVf" min="12" max="22" step="0.5" value="17">
+      <span class="ctrl-val"><span id="targetDliVf-v">17</span><span class="unit">моль/сут</span></span>
+    </div>
+
+    <div class="ctrl">
+      <span class="ctrl-label">Фотопериод ламп</span>
+      <input type="range" id="targetPhotoperiodVf" min="14" max="20" step="0.5" value="16">
+      <span class="ctrl-val"><span id="targetPhotoperiodVf-v">16</span><span class="unit">ч/сут</span></span>
+    </div>
+
+    <div class="ctrl">
+      <span class="ctrl-label">PPFD на кроне</span>
+      <input type="range" id="ppfd" min="180" max="400" step="5" value="295">
+      <span class="ctrl-val"><span id="ppfd-v">295</span><span class="unit">µmol/м²·с</span></span>
+    </div>
+
+    <div class="ctrl">
+      <span class="ctrl-label">КПД системы (лампы + БП)</span>
+      <input type="range" id="ledEfficacyVf" min="2.3" max="2.5" step="0.05" value="2.4">
+      <span class="ctrl-val"><span id="ledEfficacyVf-v">2.4</span><span class="unit">µmol/Дж</span></span>
+    </div>
+    <div class="ui-hint ui-hint--tight">Сити-ферма: 2.3–2.5 µmol/Дж — с потерями в блоках питания, кабелях и оптике.</div>
+    </div>
+      </div>
+    </div>
+
+    <div class="collapse-block" id="block-env-climate">
+      <div class="collapse-head" data-collapse-target="block-env-climate">
+        <span>Климат</span>
+        <span class="collapse-chev" aria-hidden="true">▼</span>
+      </div>
+      <div class="collapse-body" id="block-env-climate-body">
+    <div class="ctrl">
+      <span class="ctrl-label">Температура воздуха</span>
+      <input type="range" id="temp" min="20" max="38" step="0.5" value="26">
+      <span class="ctrl-val"><span id="temp-v">26</span><span class="unit">°C</span></span>
+    </div>
+    <div class="ctrl env-vf-only env-block-hidden">
+      <span class="ctrl-label">Влажность воздуха</span>
+      <input type="range" id="rh" min="45" max="85" step="1" value="65">
+      <span class="ctrl-val"><span id="rh-v">65</span><span class="unit">%</span></span>
+    </div>
+
+
+    <div class="collapse-block gh-only" id="block-env-gh-season">
+      <div class="collapse-head" data-collapse-target="block-env-gh-season">
+        <span>Сезон и естественный свет</span>
+        <span class="collapse-chev" aria-hidden="true">▼</span>
+      </div>
+      <div class="collapse-body" id="block-env-gh-season-body">
+<div id="env-greenhouse">
+
+    <div class="ctrl">
+      <span class="ctrl-label">Месяц</span>
+      <div class="month-picker" id="months" style="grid-column: 2 / 4"></div>
+    </div>
+
+    <div class="ctrl">
+      <span class="ctrl-label">Искусственная досветка</span>
+      <label class="toggle" style="grid-column: 2 / 4">
+        <input type="checkbox" id="lighting">
+        <span class="toggle-switch"></span>
+        <span class="toggle-label" id="lighting-label">Выключена — только естественный свет</span>
+      </label>
+    </div>
+
+    <div class="ctrl env-gh-lighting">
+      <span class="ctrl-label">Целевой DLI с досветкой</span>
+      <input type="range" id="targetDli" min="14" max="22" step="0.5" value="17">
+      <span class="ctrl-val"><span id="targetDli-v">17</span><span class="unit">моль</span></span>
+    </div>
+
+    <div class="ctrl env-gh-lighting">
+      <span class="ctrl-label">Целевой фотопериод</span>
+      <input type="range" id="targetPhotoperiod" min="12" max="18" step="0.5" value="16">
+      <span class="ctrl-val"><span id="targetPhotoperiod-v">16</span><span class="unit">ч/сут</span></span>
+    </div>
+
+    <div class="ctrl env-gh-lighting">
+      <span class="ctrl-label">КПД LED (досветка)</span>
+      <span class="ctrl-val"><span id="ledEfficacyGh-v">2.1</span><span class="unit">µmol/Дж</span></span>
+    </div>
+    <div class="ctrl-row-extra env-gh-lighting">
+      <button type="button" class="auto-btn" id="auto-led-gh">→ Стандарт 2.1 µmol/Дж (теплица)</button>
+    </div>
+    </div>
+      </div>
+    </div>
+
+
+    </div>
+    </div>
+
+    <div class="env-summary" id="env-summary"></div>
   </section>
-
   <section class="panel" id="panel-culture">
     <div class="section-h">Параметры цикла</div>
 
@@ -3055,529 +3181,156 @@ html.share-mode .page { user-select: text; padding-top: 0; }
         <div id="mass-model-hint" class="ui-hint ui-hint--tight"></div>
       </div>
     </div>
-
-    <div class="collapse-block" id="block-stage" data-collapse-vf="">
-      <div class="collapse-head" data-collapse-target="block-stage">
-        <span>Фаза роста</span>
-        <span class="collapse-chev" aria-hidden="true">▼</span>
-      </div>
-      <div class="collapse-body" id="block-stage-body">
-        <div id="stage-bar" class="stage-bar" role="list">
-          <div class="stage-seg" data-stage="young" role="listitem"><span class="stage-lbl">Молодой лист</span></div>
-          <div class="stage-seg" data-stage="mature" role="listitem"><span class="stage-lbl">Набор массы</span></div>
-          <div class="stage-seg" data-stage="full" role="listitem"><span class="stage-lbl">Взрослая зелень</span></div>
-          <div class="stage-seg" data-stage="bolt" role="listitem"><span class="stage-lbl">Стрелкование/перерост</span></div>
-        </div>
-        <div class="metrics" id="metrics-growth"></div>
-      </div>
-    </div>
   </section>
-
-  <section class="panel" id="env-panel">
-    <div class="collapse-block vf-only env-block-hidden" id="block-env-vf-light">
-      <div class="collapse-head" data-collapse-target="block-env-vf-light">
-        <span>Искусственный свет (закрытое помещение)</span>
-        <span class="collapse-chev" aria-hidden="true">▼</span>
-      </div>
-      <div class="collapse-body" id="block-env-vf-light-body">
-    <div id="env-vertical">
-    <div class="ui-hint ui-hint--tight">DLI и PPFD связаны: DLI = PPFD × часы × 0,0036. Ориентиры для листового салата: Cornell CEA Handbook — DLI 12–17 моль/м²·сут, фотопериод 16–18 ч; ниже 12 моль рост резко падает.</div>
-
-    <div class="ctrl">
-      <span class="ctrl-label">DLI на кроне</span>
-      <input type="range" id="targetDliVf" min="12" max="22" step="0.5" value="17">
-      <span class="ctrl-val"><span id="targetDliVf-v">17</span><span class="unit">моль/сут</span></span>
-    </div>
-
-    <div class="ctrl">
-      <span class="ctrl-label">Фотопериод ламп</span>
-      <input type="range" id="targetPhotoperiodVf" min="14" max="20" step="0.5" value="16">
-      <span class="ctrl-val"><span id="targetPhotoperiodVf-v">16</span><span class="unit">ч/сут</span></span>
-    </div>
-
-    <div class="ctrl">
-      <span class="ctrl-label">PPFD на кроне</span>
-      <input type="range" id="ppfd" min="180" max="400" step="5" value="295">
-      <span class="ctrl-val"><span id="ppfd-v">295</span><span class="unit">µmol/м²·с</span></span>
-    </div>
-
-    <div class="ctrl">
-      <span class="ctrl-label">КПД системы (лампы + БП)</span>
-      <input type="range" id="ledEfficacyVf" min="2.3" max="2.5" step="0.05" value="2.4">
-      <span class="ctrl-val"><span id="ledEfficacyVf-v">2.4</span><span class="unit">µmol/Дж</span></span>
-    </div>
-    <div class="ui-hint ui-hint--tight">Сити-ферма: 2.3–2.5 µmol/Дж — с потерями в блоках питания, кабелях и оптике.</div>
-    </div>
-      </div>
-    </div>
-
-    <div class="collapse-block" id="block-env-climate">
-      <div class="collapse-head" data-collapse-target="block-env-climate">
-        <span>Климат</span>
-        <span class="collapse-chev" aria-hidden="true">▼</span>
-      </div>
-      <div class="collapse-body" id="block-env-climate-body">
-    <div class="ctrl">
-      <span class="ctrl-label">Температура воздуха</span>
-      <input type="range" id="temp" min="20" max="38" step="0.5" value="26">
-      <span class="ctrl-val"><span id="temp-v">26</span><span class="unit">°C</span></span>
-    </div>
-    <div class="ctrl env-vf-only env-block-hidden">
-      <span class="ctrl-label">Влажность воздуха</span>
-      <input type="range" id="rh" min="45" max="85" step="1" value="65">
-      <span class="ctrl-val"><span id="rh-v">65</span><span class="unit">%</span></span>
-    </div>
-
-
-    <div class="collapse-block gh-only" id="block-env-gh-season">
-      <div class="collapse-head" data-collapse-target="block-env-gh-season">
-        <span>Сезон и естественный свет</span>
-        <span class="collapse-chev" aria-hidden="true">▼</span>
-      </div>
-      <div class="collapse-body" id="block-env-gh-season-body">
-<div id="env-greenhouse">
-
-    <div class="ctrl">
-      <span class="ctrl-label">Месяц</span>
-      <div class="month-picker" id="months" style="grid-column: 2 / 4"></div>
-    </div>
-
-    <div class="ctrl">
-      <span class="ctrl-label">Искусственная досветка</span>
-      <label class="toggle" style="grid-column: 2 / 4">
-        <input type="checkbox" id="lighting">
-        <span class="toggle-switch"></span>
-        <span class="toggle-label" id="lighting-label">Выключена — только естественный свет</span>
-      </label>
-    </div>
-
-    <div class="ctrl env-gh-lighting">
-      <span class="ctrl-label">Целевой DLI с досветкой</span>
-      <input type="range" id="targetDli" min="14" max="22" step="0.5" value="17">
-      <span class="ctrl-val"><span id="targetDli-v">17</span><span class="unit">моль</span></span>
-    </div>
-
-    <div class="ctrl env-gh-lighting">
-      <span class="ctrl-label">Целевой фотопериод</span>
-      <input type="range" id="targetPhotoperiod" min="12" max="18" step="0.5" value="16">
-      <span class="ctrl-val"><span id="targetPhotoperiod-v">16</span><span class="unit">ч/сут</span></span>
-    </div>
-
-    <div class="ctrl env-gh-lighting">
-      <span class="ctrl-label">КПД LED (досветка)</span>
-      <span class="ctrl-val"><span id="ledEfficacyGh-v">2.1</span><span class="unit">µmol/Дж</span></span>
-    </div>
-    <div class="ctrl-row-extra env-gh-lighting">
-      <button type="button" class="auto-btn" id="auto-led-gh">→ Стандарт 2.1 µmol/Дж (теплица)</button>
-    </div>
-    </div>
-      </div>
-    </div>
-
-
-    </div>
-    </div>
-
-    <div class="env-summary" id="env-summary"></div>
-  </section>
-
-  <section class="panel collapse-block sheet-standards-panel" id="block-panel-standards">
-    <div class="collapse-head" data-collapse-target="block-panel-standards">
-      <span>Мои стандарты</span>
+  <section class="panel collapse-block" id="block-panel-geom">
+    <div class="collapse-head" data-collapse-target="block-panel-geom">
+      <span data-i18n="ui.planting.geomTitle">Размер системы</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
-    <div class="collapse-body" id="block-panel-standards-body">
-      <div class="standards-sub gh-only" id="user-standards-gh-wrap">
-        <div class="section-h">Теплица</div>
-        <p class="gh-standards-hint ui-hint">Значения для сорта <strong id="gh-std-cv-name">—</strong>, в т.ч. <strong>шапка в мм</strong>. «Сохранить для сорта» пишет в браузер (localStorage) — остаётся после перезагрузки, пока не сбросите или не очистите данные сайта. «Применить» подставит в расчёт.</p>
-        <div class="gh-standards-grid" id="gh-standards-grid"></div>
-        <div class="gh-standards-actions">
-          <button type="button" class="auto-btn" id="gh-std-apply">Применить к расчёту</button>
-          <button type="button" class="auto-btn" id="gh-std-save">Сохранить для сорта</button>
-          <button type="button" class="auto-btn" id="gh-std-reset-model">Сбросить к модели сорта</button>
+    <div class="collapse-body" id="block-panel-geom-body">
+      <div class="planting-subpanel panel" id="panel-system">
+        <div class="section-h" id="system-section-title">Параметры системы · каналы 110×55</div>
+    <div class="ctrl sys-channel-only" id="ctrl-length-channel">
+          <span class="ctrl-label" id="length-label">Длина канала</span>
+          <input type="range" id="length" min="1" max="12" step="0.5" value="12">
+          <span class="ctrl-val"><span id="length-v">12.0</span><span class="unit">м</span></span>
+        </div>
+    
+    <div id="nch-host-channel" class="sys-channel-block sys-channel-only">
+          <div class="ctrl" id="ctrl-nch-wrap">
+          <span class="ctrl-label" id="nch-label">Количество каналов</span>
+          <input type="range" id="nch" min="1" max="20" step="1" value="13">
+          <span class="ctrl-val"><span id="nch-v">13</span><span class="unit">шт</span></span>
+        </div>
+          <div class="sys-aux-actions">
+            <button type="button" class="auto-btn" id="auto-nch">→ Максимум каналов в 2 м ширины</button>
+          </div>
+        </div>
+    
+        <div class="ctrl sys-channel-only">
+          <span class="ctrl-label">Сдвиг рядов</span>
+          <input type="range" id="offset" min="0" max="50" step="5" value="50">
+          <span class="ctrl-val"><span id="offset-v">50</span><span class="unit">%</span></span>
+        </div>
+    
+        <div class="ctrl sys-channel-only" id="ctrl-extraB">
+          <span class="ctrl-label" id="extraB-label">Доп. отступ b</span>
+          <input type="range" id="extraB" min="0" max="200" step="5" value="0">
+          <span class="ctrl-val">+<span id="extraB-v">0</span><span class="unit">мм</span></span>
+        </div>
+    
+        <div class="ctrl gh-geom-only sys-channel-only">
+          <span class="ctrl-label">Диаметр горшка</span>
+          <div class="pot-row" id="pots">
+            <button class="pot-btn" data-d="32">32 мм</button>
+            <button class="pot-btn on" data-d="50">50 мм</button>
+            <button class="pot-btn" data-d="63">63 мм</button>
+            <button class="pot-btn" data-d="73">73 мм</button>
+          </div>
         </div>
       </div>
-      <div class="standards-sub sheet-standards-only vf-only env-block-hidden" id="user-standards-vf-wrap">
-        <div class="section-h" id="sheet-standards-section-title">Вертикальная ферма</div>
-        <p class="gh-standards-hint ui-hint" id="sheet-standards-hint"></p>
-        <p class="vf-std-locks-title" id="sheet-std-locks-title">Подставлять из справочника:</p>
-        <div class="vf-std-grid" id="vf-std-grid"></div>
-        <div class="gh-standards-grid" id="vf-standards-grid"></div>
-        <div class="gh-standards-actions">
-          <button type="button" class="auto-btn" id="vf-std-apply">Применить к расчёту</button>
-          <button type="button" class="auto-btn" id="vf-std-save">Сохранить для сорта</button>
-          <button type="button" class="auto-btn" id="vf-std-reset-model">Сбросить к справочнику</button>
+      <div class="planting-subpanel panel sys-pallet-only env-block-hidden" id="panel-pallet-geom">
+        <div class="section-h" id="pallet-geom-inputs-title">Геометрия поддонов и кассет</div>
+        <p class="sys-pallet-hint sys-pallet-only env-block-hidden" id="pallet-sys-hint">Стеллаж <strong>130×65 см</strong> на ярус. Поддон <strong>130×65 см</strong>. Кассета <strong>600×400 мм</strong>, <strong>3 шт</strong> на поддон. В кассете или в крышке-крафте — <strong>9–54 отверстий</strong>.</p>
+    
+            <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallets-along">
+          <span class="ctrl-label">Поддонов вдоль стойки (130 см)</span>
+          <input type="range" id="palletsAlong" min="1" max="12" step="1" value="3">
+          <span class="ctrl-val"><span id="palletsAlong-v">3</span><span class="unit">шт</span> · <span id="pallet-zone-len">3,9</span><span class="unit">м</span></span>
         </div>
-      </div>
-    </div>
-  </section>
-
-<section class="panel" id="panel-bio-margin">
-    <div class="section-h">Биологический разброс</div>
-    <div class="toggle-wrap toggle-wrap--spaced">
-      <span class="toggle-label">Показывать диапазон значений (а не одну цифру)</span>
-      <label class="toggle">
-        <input type="checkbox" id="showRange">
-        <span class="toggle-switch"></span>
-      </label>
-    </div>
-
-    <div class="ctrl bio-margin-ctrl">
-      <span class="ctrl-label">Разброс по партии</span>
-      <input type="range" id="errorPct" min="0" max="20" step="1" value="12">
-      <span class="ctrl-val">±<span id="errorPct-v">12</span><span class="unit">%</span></span>
-    </div>
-
-    <div class="ui-hint ui-hint--tight" id="bio-margin-hint">
-      Разные семена в одной партии, неодинаковая рассада, микроклимат в разных точках теплицы — всё это даёт реальный разброс. Типичные значения: 8–10% при отработанной агротехнике и хороших семенах, 12–15% при обычных условиях, 18–20% если рассада неравномерная или генетика семян «гуляет». Применяется к массе (±N%), шапке (±N/2%), дню съёма (±N/8 сут).
-    </div>
-  </section>
-
-  <section class="panel collapse-block" id="block-panel-growth">
-    <div class="collapse-head" data-collapse-target="block-panel-growth">
-      <span>Кривая роста</span>
-      <span class="collapse-chev" aria-hidden="true">▼</span>
-    </div>
-    <div class="collapse-body" id="block-panel-growth-body">
-    <div class="viz-frame viz-frame--chart">
-      <svg id="growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
-      <div class="chart-legend" id="chart-legend">
-        <span><span class="swatch mass"></span>Масса, г</span>
-        <span><span class="swatch canopy"></span>Шапка, мм</span>
-      </div>
-    </div>
-    </div>
-  </section>
-
-  <section class="panel" id="panel-system">
-    <div class="section-h" id="system-section-title">Параметры системы · каналы 110×55</div>
-<div class="ctrl sys-channel-only" id="ctrl-length-channel">
-      <span class="ctrl-label" id="length-label">Длина канала</span>
-      <input type="range" id="length" min="1" max="12" step="0.5" value="12">
-      <span class="ctrl-val"><span id="length-v">12.0</span><span class="unit">м</span></span>
-    </div>
-
-<div id="nch-host-channel" class="sys-channel-block sys-channel-only">
-      <div class="ctrl" id="ctrl-nch-wrap">
-      <span class="ctrl-label" id="nch-label">Количество каналов</span>
-      <input type="range" id="nch" min="1" max="20" step="1" value="13">
-      <span class="ctrl-val"><span id="nch-v">13</span><span class="unit">шт</span></span>
-    </div>
-      <div class="sys-aux-actions">
-        <button type="button" class="auto-btn" id="auto-nch">→ Максимум каналов в 2 м ширины</button>
-      </div>
-    </div>
-
-    <div class="ctrl sys-channel-only">
-      <span class="ctrl-label">Сдвиг рядов</span>
-      <input type="range" id="offset" min="0" max="50" step="5" value="50">
-      <span class="ctrl-val"><span id="offset-v">50</span><span class="unit">%</span></span>
-    </div>
-
-    <div class="ctrl sys-channel-only" id="ctrl-extraB">
-      <span class="ctrl-label" id="extraB-label">Доп. отступ b</span>
-      <input type="range" id="extraB" min="0" max="200" step="5" value="0">
-      <span class="ctrl-val">+<span id="extraB-v">0</span><span class="unit">мм</span></span>
-    </div>
-
-    <div class="ctrl gh-geom-only sys-channel-only">
-      <span class="ctrl-label">Диаметр горшка</span>
-      <div class="pot-row" id="pots">
-        <button class="pot-btn" data-d="32">32 мм</button>
-        <button class="pot-btn on" data-d="50">50 мм</button>
-        <button class="pot-btn" data-d="63">63 мм</button>
-        <button class="pot-btn" data-d="73">73 мм</button>
-      </div>
-    </div>
-  </section>
-
-  <section class="panel sys-pallet-only env-block-hidden" id="panel-pallet-geom">
-    <div class="section-h" id="pallet-geom-inputs-title">Геометрия поддонов и кассет</div>
-    <p class="sys-pallet-hint sys-pallet-only env-block-hidden" id="pallet-sys-hint">Стеллаж <strong>130×65 см</strong> на ярус. Поддон <strong>130×65 см</strong>. Кассета <strong>600×400 мм</strong>, <strong>3 шт</strong> на поддон. В кассете или в крышке-крафте — <strong>9–54 отверстий</strong>.</p>
-
-        <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallets-along">
-      <span class="ctrl-label">Поддонов вдоль стойки (130 см)</span>
-      <input type="range" id="palletsAlong" min="1" max="12" step="1" value="3">
-      <span class="ctrl-val"><span id="palletsAlong-v">3</span><span class="unit">шт</span> · <span id="pallet-zone-len">3,9</span><span class="unit">м</span></span>
-    </div>
-    <div id="nch-host-pallet" class="sys-pallet-only env-block-hidden"></div>
-
-        <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallet-cells">
-      <span class="ctrl-label" id="pallet-cells-label">Ячеек в кассете (400×600)</span>
-      <div class="pallet-cell-row" id="pallet-cells">
-        <button type="button" class="pallet-cell-btn" data-cells="6">6</button>
-        <button type="button" class="pallet-cell-btn" data-cells="8">8</button>
-        <button type="button" class="pallet-cell-btn" data-cells="9">9</button>
-        <button type="button" class="pallet-cell-btn" data-cells="14">14</button>
-        <button type="button" class="pallet-cell-btn" data-cells="20">20</button>
-        <button type="button" class="pallet-cell-btn" data-cells="24">24</button>
-        <button type="button" class="pallet-cell-btn on" data-cells="54">54</button>
-      </div>
+        <div id="nch-host-pallet" class="sys-pallet-only env-block-hidden"></div>
+    
+            <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallet-cells">
+          <span class="ctrl-label" id="pallet-cells-label">Ячеек в кассете (400×600)</span>
+          <div class="pallet-cell-row" id="pallet-cells">
+            <button type="button" class="pallet-cell-btn" data-cells="6">6</button>
+            <button type="button" class="pallet-cell-btn" data-cells="8">8</button>
+            <button type="button" class="pallet-cell-btn" data-cells="9">9</button>
+            <button type="button" class="pallet-cell-btn" data-cells="14">14</button>
+            <button type="button" class="pallet-cell-btn" data-cells="20">20</button>
+            <button type="button" class="pallet-cell-btn" data-cells="24">24</button>
+            <button type="button" class="pallet-cell-btn on" data-cells="54">54</button>
+          </div>
+                </div>
+        <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallet-lid-holes" style="display:none">
+          <span class="ctrl-label">Отверстий на поддон (крышка 1300×650)</span>
+          <input type="range" id="palletLidHoles" min="20" max="200" step="1" value="54">
+          <span class="ctrl-val"><span id="palletLidHoles-v">54</span><span class="unit">шт</span></span>
+        </div>
+        <div class="ctrl sys-pallet-only env-block-hidden">
+          <span class="ctrl-label">Тип посадки на поддоне</span>
+          <div class="pallet-mount-row" id="pallet-mount">
+            <button type="button" class="pallet-mount-btn on" data-mount="cassette">3 кассеты 600×400 мм</button>
+            <button type="button" class="pallet-mount-btn" data-mount="lid">Крышка-крафт 1300×650 мм</button>
+          </div>
             </div>
-    <div class="ctrl sys-pallet-only env-block-hidden" id="ctrl-pallet-lid-holes" style="display:none">
-      <span class="ctrl-label">Отверстий на поддон (крышка 1300×650)</span>
-      <input type="range" id="palletLidHoles" min="20" max="200" step="1" value="54">
-      <span class="ctrl-val"><span id="palletLidHoles-v">54</span><span class="unit">шт</span></span>
-    </div>
-    <div class="ctrl sys-pallet-only env-block-hidden">
-      <span class="ctrl-label">Тип посадки на поддоне</span>
-      <div class="pallet-mount-row" id="pallet-mount">
-        <button type="button" class="pallet-mount-btn on" data-mount="cassette">3 кассеты 600×400 мм</button>
-        <button type="button" class="pallet-mount-btn" data-mount="lid">Крышка-крафт 1300×650 мм</button>
-      </div>
+        <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-tier-hint">Высота стеллажа (ориентир): <strong id="pallet-rack-height">—</strong> мм · посевная площадь: <strong id="pallet-useful-area">—</strong> м² <span class="pallet-area-footprint">(площадь по полу <strong id="pallet-footprint-area">—</strong> м² × <span id="pallet-tier-count-hint">—</span> яр.)</span></p>
+    <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-plants-hint"><span id="pallet-plants-prefix">На поддон:</span> <strong id="pallet-plants-per">162</strong> <span id="pallet-plants-mid">раст.</span> (<span id="pallet-plants-formula">3×54</span>)</p>
+    
+        <div class="ctrl sys-pallet-only env-block-hidden">
+          <span class="ctrl-label">Ярусов в стеллаже</span>
+          <input type="range" id="palletTiers" min="1" max="6" step="1" value="5">
+          <span class="ctrl-val"><span id="palletTiers-v">5</span><span class="unit">шт</span></span>
         </div>
-    <p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-tier-hint">Высота стеллажа (ориентир): <strong id="pallet-rack-height">—</strong> мм · посевная площадь: <strong id="pallet-useful-area">—</strong> м² <span class="pallet-area-footprint">(площадь по полу <strong id="pallet-footprint-area">—</strong> м² × <span id="pallet-tier-count-hint">—</span> яр.)</span></p>
-<p class="sys-pallet-only env-block-hidden sys-pallet-hint" id="pallet-plants-hint"><span id="pallet-plants-prefix">На поддон:</span> <strong id="pallet-plants-per">162</strong> <span id="pallet-plants-mid">раст.</span> (<span id="pallet-plants-formula">3×54</span>)</p>
-
-    <div class="ctrl sys-pallet-only env-block-hidden">
-      <span class="ctrl-label">Ярусов в стеллаже</span>
-      <input type="range" id="palletTiers" min="1" max="6" step="1" value="5">
-      <span class="ctrl-val"><span id="palletTiers-v">5</span><span class="unit">шт</span></span>
-    </div>
-    <div class="ctrl sys-pallet-only env-block-hidden">
-      <span class="ctrl-label">Расстояние между ярусами</span>
-      <input type="range" id="tierGapMm" min="300" max="400" step="10" value="350">
-      <span class="ctrl-val"><span id="tierGapMm-v">350</span><span class="unit">мм</span></span>
-    </div>
-  </section>
-
-  <section class="panel gh-yield-panel plant-yield-only" id="panel-gh-yield-totals">
-    <div class="section-h" id="gh-yield-section-title" data-i18n="gh.yield.title">Урожай с полезной площади теплицы</div>
-    <p class="gh-yield-intro" id="gh-yield-intro" data-i18n="gh.yield.intro">Площадь — вся полезная посевная зона (м²). Урожай масштабируется от кг/м² текущего расчёта (сорт, свет, температура, плотность). Погрешность — разброс по партии.</p>
-    <p class="gh-yield-turnover-hint env-block-hidden" id="gh-yield-turnover-hint" role="status"></p>
-    <p class="georgy-density-hint channel-gh-only sys-channel-only env-block-hidden" id="channel-staff-hint"></p>
-    <div class="gh-yield-controls">
-      <div class="gh-yield-area-wrap">
-        <label for="gh-useful-area" data-i18n="gh.yield.areaLabel">Полезная посевная площадь</label>
-        <input type="number" id="gh-useful-area" min="1" step="0.1" inputmode="decimal" placeholder="м²">
-        <span class="unit">м²</span>
-        <button type="button" class="auto-btn" id="gh-useful-area-from-geom" data-i18n="gh.yield.fromGeom">Из геометрии каналов</button>
-        <p class="gh-yield-geom-hint" id="gh-useful-area-geom-hint"></p>
-      </div>
-      <div class="gh-yield-margin">
-        <span class="ctrl-label" data-i18n="gh.yield.margin">Погрешность</span>
-        <input type="range" id="errorPctGh" min="0" max="20" step="1" value="12">
-        <span class="ctrl-val">±<span id="errorPctGh-v">12</span><span class="unit">%</span></span>
-      </div>
-    </div>
-    <div class="metrics gh-yield-results" id="gh-yield-results"></div>
-
-    <div id="gh-yield-cultivar-compare" class="gh-yield-georgy-compare env-block-hidden">
-      <div class="section-h" data-i18n="gh.yield.compareTitle">Сравнение урожая по сортам (вся площадь)</div>
-      <p class="gh-yield-intro" id="gh-yield-compare-intro" data-i18n="gh.yield.compareIntro">Одинаковые дни роста, свет и температура; у каждого сорта — своя плотность по шапке (перекрытие до 20&nbsp;мм). Площадь — из поля выше.</p>
-      <p class="gh-yield-geom-hint" id="gh-yield-compare-meta"></p>
-      <div class="gh-yield-controls gh-yield-inline-error gh-yield-compare-margin-row">
-        <div class="gh-yield-margin">
-          <span class="ctrl-label" data-i18n="gh.yield.compareMarginDup">Погрешность (та же, что в блоке урожая выше)</span>
-          <input type="range" id="ghYieldFarmErrorPct" min="0" max="20" step="1" value="12">
-          <span class="ctrl-val">±<span id="ghYieldFarmErrorPct-v">12</span><span class="unit">%</span></span>
+        <div class="ctrl sys-pallet-only env-block-hidden">
+          <span class="ctrl-label">Расстояние между ярусами</span>
+          <input type="range" id="tierGapMm" min="300" max="400" step="10" value="350">
+          <span class="ctrl-val"><span id="tierGapMm-v">350</span><span class="unit">мм</span></span>
         </div>
       </div>
-      <div class="compare-pick-actions gh-yield-compare-actions">
-        <button type="button" class="auto-btn" id="gh-yield-cmp-all" data-i18n="ui.chart.all">Все</button>
-        <button type="button" class="auto-btn" id="gh-yield-cmp-none" data-i18n="ui.chart.none">Снять</button>
-        <button type="button" class="auto-btn" id="gh-yield-cmp-active" data-i18n="ui.chart.onlyActive">Только текущая</button>
-      </div>
-      <div class="compare-pick-grid gh-yield-compare-pick" id="gh-yield-compare-pick"></div>
-      <div class="cv-compare-scroll">
-        <table class="cv-compare-table gh-yield-compare-table" id="gh-yield-compare-table"></table>
-      </div>
-      <p class="cv-compare-note" data-i18n="gh.yield.compareNote">Сортировка по урожаю в год. Погрешность — тот же ±%, что в ползунке выше.</p>
-    </div>
-
-    <p class="gh-yield-note" id="gh-yield-note" data-i18n="gh.yield.note">При равномерной агротехнике на всей площади. Для смеси сортов используйте вкладку «Экономика».</p>
+        </div>
   </section>
-
-  <section class="panel" id="panel-cv-compare">
-    <div class="section-h" data-i18n="cvCompare.title">Сравнение сортов</div>
-    <p class="cv-compare-intro" data-i18n="cvCompare.introUnified">График и таблица при одинаковых настройках (свет, температура, плотность, срок). Жирная линия на графике — текущий сорт.</p>
-    <p class="cv-compare-georgy-note georgy-only" data-i18n="georgy.cvCompare.hint">Кривые на графике; здесь — таблица. Включите сравнение и отметьте сорта.</p>
-    <div class="toggle-wrap growth-compare-toggle">
-      <span class="toggle-label" data-i18n="cvCompare.toggle">Сравнить культуры</span>
-      <label class="toggle">
-        <input type="checkbox" id="compareMode" data-readonly-allow data-preview-allow>
-        <span class="toggle-switch"></span>
-      </label>
-    </div>
-    <div id="compare-pick-wrap" class="compare-pick-wrap env-block-hidden">
-      <p class="compare-pick-summary" id="compare-pick-summary">Выберите культуры для сравнения.</p>
-      <div class="compare-pick-actions">
-        <button type="button" class="auto-btn" id="compare-pick-all" data-i18n="ui.chart.all" data-readonly-allow data-preview-allow>Все</button>
-        <button type="button" class="auto-btn" id="compare-pick-none" data-i18n="ui.chart.none" data-readonly-allow data-preview-allow>Снять</button>
-        <button type="button" class="auto-btn" id="compare-pick-active" data-i18n="ui.chart.onlyActive" data-readonly-allow data-preview-allow>Только текущая</button>
-        <button type="button" class="auto-btn" id="compare-pick-add-active" data-i18n="ui.chart.addActive" data-readonly-allow data-preview-allow>+ Текущая</button>
-      </div>
-      <div class="compare-pick-grid" id="compare-pick-grid"></div>
-    </div>
-    <div id="cv-compare-margin-wrap" class="cv-compare-margin env-block-hidden">
-      <label class="toggle-wrap" style="margin:0">
-        <span class="toggle-label" data-i18n="cvCompare.showRange">Показать погрешность</span>
-        <label class="toggle">
-          <input type="checkbox" id="compareShowRange">
-          <span class="toggle-switch"></span>
-        </label>
-      </label>
-      <div class="ctrl" style="margin:0">
-        <span class="ctrl-label" data-i18n="cvCompare.errorPct">Погрешность</span>
-        <input type="range" id="compareErrorPct" min="0" max="20" step="1" value="12">
-        <span class="ctrl-val">±<span id="compareErrorPct-v">12</span><span class="unit">%</span></span>
-      </div>
-    </div>
-    <div id="cv-compare-tabs" class="cv-compare-tabs env-block-hidden" role="tablist">
-      <button type="button" class="cv-compare-tab on" data-cv-compare-tab="chart" role="tab" aria-selected="true" data-i18n="cvCompare.tabChart">График</button>
-      <button type="button" class="cv-compare-tab" data-cv-compare-tab="table" role="tab" aria-selected="false" data-i18n="cvCompare.tabTable">Таблица</button>
-    </div>
-    <div id="cv-compare-pane-chart" class="cv-compare-pane env-block-hidden">
-      <div class="viz-frame viz-frame--chart">
-        <svg id="cv-compare-growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
-        <div class="chart-legend" id="cv-compare-chart-legend"></div>
-        <div id="cv-compare-legend"></div>
-      </div>
-    </div>
-    <div id="cv-compare-pane-table" class="cv-compare-pane env-block-hidden">
-      <div class="cv-compare-scroll">
-        <table class="cv-compare-table" id="cv-compare-table"></table>
-      </div>
-    </div>
-  </section>
-
-  <section class="panel" id="panel-metrics">
-    <div class="section-h" id="geom-section-title">Геометрия посадки</div>
-    <div class="metrics" id="metrics-geom"></div>
-
-    <div class="section-h" id="canopy-section-title">Шапка и зазоры</div>
-    <div class="metrics" id="metrics-canopy"></div>
-
-    <div class="section-h" id="sys-metrics-section-title">Система целиком</div>
-    <div class="metrics" id="metrics-sys"></div>
-  </section>
-
-  <div id="farm-cal-nudge" class="farm-cal-nudge env-block-hidden">
-    <span class="farm-cal-nudge-text" data-i18n="farmCal.nudge">Есть замеры с вашей фермы? Подгоните модель под факт.</span>
-    <button type="button" class="auto-btn" data-farm-cal-open data-i18n="farmCal.nudgeOpen">Калибровка по замерам</button>
-  </div>
-
-  <section class="panel collapse-block" id="block-panel-farm-calibration">
-    <div class="collapse-head" data-collapse-target="block-panel-farm-calibration">
-      <span>Калибровка по замерам</span>
+  <section class="panel collapse-block" id="panel-metrics">
+    <div class="collapse-head" data-collapse-target="panel-metrics">
+      <span data-i18n="ui.planting.metricsTitle">Показатели</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
-    <div class="collapse-body" id="block-panel-farm-calibration-body">
-      <p class="ui-hint ui-hint--tight env-block-hidden" id="farm-cal-no-cv">Выберите сорт в списке культур.</p>
-      <div id="farm-cal-form">
-        <p class="ui-hint ui-hint--tight" id="farm-cal-intro">Замеры с объекта подгоняют модель под вашу ферму. Сохраняются в проект JSON.</p>
-        <p class="ui-hint ui-hint--tight farm-cal-status" id="farm-cal-model" hidden></p>
-        <p class="ui-hint ui-hint--tight farm-cal-status farm-cal-applied-line" id="farm-cal-applied" hidden></p>
-        <div class="ctrl">
-          <span class="ctrl-label" id="farm-cal-mass-lbl">Факт. масса срезки, г</span>
-          <input type="number" id="farm-cal-mass" step="0.1" min="0">
+    <div class="collapse-body" id="panel-metrics-body">
+      <div class="collapse-block" id="block-stage" data-collapse-vf="">
+        <div class="collapse-head" data-collapse-target="block-stage">
+          <span>Фаза роста</span>
+          <span class="collapse-chev" aria-hidden="true">▼</span>
         </div>
-        <div class="ctrl">
-          <span class="ctrl-label" id="farm-cal-yield-lbl">Факт. урожай, кг/м²·мес</span>
-          <input type="number" id="farm-cal-yield" step="0.01" min="0">
-        </div>
-        <div class="ctrl">
-          <span class="ctrl-label" id="farm-cal-date-lbl">Дата замера</span>
-          <input type="date" id="farm-cal-date">
-        </div>
-        <div class="ctrl">
-          <span class="ctrl-label" id="farm-cal-comment-lbl">Комментарий</span>
-          <input type="text" id="farm-cal-comment" maxlength="120">
-        </div>
-        <div class="gh-standards-actions">
-          <button type="button" class="auto-btn auto-btn--primary" id="farm-cal-save">Применить калибровку</button>
-          <button type="button" class="auto-btn env-block-hidden" id="farm-cal-clear">Сбросить замеры</button>
+        <div class="collapse-body" id="block-stage-body">
+          <div id="stage-bar" class="stage-bar" role="list">
+            <div class="stage-seg" data-stage="young" role="listitem"><span class="stage-lbl">Молодой лист</span></div>
+            <div class="stage-seg" data-stage="mature" role="listitem"><span class="stage-lbl">Набор массы</span></div>
+            <div class="stage-seg" data-stage="full" role="listitem"><span class="stage-lbl">Взрослая зелень</span></div>
+            <div class="stage-seg" data-stage="bolt" role="listitem"><span class="stage-lbl">Стрелкование/перерост</span></div>
+          </div>
+          <div class="metrics" id="metrics-growth"></div>
         </div>
       </div>
+      <div class="section-h" id="geom-section-title">Геометрия посадки</div>
+      <div class="metrics" id="metrics-geom"></div>
+      <div class="section-h" id="canopy-section-title">Шапка и зазоры</div>
+      <div class="metrics" id="metrics-canopy"></div>
+      <div class="section-h" id="sys-metrics-section-title">Система целиком</div>
+      <div class="metrics" id="metrics-sys"></div>
     </div>
   </section>
-
-  <section class="panel" id="panel-scenarios">
-    <div class="section-h">Сравнение сценариев и экономика</div>
-    <div class="toggle-wrap" style="margin-bottom: 14px">
-      <span class="toggle-label">Сравнить текущий сценарий A с альтернативой B</span>
-      <label class="toggle">
-        <input type="checkbox" id="compareScenarios">
-        <span class="toggle-switch"></span>
-      </label>
+  <section class="panel collapse-block" id="panel-schema">
+    <div class="collapse-head" data-collapse-target="panel-schema">
+      <span data-i18n="ui.planting.schemaTitle" id="schema-section-title">Схема — вид сверху</span>
+      <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
-
-    <div id="scenario-config" style="display:none">
-      <div style="font-size:12.5px;color:var(--ink-faint);margin-bottom:10px">Сценарий A = текущие настройки выше. В сценарии B меняете только то, что хотите сравнить:</div>
-
-      <div class="ctrl">
-        <span class="ctrl-label">Сорт B</span>
-        <div class="cultivar-grid" id="cultivars-B" style="grid-column: 2 / 4"></div>
-      </div>
-
-      <div class="ctrl scen-gh-only">
-        <span class="ctrl-label">Месяц B</span>
-        <div class="month-picker" id="months-B" style="grid-column: 2 / 4"></div>
-      </div>
-
-      <div class="ctrl scen-gh-only">
-        <span class="ctrl-label">Досветка B</span>
-        <label class="toggle" style="grid-column: 2 / 4">
-          <input type="checkbox" id="lighting-B">
-          <span class="toggle-switch"></span>
-          <span class="toggle-label" id="lighting-B-label">Выключена</span>
-        </label>
-      </div>
-
-      <div class="ctrl scen-vf-only env-block-hidden">
-        <span class="ctrl-label">DLI B, моль/сут</span>
-        <input type="range" id="targetDliB" min="12" max="22" step="0.5" value="15">
-        <span class="ctrl-val"><span id="targetDliB-v">15</span></span>
-      </div>
-
-      <div class="ctrl scen-vf-only env-block-hidden">
-        <span class="ctrl-label">Фотопериод B, ч</span>
-        <input type="range" id="targetPhotoperiodB" min="14" max="20" step="0.5" value="18">
-        <span class="ctrl-val"><span id="targetPhotoperiodB-v">18</span></span>
-      </div>
-
-      <div class="ctrl">
-        <span class="ctrl-label">Температура B</span>
-        <input type="range" id="temp-B" min="20" max="38" step="0.5" value="26">
-        <span class="ctrl-val"><span id="temp-B-v">26</span><span class="unit">°C</span></span>
-      </div>
-
-      <div class="section-h">Экономика — для расчёта выручки</div>
-
-      <div class="ctrl">
-        <span class="ctrl-label">Цена готового салата</span>
-        <input type="range" id="pricePerKg" min="100" max="3000" step="50" value="800">
-        <span class="ctrl-val"><span id="pricePerKg-v">800</span><span class="unit">за кг</span></span>
-      </div>
-
-      <div class="ctrl">
-        <span class="ctrl-label">Цена электричества</span>
-        <input type="range" id="pricePerKwh" min="1" max="20" step="0.5" value="5">
-        <span class="ctrl-val"><span id="pricePerKwh-v">5</span><span class="unit">за кВт·ч</span></span>
-      </div>
-
-      <div id="scenario-results"></div>
+    <div class="collapse-body" id="panel-schema-body">
+      <div class="canopy-schema-bar" id="canopy-schema-bar">
+          <span class="schema-canopy-legend"><span class="schema-canopy-swatch"></span>Шапка ⌀<strong id="schema-canopy-val">—</strong> мм</span>
+          <button type="button" class="auto-btn js-canopy-std">стандарт</button>
+          <div class="ctrl canopy-pct-ctrl canopy-schema-pct" style="margin:0;flex:1 1 180px">
+            <span class="ctrl-label" data-i18n="canopy.pct">Погрешность шапки</span>
+            <input type="range" class="canopyPct-sync" min="100" max="130" step="5" value="100">
+            <span class="ctrl-val"><span class="canopyPct-v-sync">100</span>%</span>
+          </div>
+          <p class="schema-canopy-pct-hint" data-i18n="canopy.pctHint">100% — модель; выше — запас по диаметру шапки на схеме (погрешность посадки).</p>
+        </div>
+        <div class="viz-frame">
+          <svg id="schema" viewBox="0 0 640 340" style="width:100%;height:auto;display:block;overflow:visible"></svg>
+          <div class="viz-caption" id="viz-caption"></div>
+        </div>
     </div>
   </section>
-
-  <section class="panel" id="panel-schema">
-    <div class="section-h" id="schema-section-title">Схема — вид сверху</div>
-    <div class="canopy-schema-bar" id="canopy-schema-bar">
-      <span class="schema-canopy-legend"><span class="schema-canopy-swatch"></span>Шапка ⌀<strong id="schema-canopy-val">—</strong> мм</span>
-      <button type="button" class="auto-btn js-canopy-std">стандарт</button>
-      <div class="ctrl canopy-pct-ctrl canopy-schema-pct" style="margin:0;flex:1 1 180px">
-        <span class="ctrl-label" data-i18n="canopy.pct">Погрешность шапки</span>
-        <input type="range" class="canopyPct-sync" min="100" max="130" step="5" value="100">
-        <span class="ctrl-val"><span class="canopyPct-v-sync">100</span>%</span>
-      </div>
-      <p class="schema-canopy-pct-hint" data-i18n="canopy.pctHint">100% — модель; выше — запас по диаметру шапки на схеме (погрешность посадки).</p>
-    </div>
-    <div class="viz-frame">
-      <svg id="schema" viewBox="0 0 640 340" style="width:100%;height:auto;display:block;overflow:visible"></svg>
-      <div class="viz-caption" id="viz-caption"></div>
-    </div>
-  </section>
-
   <section class="panel collapse-block" id="block-panel-recs">
     <div class="collapse-head" data-collapse-target="block-panel-recs">
       <span>Рекомендации</span>
@@ -3587,24 +3340,312 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     <div id="recs"></div>
     </div>
   </section>
-
-  <section class="panel collapse-block sys-channel-only" id="panel-channel-guide">
-    <div class="collapse-head" data-collapse-target="panel-channel-guide">
-      <span data-i18n="guide.channel.title">Гайд · каналы в теплице</span>
+  <section class="panel collapse-block" id="panel-bio-margin">
+    <div class="collapse-head" data-collapse-target="panel-bio-margin">
+      <span data-i18n="ui.planting.bioMarginTitle">Биологический разброс</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
-    <div class="collapse-body planting-guide-body" id="panel-channel-guide-body"></div>
+    <div class="collapse-body" id="panel-bio-margin-body">
+      <div class="toggle-wrap toggle-wrap--spaced">
+        <span class="toggle-label">Показывать диапазон значений (а не одну цифру)</span>
+        <label class="toggle">
+          <input type="checkbox" id="showRange">
+          <span class="toggle-switch"></span>
+        </label>
+      </div>
+      <div class="ctrl bio-margin-ctrl">
+        <span class="ctrl-label">Разброс по партии</span>
+        <input type="range" id="errorPct" min="0" max="20" step="1" value="12">
+        <span class="ctrl-val">±<span id="errorPct-v">12</span><span class="unit">%</span></span>
+      </div>
+      <div class="ui-hint ui-hint--tight" id="bio-margin-hint">
+        Разные семена в одной партии, неодинаковая рассада, микроклимат в разных точках теплицы — всё это даёт реальный разброс. Типичные значения: 8–10% при отработанной агротехнике и хороших семенах, 12–15% при обычных условиях, 18–20% если рассада неравномерная или генетика семян «гуляет». Применяется к массе (±N%), шапке (±N/2%), дню съёма (±N/8 сут).
+      </div>
+    </div>
   </section>
-
-  <section class="panel collapse-block sys-pallet-only env-block-hidden" id="panel-pallet-guide">
-    <div class="collapse-head" data-collapse-target="panel-pallet-guide">
-      <span data-i18n="guide.pallet.title">Гайд · поддоны 130×65</span>
+  <section class="panel collapse-block" id="panel-gh-yield-totals">
+    <div class="collapse-head" data-collapse-target="panel-gh-yield-totals">
+      <span data-i18n="gh.yield.title" id="gh-yield-section-title">Урожай с полезной площади теплицы</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
-    <div class="collapse-body planting-guide-body" id="panel-pallet-guide-body"></div>
+    <div class="collapse-body" id="panel-gh-yield-totals-body">
+        <p class="gh-yield-intro" id="gh-yield-intro" data-i18n="gh.yield.intro">Площадь — вся полезная посевная зона (м²). Урожай масштабируется от кг/м² текущего расчёта (сорт, свет, температура, плотность). Погрешность — разброс по партии.</p>
+        <p class="gh-yield-turnover-hint env-block-hidden" id="gh-yield-turnover-hint" role="status"></p>
+        <p class="georgy-density-hint channel-gh-only sys-channel-only env-block-hidden" id="channel-staff-hint"></p>
+        <div class="gh-yield-controls">
+          <div class="gh-yield-area-wrap">
+            <label for="gh-useful-area" data-i18n="gh.yield.areaLabel">Полезная посевная площадь</label>
+            <input type="number" id="gh-useful-area" min="1" step="0.1" inputmode="decimal" placeholder="м²">
+            <span class="unit">м²</span>
+            <button type="button" class="auto-btn" id="gh-useful-area-from-geom" data-i18n="gh.yield.fromGeom">Из геометрии каналов</button>
+            <p class="gh-yield-geom-hint" id="gh-useful-area-geom-hint"></p>
+          </div>
+          <div class="gh-yield-margin">
+            <span class="ctrl-label" data-i18n="gh.yield.margin">Погрешность</span>
+            <input type="range" id="errorPctGh" min="0" max="20" step="1" value="12">
+            <span class="ctrl-val">±<span id="errorPctGh-v">12</span><span class="unit">%</span></span>
+          </div>
+        </div>
+        <div class="metrics gh-yield-results" id="gh-yield-results"></div>
+    
+        <div id="gh-yield-cultivar-compare" class="gh-yield-georgy-compare env-block-hidden">
+          <div class="section-h" data-i18n="gh.yield.compareTitle">Сравнение урожая по сортам (вся площадь)</div>
+          <p class="gh-yield-intro" id="gh-yield-compare-intro" data-i18n="gh.yield.compareIntro">Одинаковые дни роста, свет и температура; у каждого сорта — своя плотность по шапке (перекрытие до 20&nbsp;мм). Площадь — из поля выше.</p>
+          <p class="gh-yield-geom-hint" id="gh-yield-compare-meta"></p>
+          <div class="gh-yield-controls gh-yield-inline-error gh-yield-compare-margin-row">
+            <div class="gh-yield-margin">
+              <span class="ctrl-label" data-i18n="gh.yield.compareMarginDup">Погрешность (та же, что в блоке урожая выше)</span>
+              <input type="range" id="ghYieldFarmErrorPct" min="0" max="20" step="1" value="12">
+              <span class="ctrl-val">±<span id="ghYieldFarmErrorPct-v">12</span><span class="unit">%</span></span>
+            </div>
+          </div>
+          <div class="compare-pick-actions gh-yield-compare-actions">
+            <button type="button" class="auto-btn" id="gh-yield-cmp-all" data-i18n="ui.chart.all">Все</button>
+            <button type="button" class="auto-btn" id="gh-yield-cmp-none" data-i18n="ui.chart.none">Снять</button>
+            <button type="button" class="auto-btn" id="gh-yield-cmp-active" data-i18n="ui.chart.onlyActive">Только текущая</button>
+          </div>
+          <div class="compare-pick-grid gh-yield-compare-pick" id="gh-yield-compare-pick"></div>
+          <div class="cv-compare-scroll">
+            <table class="cv-compare-table gh-yield-compare-table" id="gh-yield-compare-table"></table>
+          </div>
+          <p class="cv-compare-note" data-i18n="gh.yield.compareNote">Сортировка по урожаю в год. Погрешность — тот же ±%, что в ползунке выше.</p>
+        </div>
+    
+        <p class="gh-yield-note" id="gh-yield-note" data-i18n="gh.yield.note">При равномерной агротехнике на всей площади. Для смеси сортов используйте вкладку «Экономика».</p>
+          </div>
+  </section>
+  <div id="farm-cal-nudge" class="farm-cal-nudge env-block-hidden">
+    <span class="farm-cal-nudge-text" data-i18n="farmCal.nudge">Есть замеры с вашей фермы? Подгоните модель под факт.</span>
+    <button type="button" class="auto-btn" data-farm-cal-open data-i18n="farmCal.nudgeOpen">Калибровка по замерам</button>
+  </div>
+  <section class="panel collapse-block" id="panel-planting-advanced">
+    <div class="collapse-head" data-collapse-target="panel-planting-advanced">
+      <span data-i18n="ui.planting.advancedTitle">Дополнительно</span>
+      <span class="collapse-chev" aria-hidden="true">▼</span>
+    </div>
+    <div class="collapse-body" id="panel-planting-advanced-body">
+      <div class="planting-subpanel panel collapse-block sheet-standards-panel" id="block-panel-standards">
+        <div class="collapse-head" data-collapse-target="block-panel-standards">
+          <span>Мои стандарты</span>
+          <span class="collapse-chev" aria-hidden="true">▼</span>
+        </div>
+        <div class="collapse-body" id="block-panel-standards-body">
+          <div class="standards-sub gh-only" id="user-standards-gh-wrap">
+            <div class="section-h">Теплица</div>
+            <p class="gh-standards-hint ui-hint">Значения для сорта <strong id="gh-std-cv-name">—</strong>, в т.ч. <strong>шапка в мм</strong>. «Сохранить для сорта» пишет в браузер (localStorage) — остаётся после перезагрузки, пока не сбросите или не очистите данные сайта. «Применить» подставит в расчёт.</p>
+            <div class="gh-standards-grid" id="gh-standards-grid"></div>
+            <div class="gh-standards-actions">
+              <button type="button" class="auto-btn" id="gh-std-apply">Применить к расчёту</button>
+              <button type="button" class="auto-btn" id="gh-std-save">Сохранить для сорта</button>
+              <button type="button" class="auto-btn" id="gh-std-reset-model">Сбросить к модели сорта</button>
+            </div>
+          </div>
+          <div class="standards-sub sheet-standards-only vf-only env-block-hidden" id="user-standards-vf-wrap">
+            <div class="section-h" id="sheet-standards-section-title">Вертикальная ферма</div>
+            <p class="gh-standards-hint ui-hint" id="sheet-standards-hint"></p>
+            <p class="vf-std-locks-title" id="sheet-std-locks-title">Подставлять из справочника:</p>
+            <div class="vf-std-grid" id="vf-std-grid"></div>
+            <div class="gh-standards-grid" id="vf-standards-grid"></div>
+            <div class="gh-standards-actions">
+              <button type="button" class="auto-btn" id="vf-std-apply">Применить к расчёту</button>
+              <button type="button" class="auto-btn" id="vf-std-save">Сохранить для сорта</button>
+              <button type="button" class="auto-btn" id="vf-std-reset-model">Сбросить к справочнику</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <div class="planting-subpanel panel collapse-block" id="block-panel-growth">
+        <div class="collapse-head" data-collapse-target="block-panel-growth">
+          <span>Кривая роста</span>
+          <span class="collapse-chev" aria-hidden="true">▼</span>
+        </div>
+        <div class="collapse-body" id="block-panel-growth-body">
+        <div class="viz-frame viz-frame--chart">
+          <svg id="growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
+          <div class="chart-legend" id="chart-legend">
+            <span><span class="swatch mass"></span>Масса, г</span>
+            <span><span class="swatch canopy"></span>Шапка, мм</span>
+          </div>
+        </div>
+        </div>
+      </div>
+    
+      <div class="planting-subpanel panel" id="panel-cv-compare">
+        <div class="section-h" data-i18n="cvCompare.title">Сравнение сортов</div>
+        <p class="cv-compare-intro" data-i18n="cvCompare.introUnified">График и таблица при одинаковых настройках (свет, температура, плотность, срок). Жирная линия на графике — текущий сорт.</p>
+        <p class="cv-compare-georgy-note georgy-only" data-i18n="georgy.cvCompare.hint">Кривые на графике; здесь — таблица. Включите сравнение и отметьте сорта.</p>
+        <div class="toggle-wrap growth-compare-toggle">
+          <span class="toggle-label" data-i18n="cvCompare.toggle">Сравнить культуры</span>
+          <label class="toggle">
+            <input type="checkbox" id="compareMode" data-readonly-allow data-preview-allow>
+            <span class="toggle-switch"></span>
+          </label>
+        </div>
+        <div id="compare-pick-wrap" class="compare-pick-wrap env-block-hidden">
+          <p class="compare-pick-summary" id="compare-pick-summary">Выберите культуры для сравнения.</p>
+          <div class="compare-pick-actions">
+            <button type="button" class="auto-btn" id="compare-pick-all" data-i18n="ui.chart.all" data-readonly-allow data-preview-allow>Все</button>
+            <button type="button" class="auto-btn" id="compare-pick-none" data-i18n="ui.chart.none" data-readonly-allow data-preview-allow>Снять</button>
+            <button type="button" class="auto-btn" id="compare-pick-active" data-i18n="ui.chart.onlyActive" data-readonly-allow data-preview-allow>Только текущая</button>
+            <button type="button" class="auto-btn" id="compare-pick-add-active" data-i18n="ui.chart.addActive" data-readonly-allow data-preview-allow>+ Текущая</button>
+          </div>
+          <div class="compare-pick-grid" id="compare-pick-grid"></div>
+        </div>
+        <div id="cv-compare-margin-wrap" class="cv-compare-margin env-block-hidden">
+          <label class="toggle-wrap" style="margin:0">
+            <span class="toggle-label" data-i18n="cvCompare.showRange">Показать погрешность</span>
+            <label class="toggle">
+              <input type="checkbox" id="compareShowRange">
+              <span class="toggle-switch"></span>
+            </label>
+          </label>
+          <div class="ctrl" style="margin:0">
+            <span class="ctrl-label" data-i18n="cvCompare.errorPct">Погрешность</span>
+            <input type="range" id="compareErrorPct" min="0" max="20" step="1" value="12">
+            <span class="ctrl-val">±<span id="compareErrorPct-v">12</span><span class="unit">%</span></span>
+          </div>
+        </div>
+        <div id="cv-compare-tabs" class="cv-compare-tabs env-block-hidden" role="tablist">
+          <button type="button" class="cv-compare-tab on" data-cv-compare-tab="chart" role="tab" aria-selected="true" data-i18n="cvCompare.tabChart">График</button>
+          <button type="button" class="cv-compare-tab" data-cv-compare-tab="table" role="tab" aria-selected="false" data-i18n="cvCompare.tabTable">Таблица</button>
+        </div>
+        <div id="cv-compare-pane-chart" class="cv-compare-pane env-block-hidden">
+          <div class="viz-frame viz-frame--chart">
+            <svg id="cv-compare-growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
+            <div class="chart-legend" id="cv-compare-chart-legend"></div>
+            <div id="cv-compare-legend"></div>
+          </div>
+        </div>
+        <div id="cv-compare-pane-table" class="cv-compare-pane env-block-hidden">
+          <div class="cv-compare-scroll">
+            <table class="cv-compare-table" id="cv-compare-table"></table>
+          </div>
+        </div>
+      </div>
+    
+      <div class="planting-subpanel panel" id="panel-scenarios">
+        <div class="section-h">Сравнение сценариев и экономика</div>
+        <div class="toggle-wrap" style="margin-bottom: 14px">
+          <span class="toggle-label">Сравнить текущий сценарий A с альтернативой B</span>
+          <label class="toggle">
+            <input type="checkbox" id="compareScenarios">
+            <span class="toggle-switch"></span>
+          </label>
+        </div>
+    
+        <div id="scenario-config" style="display:none">
+          <div style="font-size:12.5px;color:var(--ink-faint);margin-bottom:10px">Сценарий A = текущие настройки выше. В сценарии B меняете только то, что хотите сравнить:</div>
+    
+          <div class="ctrl">
+            <span class="ctrl-label">Сорт B</span>
+            <div class="cultivar-grid" id="cultivars-B" style="grid-column: 2 / 4"></div>
+          </div>
+    
+          <div class="ctrl scen-gh-only">
+            <span class="ctrl-label">Месяц B</span>
+            <div class="month-picker" id="months-B" style="grid-column: 2 / 4"></div>
+          </div>
+    
+          <div class="ctrl scen-gh-only">
+            <span class="ctrl-label">Досветка B</span>
+            <label class="toggle" style="grid-column: 2 / 4">
+              <input type="checkbox" id="lighting-B">
+              <span class="toggle-switch"></span>
+              <span class="toggle-label" id="lighting-B-label">Выключена</span>
+            </label>
+          </div>
+    
+          <div class="ctrl scen-vf-only env-block-hidden">
+            <span class="ctrl-label">DLI B, моль/сут</span>
+            <input type="range" id="targetDliB" min="12" max="22" step="0.5" value="15">
+            <span class="ctrl-val"><span id="targetDliB-v">15</span></span>
+          </div>
+    
+          <div class="ctrl scen-vf-only env-block-hidden">
+            <span class="ctrl-label">Фотопериод B, ч</span>
+            <input type="range" id="targetPhotoperiodB" min="14" max="20" step="0.5" value="18">
+            <span class="ctrl-val"><span id="targetPhotoperiodB-v">18</span></span>
+          </div>
+    
+          <div class="ctrl">
+            <span class="ctrl-label">Температура B</span>
+            <input type="range" id="temp-B" min="20" max="38" step="0.5" value="26">
+            <span class="ctrl-val"><span id="temp-B-v">26</span><span class="unit">°C</span></span>
+          </div>
+    
+          <div class="section-h">Экономика — для расчёта выручки</div>
+    
+          <div class="ctrl">
+            <span class="ctrl-label">Цена готового салата</span>
+            <input type="range" id="pricePerKg" min="100" max="3000" step="50" value="800">
+            <span class="ctrl-val"><span id="pricePerKg-v">800</span><span class="unit">за кг</span></span>
+          </div>
+    
+          <div class="ctrl">
+            <span class="ctrl-label">Цена электричества</span>
+            <input type="range" id="pricePerKwh" min="1" max="20" step="0.5" value="5">
+            <span class="ctrl-val"><span id="pricePerKwh-v">5</span><span class="unit">за кВт·ч</span></span>
+          </div>
+    
+          <div id="scenario-results"></div>
+        </div>
+      </div>
+
+      <div class="planting-subpanel panel collapse-block" id="block-panel-farm-calibration">
+        <div class="collapse-head" data-collapse-target="block-panel-farm-calibration">
+          <span>Калибровка по замерам</span>
+          <span class="collapse-chev" aria-hidden="true">▼</span>
+        </div>
+        <div class="collapse-body" id="block-panel-farm-calibration-body">
+          <p class="ui-hint ui-hint--tight env-block-hidden" id="farm-cal-no-cv">Выберите сорт в списке культур.</p>
+          <div id="farm-cal-form">
+            <p class="ui-hint ui-hint--tight" id="farm-cal-intro">Замеры с объекта подгоняют модель под вашу ферму. Сохраняются в проект JSON.</p>
+            <p class="ui-hint ui-hint--tight farm-cal-status" id="farm-cal-model" hidden></p>
+            <p class="ui-hint ui-hint--tight farm-cal-status farm-cal-applied-line" id="farm-cal-applied" hidden></p>
+            <div class="ctrl">
+              <span class="ctrl-label" id="farm-cal-mass-lbl">Факт. масса срезки, г</span>
+              <input type="number" id="farm-cal-mass" step="0.1" min="0">
+            </div>
+            <div class="ctrl">
+              <span class="ctrl-label" id="farm-cal-yield-lbl">Факт. урожай, кг/м²·мес</span>
+              <input type="number" id="farm-cal-yield" step="0.01" min="0">
+            </div>
+            <div class="ctrl">
+              <span class="ctrl-label" id="farm-cal-date-lbl">Дата замера</span>
+              <input type="date" id="farm-cal-date">
+            </div>
+            <div class="ctrl">
+              <span class="ctrl-label" id="farm-cal-comment-lbl">Комментарий</span>
+              <input type="text" id="farm-cal-comment" maxlength="120">
+            </div>
+            <div class="gh-standards-actions">
+              <button type="button" class="auto-btn auto-btn--primary" id="farm-cal-save">Применить калибровку</button>
+              <button type="button" class="auto-btn env-block-hidden" id="farm-cal-clear">Сбросить замеры</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <div class="planting-subpanel panel collapse-block sys-channel-only" id="panel-channel-guide">
+        <div class="collapse-head" data-collapse-target="panel-channel-guide">
+          <span data-i18n="guide.channel.title">Гайд · каналы в теплице</span>
+          <span class="collapse-chev" aria-hidden="true">▼</span>
+        </div>
+        <div class="collapse-body planting-guide-body" id="panel-channel-guide-body"></div>
+      </div>
+    
+      <div class="planting-subpanel panel collapse-block sys-pallet-only env-block-hidden" id="panel-pallet-guide">
+        <div class="collapse-head" data-collapse-target="panel-pallet-guide">
+          <span data-i18n="guide.pallet.title">Гайд · поддоны 130×65</span>
+          <span class="collapse-chev" aria-hidden="true">▼</span>
+        </div>
+        <div class="collapse-body planting-guide-body" id="panel-pallet-guide-body"></div>
+      </div>
+        </div>
   </section>
 
-  <footer class="colophon">
+<footer class="colophon">
     <div><strong>Модель роста.</strong> Логистическая: <span class="formula">M(t) = M<sub>max</sub> / (1 + e<sup>−k(t−t₅₀)</sup>)</span>, шапка <span class="formula">d = c · √M</span></div>
     <div id="colophon-light"></div>
     <div style="margin-top:4px"><strong>Температура.</strong> <span class="formula">f(T) = exp(−(T−T<sub>opt</sub>)² / 2σ²)</span>, где T<sub>opt</sub> у каждого сорта свой: 20–22°C у прохладных, 23–24°C у батавий Rijk Zwaan (Афицион, Старфайтер и др.). Стрелкование ускоряется выше (T<sub>opt</sub> + 3°C).</div>
@@ -4238,6 +4279,9 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   function renderMonths(){ return _render.renderMonths(); }
   function renderCvCompare(){ return _render.renderCvCompare(); }
   function initCollapseBlocks(){ return _render.initCollapseBlocks(); }
+  function setCollapseBlock(id, collapsed){ return _render.setCollapseBlock(id, collapsed); }
+  window.DG_setCollapseBlock = setCollapseBlock;
+  window.DG_syncBioMarginVisibility = syncBioMarginVisibility;
   function setFacility(mode){ return _render.setFacility(mode); }
   function withRange(v, hw, u){ return _render.withRange(v, hw, u); }
   function rangeText(v, hw, d){ return _render.rangeText(v, hw, d); }
@@ -4741,6 +4785,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       syncCutIntervalSlider: syncCutIntervalSlider,
       syncCanopyUI: syncCanopyUI, syncHarvestBlockUI: syncHarvestBlockUI, syncVfStdBadges: syncVfStdBadges,
       unlockPlantingStdForControl: unlockPlantingStdForControl, initCollapseBlocks: initCollapseBlocks,
+      setCollapseBlock: setCollapseBlock,
       bindVfStdBadges: bindVfStdBadges, modelCanopyFromMass: modelCanopyFromMass,
       applyCanopyStandard: applyCanopyStandard, applyGhStandardFromStore: applyGhStandardFromStore,
       applyVfStandardFromStore: applyVfStandardFromStore, applyVfStandardField: applyVfStandardField,

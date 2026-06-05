@@ -20,8 +20,10 @@
     { id: 'panel-bio-margin', group: 'planting', selector: '#panel-bio-margin' },
     { id: 'block-panel-growth', group: 'planting', selector: '#block-panel-growth' },
     { id: 'block-panel-multicut', group: 'planting', selector: '#block-panel-multicut' },
+    { id: 'block-panel-geom', group: 'planting', selector: '#block-panel-geom' },
     { id: 'panel-system', group: 'planting', selector: '#panel-system' },
     { id: 'panel-pallet-geom', group: 'planting', selector: '#panel-pallet-geom' },
+    { id: 'panel-planting-advanced', group: 'planting', selector: '#panel-planting-advanced' },
     { id: 'panel-gh-yield', group: 'planting', selector: '#panel-gh-yield-totals' },
     { id: 'panel-cv-compare', group: 'planting', selector: '#panel-cv-compare' },
     { id: 'panel-metrics', group: 'planting', selector: '#panel-metrics' },
@@ -48,7 +50,7 @@
   ];
 
   var DEFAULT_SELECTED = [
-    'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'panel-system', 'panel-metrics',
+    'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'block-panel-geom', 'panel-metrics',
     'panel-gh-yield', 'panel-schema', 'econ-general', 'econ-cultures', 'econ-results'
   ];
 
@@ -63,9 +65,9 @@
   var PDF_PRESETS = {
     planting: [
       'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'panel-bio-margin',
-      'block-panel-growth', 'panel-system', 'panel-pallet-geom', 'panel-gh-yield',
+      'block-panel-geom', 'panel-gh-yield',
       'panel-metrics', 'panel-schema', 'block-panel-recs',
-      'panel-channel-guide', 'panel-pallet-guide', 'block-panel-standards',
+      'panel-planting-advanced',
       'econ-cult-unit-cost', 'econ-farm-final'
     ],
     econ: [

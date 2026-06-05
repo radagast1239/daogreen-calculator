@@ -127,7 +127,13 @@
         var btn = e.target.closest('[data-farm-cal-open]');
         if (!btn) return;
         var st = getState();
-        st.sectionCollapsed['block-panel-farm-calibration'] = false;
+        if (typeof global.DG_setCollapseBlock === 'function') {
+          global.DG_setCollapseBlock('panel-planting-advanced', false);
+          global.DG_setCollapseBlock('block-panel-farm-calibration', false);
+        } else {
+          st.sectionCollapsed['panel-planting-advanced'] = false;
+          st.sectionCollapsed['block-panel-farm-calibration'] = false;
+        }
         var block = $('block-panel-farm-calibration');
         var body = $('block-panel-farm-calibration-body') ||
           (block && block.querySelector('.collapse-body'));

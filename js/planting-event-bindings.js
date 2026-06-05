@@ -151,6 +151,13 @@ const dlg = $('cv-add-dialog');
     function saveVfStandardsStore() { return deps.saveVfStandardsStore.apply(deps, arguments); }
     function setAppView() { return deps.setAppView.apply(deps, arguments); }
     function setFacility() { return deps.setFacility.apply(deps, arguments); }
+    function setCollapseBlock(id, collapsed) {
+      if (deps.setCollapseBlock) return deps.setCollapseBlock(id, collapsed);
+    }
+    function collapseCultivarsAfterPick() {
+      state.sectionCollapsed['panel-cultivars'] = true;
+      setCollapseBlock('panel-cultivars', true);
+    }
     function showError() { return deps.showError.apply(deps, arguments); }
     function showToast() { return deps.showToast.apply(deps, arguments); }
     function syncBabyGhCutsAuto() { return deps.syncBabyGhCutsAuto.apply(deps, arguments); }
@@ -882,6 +889,7 @@ const dlg = $('cv-add-dialog');
         renderCultivars();
         try { renderAll(); } catch (err2) { showError('palletCv/render', err2); }
         renderVfStandardsPanel();
+        collapseCultivarsAfterPick();
         return;
       }
       if (vfId) {
@@ -906,6 +914,7 @@ const dlg = $('cv-add-dialog');
       try { renderAll(); } catch (err3) { showError('cv/render', err3); }
       if (vfId) renderVfStandardsPanel();
       else renderGhStandardsPanel();
+      collapseCultivarsAfterPick();
     });
   }
     }

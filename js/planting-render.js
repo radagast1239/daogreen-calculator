@@ -2566,6 +2566,7 @@
       renderMonths: renderMonths,
       renderCvCompare: renderCvCompare,
       initCollapseBlocks: initCollapseBlocks,
+      setCollapseBlock: setCollapseBlock,
       setFacility: setFacility,
       withRange: withRange,
       rangeText: rangeText,
