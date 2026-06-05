@@ -1,0 +1,231 @@
+/**
+ * PDF raster export — planting sections (matches site visual-polish / econ-panel).
+ * Scoped to .pdf-staging--planting only; economics uses .pdf-staging--econ.
+ */
+
+.pdf-staging--planting {
+  background: #FAF6EC !important;
+  padding: 10px 14px !important;
+}
+
+.pdf-staging--planting .pdf-export-wrap {
+  margin-bottom: 18px;
+  background: transparent;
+}
+
+.pdf-staging--planting .pdf-section-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1A4A3F;
+  margin: 0 0 12px;
+  padding: 8px 12px 8px 10px;
+  background: rgba(39, 109, 92, 0.06);
+  border-radius: 8px;
+  border-left: 3px solid #276D5C;
+  letter-spacing: 0.02em;
+}
+
+.pdf-staging--planting .pdf-section-title::before {
+  display: none;
+}
+
+.pdf-staging--planting .pdf-section-title::after {
+  display: none;
+}
+
+.pdf-staging--planting .panel,
+.pdf-staging--planting .econ-panel.panel {
+  background: #FFFEFB !important;
+  border: 1px solid #D4CAB0 !important;
+  border-left: 3px solid #276D5C !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 10px rgba(31, 29, 23, 0.07), 0 0 0 1px rgba(31, 29, 23, 0.03) !important;
+  padding: 16px 18px !important;
+  margin-bottom: 0 !important;
+  color: #1F1D17 !important;
+}
+
+.pdf-staging--planting .econ-panel.collapse-block.panel {
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.pdf-staging--planting .econ-panel.collapse-block > .collapse-head {
+  padding: 12px 18px !important;
+  background: #F2EDDF !important;
+  border-bottom: 1px solid #D4CAB0 !important;
+}
+
+.pdf-staging--planting .econ-panel.collapse-block > .collapse-body {
+  padding: 14px 18px 16px !important;
+  background: #FFFEFB !important;
+}
+
+.pdf-staging--planting .collapse-chev {
+  display: none !important;
+}
+
+.pdf-staging--planting .facility-env-wrap {
+  background: #FFFEFB !important;
+  border: 1px solid rgba(39, 109, 92, 0.18) !important;
+  border-left: 3px solid #276D5C !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 10px rgba(31, 29, 23, 0.07) !important;
+  padding: 14px 16px !important;
+  margin-bottom: 0 !important;
+}
+
+.pdf-staging--planting .facility-env-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #847D69;
+  margin: 0 0 8px;
+}
+
+.pdf-staging--planting .planting-hero {
+  background: linear-gradient(135deg, #E6F0ED 0%, #FFFEFB 58%) !important;
+  border: 1px solid rgba(39, 109, 92, 0.22) !important;
+  border-left: 4px solid #276D5C !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(31, 29, 23, 0.09) !important;
+  padding: 16px 18px !important;
+  margin-bottom: 0 !important;
+}
+
+.pdf-staging--planting .planting-hero-val {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #1F1D17 !important;
+}
+
+.pdf-staging--planting .planting-hero-tile.hl .planting-hero-val {
+  font-size: 1.6rem !important;
+  color: #1F5548 !important;
+}
+
+.pdf-staging--planting .planting-hero-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #4A4738;
+  text-transform: uppercase;
+}
+
+.pdf-staging--planting .planting-subpanel.panel {
+  background: #F2EDDF !important;
+  border-left: 2px solid rgba(39, 109, 92, 0.35) !important;
+  border-radius: 8px !important;
+  padding: 12px 14px !important;
+  margin-bottom: 12px !important;
+  box-shadow: inset 0 0 0 1px rgba(31, 29, 23, 0.04) !important;
+}
+
+.pdf-staging--planting .planting-subpanel.panel:last-child {
+  margin-bottom: 0 !important;
+}
+
+.pdf-staging--planting .section-h {
+  display: flex !important;
+  font-size: 12px !important;
+  letter-spacing: 0.05em !important;
+  text-transform: none !important;
+  color: #1A4A3F !important;
+  font-weight: 600 !important;
+  margin: 0 0 12px !important;
+}
+
+.pdf-staging--planting .econ-panel.collapse-block > .collapse-head .section-h {
+  margin-bottom: 0 !important;
+  color: #1A4A3F !important;
+}
+
+.pdf-staging--planting .ctrl-label {
+  font-size: 14px !important;
+  color: #1F1D17 !important;
+  font-weight: 500 !important;
+}
+
+.pdf-staging--planting .ctrl-val,
+.pdf-staging--planting .m-val {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #1F1D17 !important;
+}
+
+.pdf-staging--planting .pdf-static-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F1D17;
+}
+
+.pdf-staging--planting .m-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #4A4738;
+}
+
+.pdf-staging--planting #recs .rec {
+  background: #FFFEFB !important;
+  border: 1px solid #D4CAB0 !important;
+  border-left: 3px solid rgba(39, 109, 92, 0.45) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(31, 29, 23, 0.06) !important;
+}
+
+.pdf-staging--planting .sys-pallet-hint,
+.pdf-staging--planting .ui-hint,
+.pdf-staging--planting .viz-caption {
+  color: #4A4738 !important;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.pdf-staging--planting .pot-btn.on,
+.pdf-staging--planting .pallet-cell-btn.on,
+.pdf-staging--planting .pallet-mount-btn.on {
+  background: #E6F0ED !important;
+  border-color: #276D5C !important;
+  color: #1A4A3F !important;
+  font-weight: 600 !important;
+}
+
+.pdf-staging--planting .cv-btn.on {
+  background: #E6F0ED !important;
+  border-color: #276D5C !important;
+  color: #1A4A3F !important;
+}
+
+.pdf-staging--planting .facility-btn.on {
+  background: linear-gradient(180deg, #FFFEFB 0%, #E6F0ED 100%) !important;
+  border-color: #276D5C !important;
+  color: #1A4A3F !important;
+}
+
+.pdf-staging--planting .env-pill.ok {
+  background: #E6F0ED;
+  color: #1A4A3F;
+}
+
+.pdf-staging--planting .env-pill.warn {
+  background: #F5E8C8;
+  color: #5C3D08;
+}
+
+.pdf-staging--planting .env-pill.bad {
+  background: #F4D8CE;
+  color: #5B1F11;
+}
+
+.pdf-staging--planting table th {
+  background: #F2EDDF !important;
+  color: #1F1D17 !important;
+}
+
+.pdf-staging--planting table th,
+.pdf-staging--planting table td {
+  border-color: #D4CAB0 !important;
+}

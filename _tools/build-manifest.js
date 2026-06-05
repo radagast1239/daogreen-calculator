@@ -93,6 +93,8 @@ module.exports = {
     'css/daogreen-unify.css',
     'css/econ-unify.css',
     'css/visual-polish.css',
+    'css/pdf-planting.css',
+    'css/visual-polish.css',
     'css/mobile.css',
     'css/app-auth.css'
   ],

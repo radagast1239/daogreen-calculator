@@ -13,7 +13,9 @@
 
   var SECTIONS = [
     { id: 'cover', group: 'general', kind: 'cover' },
+    { id: 'planting-facility-env', group: 'planting', selector: '#facility-env-wrap' },
     { id: 'panel-cultivars', group: 'planting', selector: '#panel-cultivars' },
+    { id: 'planting-hero', group: 'planting', selector: '#planting-hero' },
     { id: 'panel-georgy-simple', group: 'planting', selector: '#panel-georgy-simple', georgyOnly: true },
     { id: 'panel-culture', group: 'planting', selector: '#panel-culture' },
     { id: 'env-panel', group: 'planting', selector: '#env-panel' },
@@ -50,7 +52,7 @@
   ];
 
   var DEFAULT_SELECTED = [
-    'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'block-panel-geom', 'panel-metrics',
+    'cover', 'planting-facility-env', 'panel-cultivars', 'planting-hero', 'panel-culture', 'env-panel', 'block-panel-geom', 'panel-metrics',
     'panel-gh-yield', 'panel-schema', 'econ-general', 'econ-cultures', 'econ-results'
   ];
 
@@ -64,7 +66,7 @@
 
   var PDF_PRESETS = {
     planting: [
-      'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'panel-bio-margin',
+      'cover', 'planting-facility-env', 'panel-cultivars', 'planting-hero', 'panel-culture', 'env-panel', 'panel-bio-margin',
       'block-panel-geom', 'panel-gh-yield',
       'panel-metrics', 'panel-schema', 'panel-planting-advanced', 'block-panel-recs',
       'econ-cult-unit-cost', 'econ-farm-final'
@@ -395,9 +397,10 @@
       trimEconBreakdownTableForPdf(root.querySelector('#econ-cultures-breakdown'));
     }
 
-    function prepareClone(root){
-      root.style.background = '#fff';
-      root.style.color = '#111';
+    function prepareClone(root, sec){
+      var isPlanting = sec && sec.group === 'planting';
+      root.style.background = isPlanting ? 'transparent' : '#fff';
+      root.style.color = isPlanting ? '' : '#111';
       root.querySelectorAll('#block-econ-mix, .econ-mix-fold').forEach(function(el){
         el.style.display = 'none';
       });
@@ -409,7 +412,11 @@
         b.style.overflow = 'visible';
       });
       root.querySelectorAll('input[type="range"]').forEach(function(inp){ inp.style.display = 'none'; });
-      root.querySelectorAll('.toggle, .auto-btn, .econ-actions, .pallet-cell-btn, .pallet-mount-btn, .pot-btn, .month-btn, .facility-btn, .cut-count-btn, button.vf-sheet-badge, .canopy-schema-bar .auto-btn').forEach(function(el){
+      var hideBtns = '.toggle, .auto-btn, .econ-actions, .pallet-cell-btn, .pallet-mount-btn, .pot-btn, .month-btn, .facility-btn, .cut-count-btn, button.vf-sheet-badge, .canopy-schema-bar .auto-btn';
+      if (isPlanting){
+        hideBtns = '.toggle, .auto-btn, .econ-actions, .month-btn, .cut-count-btn, button.vf-sheet-badge, .canopy-schema-bar .auto-btn';
+      }
+      root.querySelectorAll(hideBtns).forEach(function(el){
         el.style.display = 'none';
       });
       root.querySelectorAll('.cv-btn:not(.on)').forEach(function(el){ el.style.display = 'none'; });
@@ -464,6 +471,14 @@
       root.querySelectorAll('.econ-elec-charts-wrap').forEach(function(el){
         el.style.display = 'none';
       });
+      if (isPlanting){
+        root.classList.add('pdf-planting-block');
+        root.classList.remove('env-block-hidden');
+        root.querySelectorAll('.collapse-chev').forEach(function(el){ el.style.display = 'none'; });
+        root.querySelectorAll('.facility-btn, .pot-btn, .pallet-cell-btn, .pallet-mount-btn').forEach(function(el){
+          el.style.pointerEvents = 'none';
+        });
+      }
       if (!root.getAttribute('data-pdf-econ-cult-detail') &&
           root.querySelector('#econ-cultures-breakdown, #econ-results-metrics, .econ-culture-card, #econ-panel-cultures')){
         maskEconDomForPdf(root);
@@ -528,19 +543,21 @@
         wrap.appendChild(scroll);
       }
 
-      prepareClone(wrap);
+      prepareClone(wrap, { group: 'economics' });
       return wrap;
     }
 
-    function cloneSection(el){
+    function cloneSection(el, sec){
       if (!el) return null;
       if (el.classList.contains('env-block-hidden')) return null;
+      var isPlanting = sec && sec.group === 'planting';
       var clone = el.cloneNode(true);
       clone.classList.add('pdf-page-block');
       clone.classList.remove('app-view-hidden');
-      clone.style.cssText = 'display:block;visibility:visible;opacity:1;background:#fff;color:#111;width:100%;max-width:' + PDF_W_PX + 'px;box-sizing:border-box;';
+      clone.style.cssText = 'display:block;visibility:visible;opacity:1;width:100%;max-width:' + PDF_W_PX + 'px;box-sizing:border-box;' +
+        (isPlanting ? 'background:transparent;color:inherit;' : 'background:#fff;color:#111;');
       copyCanvasesFromSource(el, clone);
-      prepareClone(clone);
+      prepareClone(clone, sec);
       return clone;
     }
 
@@ -575,14 +592,16 @@
           return noteCmp;
         }
       }
-      return cloneSection(el);
+      return cloneSection(el, sec);
     }
 
-    function applyStagingLayout(staging){
+    function applyStagingLayout(staging, opts){
+      opts = opts || {};
+      var bg = opts.planting ? '#FAF6EC' : '#fff';
       staging.removeAttribute('aria-hidden');
       staging.style.cssText = [
         'position:fixed', 'left:0', 'top:0', 'width:' + PDF_W_PX + 'px', 'max-width:calc(100vw - 16px)',
-        'background:#fff', 'color:#111', 'z-index:2147483000', 'pointer-events:none',
+        'background:' + bg, 'color:#111', 'z-index:2147483000', 'pointer-events:none',
         'opacity:1', 'visibility:visible', 'display:block', 'box-sizing:border-box', 'padding:8px 12px',
         'overflow:visible', 'height:auto', 'min-height:1px'
       ].join(';');
@@ -626,11 +645,12 @@
       return { w: w, h: h };
     }
 
-    async function captureBlock(html2canvas, block){
+    async function captureBlock(html2canvas, block, opts){
+      opts = opts || {};
       var size = measureBlock(block);
       return html2canvas(block, {
         scale: PDF_SCALE,
-        backgroundColor: '#ffffff',
+        backgroundColor: opts.planting ? '#FAF6EC' : '#ffffff',
         useCORS: true,
         allowTaint: true,
         logging: false,
@@ -837,15 +857,18 @@
         if (!block) continue;
         noteSectionStart(id);
         var wrapped = sec.skipPdfWrapTitle ? block : wrapWithSectionTitle(block, sectionDisplayTitle(id));
+        var isPlantingPdf = sec.group === 'planting';
         var stagingOne = document.createElement('div');
-        stagingOne.className = 'pdf-staging' + (isEconSectionId(id) ? ' pdf-staging--econ' : '');
-        applyStagingLayout(stagingOne);
+        stagingOne.className = 'pdf-staging' +
+          (isEconSectionId(id) ? ' pdf-staging--econ' : '') +
+          (isPlantingPdf ? ' pdf-staging--planting' : '');
+        applyStagingLayout(stagingOne, { planting: isPlantingPdf });
         stagingOne.appendChild(wrapped);
         document.body.appendChild(stagingOne);
         await waitForBlockImages(wrapped);
         await waitForPaint(80);
         try {
-          var canvas = await captureBlock(apis.html2canvas, wrapped);
+          var canvas = await captureBlock(apis.html2canvas, wrapped, { planting: isPlantingPdf });
           if (canvas && canvas.width >= 2 && canvas.height >= 2){
             if (pdfCtx && global.DG_appendCanvasToPdfCtx){
               DG_appendCanvasToPdfCtx(pdf, pdfCtx, canvas, margin, contentW);
