@@ -50,6 +50,11 @@
         if (btn.contains(e.target) || panel.contains(e.target)) return;
         close();
       });
+      panel.addEventListener('click', function (e) {
+        if (e.target.closest('.auto-btn, .project-recent-select, .theme-toggle, #btn-locale-toggle, #btn-currency-toggle')) {
+          close();
+        }
+      });
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') close();
       });

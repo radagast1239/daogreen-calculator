@@ -176,7 +176,7 @@
 
 /* —— Masthead toolbar —— */
 .masthead {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .masthead-bar {
@@ -201,6 +201,22 @@
   padding-left: 10px;
   margin-left: 2px;
   border-left: 1px solid var(--rule);
+}
+
+.masthead-menu-panel .masthead-group,
+.masthead-menu-panel .masthead-group + .masthead-group {
+  padding-left: 0;
+  margin-left: 0;
+  border-left: none;
+  border-top: none;
+  padding-top: 0;
+  width: 100%;
+}
+
+.masthead-menu-panel .masthead-group + .masthead-group {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
 }
 
 .masthead-actions .auto-btn {
@@ -237,7 +253,7 @@
 }
 
 @media (max-width: 420px) {
-  .masthead-group {
+  .masthead-actions > .masthead-group:not(.masthead-group--menu) {
     width: 100%;
     border-left: none !important;
     padding-left: 0 !important;
@@ -246,7 +262,7 @@
     border-top: 1px dashed var(--rule);
   }
 
-  .masthead-group:first-child {
+  .masthead-actions > .masthead-group--quick {
     border-top: none;
     padding-top: 0;
   }
