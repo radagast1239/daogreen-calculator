@@ -129,7 +129,10 @@
       'ui.compare.bold': 'Жирная линия — текущая культура.',
       'ui.compare.summary': 'В сравнении: {n} из {total}. Колонка «{active}» — текущий сорт. Нажмите чип, чтобы добавить или убрать.',
       'cvCompare.title': 'Сравнение сортов',
-      'cvCompare.intro': 'Таблица показателей при тех же настройках (свет, температура, плотность, срок). График сравнения — в блоке «Кривая роста» выше.',
+      'cvCompare.intro': 'График и таблица при одинаковых настройках (свет, температура, плотность, срок). Жирная линия — текущий сорт.',
+      'cvCompare.introUnified': 'График и таблица при одинаковых настройках (свет, температура, плотность, срок). Жирная линия — текущий сорт.',
+      'cvCompare.tabChart': 'График',
+      'cvCompare.tabTable': 'Таблица',
       'cvCompare.toggle': 'Сравнить сорта',
       'cvCompare.tableTitle': 'Показатели',
       'cvCompare.row.mass': 'Масса среза',
@@ -317,7 +320,10 @@
       'ui.compare.bold': 'Bold line — active cultivar.',
       'ui.compare.summary': 'Comparing: {n} of {total}. Column «{active}» is the active cultivar. Click a chip to add or remove.',
       'cvCompare.title': 'Cultivar comparison',
-      'cvCompare.intro': 'Metrics table under the same settings (light, temperature, density, timing). Comparison chart is in the Growth curve block above.',
+      'cvCompare.intro': 'Chart and table under the same settings (light, temperature, density, timing). Bold line — active cultivar.',
+      'cvCompare.introUnified': 'Chart and table under the same settings (light, temperature, density, timing). Bold line — active cultivar.',
+      'cvCompare.tabChart': 'Chart',
+      'cvCompare.tabTable': 'Table',
       'cvCompare.toggle': 'Compare cultivars',
       'cvCompare.tableTitle': 'Metrics',
       'cvCompare.row.mass': 'Cut mass',
@@ -456,8 +462,6 @@
       leg.innerHTML = '<span><span class="swatch mass"></span>' + uiT('ui.chart.legendMass') + '</span>' +
         '<span><span class="swatch canopy"></span>' + uiT('ui.chart.legendCanopy') + '</span>';
     }
-    setTxt('#block-panel-calendar .collapse-head > span:first-child', 'ui.cal.title');
-    setTxt('#block-panel-calendar .ctrl-label', 'ui.cal.sowDate');
     setTxt('#block-panel-multicut .multicut-cycle-head', 'ui.mc.title');
     setTxt('#auto-cut-interval', 'ui.mc.autoInterval');
     setTxt('#auto-cut-mass', 'ui.mc.autoCutMass');

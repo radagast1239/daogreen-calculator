@@ -605,12 +605,10 @@
     }
   }
   function renderCvCompareTable(){
-    const wrap = $('cv-compare-table-wrap');
     const table = $('cv-compare-table');
-    if (!wrap || !table) return;
+    if (!table) return;
     const cmpToggle = $('compareMode');
     if (cmpToggle) cmpToggle.checked = !!st().compareMode;
-    wrap.classList.toggle('env-block-hidden', !st().compareMode);
     if (!st().compareMode){
       table.innerHTML = '';
       return;
@@ -681,19 +679,28 @@
     table.innerHTML = html;
   }
   function setGrowthChartSvg(svgHtml){
-    ['growth-chart', 'cv-compare-growth-chart'].forEach(function(id){
-      const el = $(id);
-      if (el) el.innerHTML = svgHtml;
-    });
+    var compareOn = !!st().compareMode;
+    var compareEl = $('cv-compare-growth-chart');
+    var singleEl = $('growth-chart');
+    if (compareOn && compareEl) compareEl.innerHTML = svgHtml;
+    else if (singleEl) singleEl.innerHTML = svgHtml;
+    if (compareOn && singleEl) singleEl.innerHTML = '';
   }
   function setGrowthChartLegendHtml(html){
-    ['chart-legend', 'cv-compare-chart-legend'].forEach(function(id){
-      const leg = $(id);
-      if (leg){
-        leg.style.display = '';
-        leg.innerHTML = html;
+    var compareOn = !!st().compareMode;
+    if (compareOn){
+      var cmpLeg = $('cv-compare-chart-legend');
+      if (cmpLeg){
+        cmpLeg.style.display = '';
+        cmpLeg.innerHTML = html;
       }
-    });
+      return;
+    }
+    var leg = $('chart-legend');
+    if (leg){
+      leg.style.display = '';
+      leg.innerHTML = html;
+    }
   }
   function bindCompareLegendPills(legendEl){
     if (!legendEl || legendEl.dataset.cmpLegendBound) return;
@@ -730,7 +737,13 @@
     ['compare-legend', 'cv-compare-legend'].forEach(function(id){
       const legendEl = $(id);
       if (!legendEl) return;
+      if (id === 'compare-legend' && st().compareMode) {
+        legendEl.innerHTML = '';
+        legendEl.style.display = 'none';
+        return;
+      }
       legendEl.innerHTML = html;
+      legendEl.style.display = html ? '' : 'none';
       if (html) bindCompareLegendPills(legendEl);
     });
   }
@@ -751,15 +764,17 @@
     if (val) val.textContent = String(v);
   }
   function syncGrowthCompareUi(){
-    var hint = document.querySelector('#block-panel-growth-body .growth-compare-hint');
-    if (hint) hint.classList.toggle('env-block-hidden', !!st().compareMode);
+    var on = !!st().compareMode;
+    var growthBlock = $('block-panel-growth');
+    if (growthBlock) growthBlock.classList.toggle('env-block-hidden', on);
     var cmpToggle = $('compareMode');
     if (cmpToggle && document.activeElement !== cmpToggle) {
-      cmpToggle.checked = !!st().compareMode;
+      cmpToggle.checked = on;
     }
     renderComparePickGrid();
     var leg = $('compare-legend');
-    if (leg) leg.style.display = st().compareMode ? '' : 'none';
+    if (leg) leg.style.display = on ? 'none' : (st().compareMode ? '' : 'none');
+    if (global.DG_plantingUx) global.DG_plantingUx.syncCvCompareTabs();
   }
 
   function renderCvCompare(){
@@ -2386,6 +2401,38 @@
     el.innerHTML = isVF() ? ui('ui.colophon.lightVf') : ui('ui.colophon.lightGh');
   }
 
+  function renderPlantingHero(r){
+    var hero = $('planting-hero');
+    var grid = $('planting-hero-grid');
+    if (!hero || !grid) return;
+    if (!isPlantingView() || !r || !r.cv){
+      hero.classList.add('env-block-hidden');
+      return;
+    }
+    hero.classList.remove('env-block-hidden');
+    var pallet = showAsPalletCalc(r);
+    var outUnit = r.countUnit === 'шт' ? pm('u.pcs') : pm('unit.g');
+    var massLabel = countIsPieces(r.cv) ? pm('m.massPcsCut') : (pallet || isVF() || r.vfSheet ? pm('m.massCut') : pm('m.massHead'));
+    var massVal = st().showRange
+      ? round(r.mass - rangeMass(r.mass)) + '–' + round(r.mass + rangeMass(r.mass))
+      : String(round(r.mass));
+    var yrU = areaYieldSqmUnit(r.cv, plantingHarvestYieldParams ? plantingHarvestYieldParams(r.cv, r) : null);
+    var tiles = [
+      { l: massLabel, v: massVal, u: outUnit, cls: 'hl' },
+      { l: countIsPieces(r.cv) ? pm('m.pcsSqmYear') : pm('m.kgSqmYear'), v: r1(r.yieldPerSqmYear || 0), u: yrU, cls: 'hl' },
+      { l: pm('m.totalAge'), v: String(round(r.t_total)), u: pm('unit.days') },
+      { l: pm('m.density'), v: String(round(r.rhoA || 0)), u: pm('u.pcsSqm') },
+      { l: pm('m.totalPlants'), v: String(r.total || 0), u: pm('u.pcs') },
+      { l: pm('m.canopyDiam'), v: String(round(r.canopy)), u: pm('unit.mm') }
+    ];
+    grid.innerHTML = tiles.map(function(t){
+      return '<div class="planting-hero-tile ' + (t.cls || '') + '">' +
+        '<div class="planting-hero-label">' + htmlEsc(t.l) + '</div>' +
+        '<div class="planting-hero-val">' + htmlEsc(t.v) + '<span class="planting-hero-unit">' + htmlEsc(t.u) + '</span></div>' +
+        '</div>';
+    }).join('');
+  }
+
   function renderActiveCvBar(r){
     var bar = $('planting-active-cv-bar');
     if (!bar) return;
@@ -2429,6 +2476,7 @@
     updatePlantingGeomUI();
     syncGhFacilityPanels();
     renderActiveCvBar(r);
+    renderPlantingHero(r);
     syncGhCutsUI();
     if (st().multicut && supportsMulticut(r.cv)) syncCutIntervalSlider(r.cv);
     syncCanopyUI();
@@ -2465,6 +2513,7 @@
     syncHarvestBlockUI(r);
     syncVfStdControls();
     updatePageSub();
+    if (global.DG_plantingUx) global.DG_plantingUx.syncProjectMetaBar();
   }
 
   function isPlantingView(){

@@ -181,6 +181,7 @@
     }
     if (view === 'economics'){ updatePageSub(); renderEconomics(); }
     if (view === 'standards'){ updatePageSub(); renderStandardsCatalog(); }
+    if (global.DG_plantingUx) global.DG_plantingUx.syncProjectMetaBar();
   }
 
   function updateCalcBuildBadge(r){

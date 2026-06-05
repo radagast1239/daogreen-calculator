@@ -101,6 +101,8 @@
       'farmCal.unitYieldKg': 'кг/м²·мес',
       'farmCal.unitYieldPcs': 'шт/м²·мес',
       'farmCal.unitMassPcs': 'шт',
+      'farmCal.nudge': 'Есть замеры с вашей фермы? Подгоните модель под факт.',
+      'farmCal.nudgeOpen': 'Калибровка по замерам',
       'trace.summary': 'Откуда эти числа',
       'trace.mass': 'Масса срезки',
       'trace.canopy': 'Диаметр шапки',
@@ -210,6 +212,8 @@
       'stdcat.unit.g': 'г',
       'stdcat.unit.pcs': 'шт',
       'stdcat.empty': 'Нет данных в справочнике',
+      'stdcat.openCalc': 'В расчёт',
+      'stdcat.col.open': '',
       'veg.head': 'Период вегетации',
       'std.badge': 'стандарт',
       'm.massCut': 'Урожай за срез',
@@ -386,6 +390,8 @@
       'farmCal.unitYieldKg': 'kg/m²·mo',
       'farmCal.unitYieldPcs': 'pcs/m²·mo',
       'farmCal.unitMassPcs': 'pcs',
+      'farmCal.nudge': 'Have on-farm measurements? Tune the model to your site.',
+      'farmCal.nudgeOpen': 'Field calibration',
       'trace.summary': 'Where these numbers come from',
       'trace.mass': 'Cut mass',
       'trace.canopy': 'Canopy diameter',
@@ -495,6 +501,8 @@
       'stdcat.unit.g': 'g',
       'stdcat.unit.pcs': 'pcs',
       'stdcat.empty': 'No data in catalog',
+      'stdcat.openCalc': 'Open in calc',
+      'stdcat.col.open': '',
       'veg.head': 'Vegetative period',
       'std.badge': 'standard',
       'm.massCut': 'Yield per cut',
@@ -715,6 +723,9 @@
     setText('#farm-cal-no-cv', 'farmCal.noCv');
     setText('#farm-cal-save', 'farmCal.save');
     setText('#farm-cal-clear', 'farmCal.clear');
+    setText('.farm-cal-nudge-text', 'farmCal.nudge');
+    var farmNudgeBtn = document.querySelector('[data-farm-cal-open]');
+    if (farmNudgeBtn) farmNudgeBtn.textContent = pt('farmCal.nudgeOpen');
     setText('#planting-active-cv-bar .planting-active-cv-label', 'planting.activeCv');
     setText('#planting-active-cv-bar .planting-active-cv-mode-lbl', 'planting.activeCvMode');
     var sh = document.querySelector('#scenario-config > div');

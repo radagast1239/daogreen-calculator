@@ -36,6 +36,7 @@ var PRECACHE = [
   "./js/planting-econ-glue.js?v=2026-05-20-p109-pdf-sections",
   "./js/standards-catalog-table.js?v=2026-05-20-p109-pdf-sections",
   "./js/planting-app-nav.js?v=2026-05-20-p109-pdf-sections",
+  "./js/planting-ux.js?v=2026-05-20-p109-pdf-sections",
   "./js/planting-public-api.js?v=2026-05-20-p109-pdf-sections",
   "./js/gh-cultivars.js?v=2026-05-20-p109-pdf-sections",
   "./js/gh-cultivars-extended.js?v=2026-05-20-p109-pdf-sections",

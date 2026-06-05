@@ -184,6 +184,47 @@ function syncVfStdBadges(){
   if (sheetHint && show) {
     sheetHint.innerHTML = deps.isPalletView() ? deps.ui('ui.std.vfHintPal') : deps.ui('ui.std.vfHint');
   }
+  syncVfOriginHints();
+}
+function vfOriginRef(cv, key){
+  if (!cv) return null;
+  if (key === 'germination') return cv.germinationStd;
+  if (key === 'day') return cv.channelStd;
+  if (key === 'density') return cv.densityStd;
+  if (key === 'mass' || key === 'cutMass') return cv.yieldPerCutStd;
+  if (key === 'cutInterval') return cv.cutIntervalStd;
+  return null;
+}
+function syncVfOriginHints(){
+  var cv = deps.getSheetCv();
+  var show = deps.usePlantingSheet() && deps.isSheetCv(cv);
+  document.querySelectorAll('.vf-sheet-badge[data-vf-field]').forEach(function(btn){
+    var key = btn.dataset.vfField;
+    var ctrl = btn.closest('.ctrl');
+    if (!ctrl) return;
+    var hint = ctrl.querySelector('.vf-ctrl-origin');
+    if (!hint){
+      hint = document.createElement('p');
+      hint.className = 'vf-ctrl-origin ui-hint ui-hint--tight env-block-hidden';
+      hint.setAttribute('data-vf-origin', key);
+      ctrl.appendChild(hint);
+    }
+    if (!show || vfOriginRef(cv, key) == null){
+      hint.classList.add('env-block-hidden');
+      hint.textContent = '';
+      return;
+    }
+    var ref = vfOriginRef(cv, key);
+    var val = getVfFieldStandard(cv, key);
+    var unit = '';
+    if (key === 'germination' || key === 'day' || key === 'cutInterval') unit = ' ' + deps.pm('unit.days');
+    else if (key === 'density') unit = ' ' + deps.pm('u.pcsSqm');
+    else if (key === 'mass' || key === 'cutMass') {
+      unit = ' ' + (cv.countUnit === 'шт' ? deps.pm('u.pcs') : deps.pm('unit.g'));
+    }
+    hint.textContent = deps.ui('ui.vf.originHint', { ref: ref, val: val, unit: unit });
+    hint.classList.remove('env-block-hidden');
+  });
 }
 function bindVfStdBadges(){
   var root = document.getElementById('view-planting');

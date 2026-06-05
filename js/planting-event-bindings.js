@@ -559,14 +559,6 @@ const dlg = $('cv-add-dialog');
     renderAll();
   });
 
-  var sowDateEl = $('sowDate');
-  if (sowDateEl){
-    sowDateEl.addEventListener('change', e => {
-      state.sowDate = e.target.value;
-      renderAll();
-    });
-  }
-
   $('auto-led-gh').addEventListener('click', () => {
     state.ledEfficacyGh = _lightEnergy.LED_STD_GH;
     if ($('ledEfficacyGh-v')) $('ledEfficacyGh-v').textContent = r1(_lightEnergy.LED_STD_GH);
@@ -960,7 +952,6 @@ const dlg = $('cv-add-dialog');
         if (global.DG_initPdfExport) deps.initPdfExport();
         var state = deps.getState();
         var $ = deps.$;
-        if ($('sowDate')) $('sowDate').value = state.sowDate;
         if ($('showRange')) $('showRange').checked = !!state.showRange;
         deps.renderCultivars();
         bindCustomCultivarDialog();

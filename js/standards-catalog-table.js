@@ -62,7 +62,21 @@
     }
 
     function sheetColspan(withCells) {
-      return withCells ? 8 : 7;
+      return withCells ? 9 : 8;
+    }
+
+    function openCell(cvId, env) {
+      if (!cvId) return '<td class="stdcat-open muted">—</td>';
+      return (
+        '<td class="stdcat-open">' +
+        '<button type="button" class="auto-btn auto-btn--compact stdcat-open-btn" data-stdcat-open="' +
+        esc(cvId) +
+        '" data-stdcat-env="' +
+        esc(env) +
+        '">' +
+        esc(pt('stdcat.openCalc')) +
+        '</button></td>'
+      );
     }
 
     function buildSheetTableBody(list, sections, withCells) {
@@ -129,6 +143,7 @@
             (note
               ? '<td class="stdcat-note" title="' + esc(note) + '">' + esc(note) + '</td>'
               : '<td class="stdcat-note muted">—</td>') +
+            openCell(cv.id, cv._stdcatEnv || 'vf') +
             '</tr>'
         );
       });
@@ -165,6 +180,9 @@
         '<th scope="col">' +
         esc(pt('stdcat.col.note')) +
         '</th>' +
+        '<th scope="col" class="stdcat-open-col">' +
+        esc(pt('stdcat.col.open')) +
+        '</th>' +
         '</tr></thead>'
       );
     }
@@ -175,7 +193,7 @@
       });
       if (!rows.length) {
         return (
-          '<tr><td colspan="5" class="stdcat-empty">' +
+          '<tr><td colspan="6" class="stdcat-empty">' +
           esc(pt('stdcat.empty')) +
           '</td></tr>'
         );
@@ -201,10 +219,19 @@
             '<td class="num stdcat-yn">' +
             esc(yesNo(cv.babyGreen)) +
             '</td>' +
+            openCell(cv.id, 'gh') +
             '</tr>'
           );
         })
         .join('');
+    }
+
+    function tagStdcatEnv(list, env) {
+      return list.map(function (cv) {
+        var copy = Object.assign({}, cv);
+        copy._stdcatEnv = env;
+        return copy;
+      });
     }
 
     function sheetPanel(mode, hintKey, list, sections, withCells) {
@@ -235,6 +262,13 @@
       if (host.dataset.stdcatBound) return;
       host.dataset.stdcatBound = '1';
       host.addEventListener('click', function (e) {
+        var openBtn = e.target.closest('[data-stdcat-open]');
+        if (openBtn && host.contains(openBtn)) {
+          var cvId = openBtn.getAttribute('data-stdcat-open');
+          var env = openBtn.getAttribute('data-stdcat-env');
+          if (deps.openCultivarInCalc) deps.openCultivarInCalc(cvId, env);
+          return;
+        }
         var btn = e.target.closest('[data-stdcat-mode]');
         if (!btn || !host.contains(btn)) return;
         var mode = btn.getAttribute('data-stdcat-mode');
@@ -282,8 +316,8 @@
         '<p class="stdcat-legend">' +
         esc(pt('stdcat.legend')) +
         '</p>' +
-        sheetPanel('vf', 'stdcat.hint.vf', vf, vfSec, false) +
-        sheetPanel('pal', 'stdcat.hint.pal', pal, palSec, true) +
+        sheetPanel('vf', 'stdcat.hint.vf', tagStdcatEnv(vf, 'vf'), vfSec, false) +
+        sheetPanel('pal', 'stdcat.hint.pal', tagStdcatEnv(pal, 'pal'), palSec, true) +
         '<div class="stdcat-panel" data-stdcat-panel="gh" id="stdcat-panel-gh">' +
         '<details class="stdcat-details"><summary>' +
         esc(pt('stdcat.about')) +
@@ -306,6 +340,9 @@
         '</th>' +
         '<th scope="col" class="num">' +
         esc(pt('stdcat.col.baby')) +
+        '</th>' +
+        '<th scope="col" class="stdcat-open-col">' +
+        esc(pt('stdcat.col.open')) +
         '</th>' +
         '</tr></thead><tbody>' +
         buildGhTableBody(gh) +

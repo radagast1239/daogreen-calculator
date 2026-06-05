@@ -16,6 +16,7 @@
   var STR = {
     ru: {
       'btn.save': 'Сохранить', 'btn.save.title': 'Сохранить расчёт в браузере',
+      'btn.menu': 'Меню', 'btn.menu.title': 'Дополнительные действия',
       'btn.load': 'Загрузить', 'btn.load.title': 'Загрузить из браузера',
       'btn.json': 'JSON', 'btn.json.title': 'Скачать файл проекта JSON',
       'btn.import': 'Импорт', 'btn.import.title': 'Загрузить файл проекта',
@@ -232,6 +233,7 @@
     },
     en: {
       'btn.save': 'Save', 'btn.save.title': 'Save calculation in browser',
+      'btn.menu': 'Menu', 'btn.menu.title': 'More actions',
       'btn.load': 'Load', 'btn.load.title': 'Load from browser',
       'btn.json': 'JSON', 'btn.json.title': 'Download project JSON',
       'btn.import': 'Import', 'btn.import.title': 'Load project file',

@@ -132,6 +132,10 @@
     var title = (meta && meta.title) ? meta.title : shareRef;
     var build = (meta && meta.build) ? meta.build : '';
     setBanner(
+      '<span class="share-view-banner__brand" aria-hidden="true">Daogreen</span>' +
+      '<span class="share-view-banner__watermark">' +
+        t('share.watermark', 'Только просмотр') +
+      '</span>' +
       '<span class="share-view-banner__text">' +
         tFmt('share.banner', { title: title, build: build }, 'Демо: {title} — только просмотр') +
       '</span>' +

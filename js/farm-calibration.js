@@ -230,6 +230,14 @@
         clearBtn.textContent = t('farmCal.clear', 'Сбросить замеры');
         setVisible(clearBtn, !!entry.measuredAt);
       }
+
+      var nudge = $('farm-cal-nudge');
+      if (nudge) {
+        var hasCal = entry.patch && Object.keys(entry.patch).length;
+        var collapsed = deps.getState && deps.getState().sectionCollapsed &&
+          deps.getState().sectionCollapsed['block-panel-farm-calibration'];
+        setVisible(nudge, !hasCal && !collapsed);
+      }
     }
 
     function bind() {

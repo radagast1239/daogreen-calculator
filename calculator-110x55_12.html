@@ -1212,6 +1212,9 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .farm-cal-applied-line { color: var(--brand-text); font-weight: 500; }
 .cv-badge--farm { background: #276D5C; color: #fff; }
 .planting-active-cv-bar {
+  position: sticky;
+  top: 0;
+  z-index: 120;
   margin-bottom: 16px;
   padding: 12px 16px;
   background: linear-gradient(135deg, var(--paper-deep) 0%, var(--paper) 100%);
@@ -1252,6 +1255,143 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   margin-right: 6px;
   color: var(--ink-faint);
 }
+.project-meta-bar {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+  border-radius: var(--radius, 10px);
+}
+.project-meta-bar.env-block-hidden { display: none !important; }
+.project-meta-bar .econ-project-meta { margin: 0; padding: 0; background: none; border: 0; }
+.planting-hero {
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, var(--brand-pale) 0%, var(--paper) 55%);
+  border: 1px solid var(--brand-border);
+  border-left: 4px solid var(--brand);
+  border-radius: var(--radius, 10px);
+}
+.planting-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 16px;
+}
+.planting-hero-tile { min-width: 0; }
+.planting-hero-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+.planting-hero-val {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.15;
+}
+.planting-hero-unit {
+  font-size: 0.72em;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin-left: 4px;
+}
+.planting-hero-tile.hl .planting-hero-val { color: var(--brand-text); }
+.cv-compare-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 10px;
+}
+.cv-compare-tab {
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.cv-compare-tab.on {
+  background: var(--brand-pale);
+  border-color: var(--brand-border);
+  color: var(--brand-text);
+  font-weight: 600;
+}
+.farm-cal-nudge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: var(--paper-deep);
+  border: 1px dashed var(--brand-border);
+  border-radius: var(--radius, 10px);
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.vf-ctrl-origin { margin: 4px 0 0; grid-column: 1 / -1; }
+.masthead-menu-btn { display: none; }
+.masthead-menu-panel[hidden] { display: none !important; }
+@media (max-width: 720px) {
+  .masthead-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 22px;
+    line-height: 1;
+    padding: 6px 12px;
+  }
+  .masthead-toolbar { position: relative; }
+  .masthead-menu-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    left: 0;
+    z-index: 200;
+    padding: 12px;
+    background: var(--card);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius, 10px);
+    box-shadow: 0 8px 28px rgba(0,0,0,.12);
+  }
+  .masthead-menu-panel .masthead-group {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .masthead-menu-panel .auto-btn,
+  .masthead-menu-panel .project-recent-select,
+  .masthead-menu-panel .theme-toggle,
+  .masthead-menu-panel .locale-bar {
+    width: 100%;
+    justify-content: center;
+  }
+  .masthead-actions:not(.masthead-actions--open) .masthead-menu-panel,
+  .masthead-actions:not(.masthead-actions--open) .masthead-group--menu {
+    display: none !important;
+  }
+  .masthead-actions.masthead-actions--open .masthead-menu-panel {
+    display: block !important;
+  }
+  .masthead-group--quick { flex: 1 1 auto; }
+  .brand-tagline { display: none; }
+  .page-title { font-size: 24px; }
+}
+@media (min-width: 721px) {
+  .masthead-menu-panel { display: contents; }
+  .masthead-group--menu { display: contents; }
+}
+.stdcat-open-col { width: 1%; white-space: nowrap; }
+.stdcat-open-btn { white-space: nowrap; }
 .planting-year-month-hint {
   grid-column: 1 / -1;
   font-size: 12px;
@@ -2292,6 +2432,25 @@ html.share-mode .page { visibility: visible; }
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 16px;
   padding: 10px 16px; background: var(--brand-pale); border-bottom: 1px solid var(--brand-border);
   font-size: 14px; color: var(--brand-text); z-index: 9000;
+  position: sticky; top: 0;
+}
+.share-view-banner__brand {
+  font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--brand); font-size: 12px;
+}
+.share-view-banner__watermark {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 3px 8px; border: 1px solid var(--brand-border); border-radius: 4px;
+  color: var(--brand-text); background: rgba(255,255,255,.45);
+}
+html.share-mode .page { position: relative; }
+html.share-mode .page::before {
+  content: "Daogreen · view only";
+  position: fixed; inset: 0; pointer-events: none; z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(48px, 12vw, 120px); font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--brand); opacity: 0.045;
+  transform: rotate(-18deg); user-select: none;
 }
 .share-view-banner__text--err { color: #a33; }
 .share-view-banner__link {
@@ -2405,25 +2564,29 @@ html.share-mode .page { user-select: text; padding-top: 0; }
         </div>
       </div>
       <div class="masthead-toolbar">
-        <div class="masthead-actions" role="toolbar" aria-label="Действия калькулятора">
-          <div class="masthead-group masthead-group--project">
+        <div class="masthead-actions" id="masthead-actions" role="toolbar" aria-label="Действия калькулятора">
+          <div class="masthead-group masthead-group--quick">
+        <button type="button" class="auto-btn auto-btn--primary" id="btn-project-save" data-i18n="btn.save" data-i18n-attr="title">Сохранить</button>
+        <button type="button" class="auto-btn auto-btn--primary" id="btn-export-pdf" data-i18n="btn.pdf" data-i18n-attr="title" data-readonly-allow>PDF</button>
+          </div>
+          <button type="button" class="auto-btn masthead-menu-btn" id="btn-masthead-menu" aria-expanded="false" aria-controls="masthead-menu-panel" data-i18n="btn.menu" data-readonly-allow title="Меню">⋯</button>
+          <div id="masthead-menu-panel" class="masthead-menu-panel" hidden>
+          <div class="masthead-group masthead-group--menu masthead-group--project">
         <select class="auto-btn project-recent-select" id="project-recent-picker" title="Последние проекты" data-i18n="proj.recent.placeholder" data-i18n-attr="title">
           <option value="">Последние проекты…</option>
         </select>
-        <button type="button" class="auto-btn" id="btn-project-save" data-i18n="btn.save" data-i18n-attr="title">Сохранить</button>
         <button type="button" class="auto-btn" id="btn-project-load" data-i18n="btn.load" data-i18n-attr="title">Загрузить</button>
         <button type="button" class="auto-btn" id="btn-project-export" data-i18n="btn.json" data-i18n-attr="title">JSON</button>
         <button type="button" class="auto-btn" id="btn-project-import" data-i18n="btn.import" data-i18n-attr="title" data-readonly-allow>Импорт</button>
           </div>
-          <div class="masthead-group masthead-group--export">
+          <div class="masthead-group masthead-group--menu masthead-group--export">
         <button type="button" class="auto-btn" id="btn-project-compare" data-i18n="btn.compare" data-i18n-attr="title" data-readonly-allow>Сравнить</button>
-        <button type="button" class="auto-btn auto-btn--primary" id="btn-export-pdf" data-i18n="btn.pdf" data-i18n-attr="title" data-readonly-allow>PDF</button>
           </div>
-          <div class="masthead-group masthead-group--app">
+          <div class="masthead-group masthead-group--menu masthead-group--app">
         <button type="button" class="auto-btn" id="btn-tour" data-i18n="btn.tour" data-i18n-attr="title" data-readonly-allow>Гайд</button>
         <button type="button" class="auto-btn" id="btn-pwa-qr" data-i18n="btn.qr" data-i18n-attr="title" data-readonly-allow>QR</button>
           </div>
-          <div class="masthead-group masthead-group--prefs">
+          <div class="masthead-group masthead-group--menu masthead-group--prefs">
         <div class="locale-bar" id="locale-bar">
           <button type="button" class="auto-btn auto-btn--compact" id="btn-locale-toggle" data-readonly-allow>EN</button>
           <button type="button" class="auto-btn auto-btn--compact" id="btn-currency-toggle" data-readonly-allow title="USD">$ USD</button>
@@ -2436,6 +2599,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
           <span class="theme-toggle-track" aria-hidden="true"><span class="theme-toggle-knob"></span></span>
           <span class="theme-toggle-label">Тема</span>
         </button>
+          </div>
           </div>
         </div>
       </div>
@@ -2455,6 +2619,15 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     <button type="button" class="app-tab" data-app-view="economics" data-preview-allow data-i18n="tab.economics" data-i18n-tip="tab.economics.tip" role="tab" aria-selected="false" title="Экономика фермы">Экономика</button>
     <button type="button" class="app-tab" data-app-view="standards" data-preview-allow data-i18n="tab.standards" data-i18n-tip="tab.standards.tip" role="tab" aria-selected="false" title="Справочник стандартов">Справочник</button>
   </nav>
+
+  <div id="project-meta-bar" class="project-meta-bar">
+    <div class="econ-project-meta econ-project-meta--hero" id="econ-project-meta">
+      <div class="econ-field"><label for="project-client" data-i18n="proj.client">Клиент</label><input type="text" id="project-client" maxlength="120" autocomplete="organization" placeholder=""></div>
+      <div class="econ-field"><label for="project-city" data-i18n="proj.city">Город</label><input type="text" id="project-city" maxlength="80" autocomplete="address-level2" placeholder=""></div>
+      <div class="econ-field"><label for="project-title" data-i18n="proj.title">Название проекта</label><input type="text" id="project-title" maxlength="120" autocomplete="off" placeholder=""></div>
+      <div class="econ-field econ-field--wide"><label for="project-note" data-i18n="proj.note">Комментарий для PDF</label><input type="text" id="project-note" maxlength="240" autocomplete="off" placeholder=""></div>
+    </div>
+  </div>
 
   <div id="planting-econ-bridge" class="planting-econ-bridge">
     <strong>Экономика фермы</strong>
@@ -2488,6 +2661,10 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </span>
     </div>
   </div>
+
+  <section class="planting-hero env-block-hidden" id="planting-hero" aria-label="Ключевые показатели">
+    <div class="planting-hero-grid" id="planting-hero-grid"></div>
+  </section>
 
   <section class="panel collapse-block" id="panel-cultivars">
     <div class="collapse-head" data-collapse-target="panel-cultivars">
@@ -2975,31 +3152,12 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="block-panel-growth-body">
-    <p class="growth-compare-hint ui-hint ui-hint--tight" data-i18n="ui.chart.compareHint">Включите сравнение — на графике появятся кривые выбранных культур; жирная линия — текущая. Переключить текущую можно кнопками под графиком.</p>
-    <div class="toggle-wrap growth-compare-toggle">
-      <span class="toggle-label" data-i18n="cvCompare.toggle">Сравнить культуры на графике</span>
-      <label class="toggle">
-        <input type="checkbox" id="compareMode" data-readonly-allow data-preview-allow>
-        <span class="toggle-switch"></span>
-      </label>
-    </div>
-    <div id="compare-pick-wrap" class="compare-pick-wrap env-block-hidden">
-      <p class="compare-pick-summary" id="compare-pick-summary">Выберите культуры для сравнения.</p>
-      <div class="compare-pick-actions">
-        <button type="button" class="auto-btn" id="compare-pick-all" data-i18n="ui.chart.all" data-readonly-allow data-preview-allow>Все</button>
-        <button type="button" class="auto-btn" id="compare-pick-none" data-i18n="ui.chart.none" data-readonly-allow data-preview-allow>Снять</button>
-        <button type="button" class="auto-btn" id="compare-pick-active" data-i18n="ui.chart.onlyActive" data-readonly-allow data-preview-allow>Только текущая</button>
-        <button type="button" class="auto-btn" id="compare-pick-add-active" data-i18n="ui.chart.addActive" data-readonly-allow data-preview-allow>+ Текущая</button>
-      </div>
-      <div class="compare-pick-grid" id="compare-pick-grid"></div>
-    </div>
     <div class="viz-frame viz-frame--chart">
       <svg id="growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
       <div class="chart-legend" id="chart-legend">
         <span><span class="swatch mass"></span>Масса, г</span>
         <span><span class="swatch canopy"></span>Шапка, мм</span>
       </div>
-      <div id="compare-legend"></div>
     </div>
     </div>
   </section>
@@ -3145,8 +3303,25 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 
   <section class="panel" id="panel-cv-compare">
     <div class="section-h" data-i18n="cvCompare.title">Сравнение сортов</div>
-    <p class="cv-compare-intro" data-i18n="cvCompare.intro">Таблица показателей при тех же настройках (свет, температура, плотность, срок). График сравнения — в блоке «Кривая роста» выше.</p>
-    <p class="cv-compare-georgy-note georgy-only" data-i18n="georgy.cvCompare.hint">Кривые на графике в блоке «Кривая роста»; здесь — таблица. Включите сравнение у графика и отметьте сорта.</p>
+    <p class="cv-compare-intro" data-i18n="cvCompare.introUnified">График и таблица при одинаковых настройках (свет, температура, плотность, срок). Жирная линия на графике — текущий сорт.</p>
+    <p class="cv-compare-georgy-note georgy-only" data-i18n="georgy.cvCompare.hint">Кривые на графике; здесь — таблица. Включите сравнение и отметьте сорта.</p>
+    <div class="toggle-wrap growth-compare-toggle">
+      <span class="toggle-label" data-i18n="cvCompare.toggle">Сравнить культуры</span>
+      <label class="toggle">
+        <input type="checkbox" id="compareMode" data-readonly-allow data-preview-allow>
+        <span class="toggle-switch"></span>
+      </label>
+    </div>
+    <div id="compare-pick-wrap" class="compare-pick-wrap env-block-hidden">
+      <p class="compare-pick-summary" id="compare-pick-summary">Выберите культуры для сравнения.</p>
+      <div class="compare-pick-actions">
+        <button type="button" class="auto-btn" id="compare-pick-all" data-i18n="ui.chart.all" data-readonly-allow data-preview-allow>Все</button>
+        <button type="button" class="auto-btn" id="compare-pick-none" data-i18n="ui.chart.none" data-readonly-allow data-preview-allow>Снять</button>
+        <button type="button" class="auto-btn" id="compare-pick-active" data-i18n="ui.chart.onlyActive" data-readonly-allow data-preview-allow>Только текущая</button>
+        <button type="button" class="auto-btn" id="compare-pick-add-active" data-i18n="ui.chart.addActive" data-readonly-allow data-preview-allow>+ Текущая</button>
+      </div>
+      <div class="compare-pick-grid" id="compare-pick-grid"></div>
+    </div>
     <div id="cv-compare-margin-wrap" class="cv-compare-margin env-block-hidden">
       <label class="toggle-wrap" style="margin:0">
         <span class="toggle-label" data-i18n="cvCompare.showRange">Показать погрешность</span>
@@ -3161,16 +3336,18 @@ html.share-mode .page { user-select: text; padding-top: 0; }
         <span class="ctrl-val">±<span id="compareErrorPct-v">12</span><span class="unit">%</span></span>
       </div>
     </div>
-    <div id="cv-compare-chart-wrap" class="cv-compare-chart-wrap env-block-hidden" hidden aria-hidden="true">
-      <div class="section-h cv-compare-chart-title" data-i18n="ui.chart.title">Кривая роста</div>
+    <div id="cv-compare-tabs" class="cv-compare-tabs env-block-hidden" role="tablist">
+      <button type="button" class="cv-compare-tab on" data-cv-compare-tab="chart" role="tab" aria-selected="true" data-i18n="cvCompare.tabChart">График</button>
+      <button type="button" class="cv-compare-tab" data-cv-compare-tab="table" role="tab" aria-selected="false" data-i18n="cvCompare.tabTable">Таблица</button>
+    </div>
+    <div id="cv-compare-pane-chart" class="cv-compare-pane env-block-hidden">
       <div class="viz-frame viz-frame--chart">
         <svg id="cv-compare-growth-chart" viewBox="0 0 760 268" style="width:100%;height:auto;display:block"></svg>
         <div class="chart-legend" id="cv-compare-chart-legend"></div>
         <div id="cv-compare-legend"></div>
       </div>
     </div>
-    <div id="cv-compare-table-wrap" class="cv-compare-table-wrap env-block-hidden">
-      <div class="section-h cv-compare-table-title" data-i18n="cvCompare.tableTitle">Показатели</div>
+    <div id="cv-compare-pane-table" class="cv-compare-pane env-block-hidden">
       <div class="cv-compare-scroll">
         <table class="cv-compare-table" id="cv-compare-table"></table>
       </div>
@@ -3187,6 +3364,11 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     <div class="section-h" id="sys-metrics-section-title">Система целиком</div>
     <div class="metrics" id="metrics-sys"></div>
   </section>
+
+  <div id="farm-cal-nudge" class="farm-cal-nudge env-block-hidden">
+    <span class="farm-cal-nudge-text" data-i18n="farmCal.nudge">Есть замеры с вашей фермы? Подгоните модель под факт.</span>
+    <button type="button" class="auto-btn" data-farm-cal-open data-i18n="farmCal.nudgeOpen">Калибровка по замерам</button>
+  </div>
 
   <section class="panel collapse-block" id="block-panel-farm-calibration">
     <div class="collapse-head" data-collapse-target="block-panel-farm-calibration">
@@ -3355,12 +3537,6 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   <div id="view-economics" class="app-view app-view-hidden">
     <div class="econ-hero">
       <p class="econ-intro" id="econ-intro" data-i18n="econ.intro">Экономика считается <strong>отдельно от вкладки «Посадка»</strong>: плотность, урожай, свет и затраты вводите сами или подставляете кнопкой «Импорт из посадки». Выбор сорта в списке <strong>не меняет</strong> числа автоматически.</p>
-      <div class="econ-project-meta econ-project-meta--hero" id="econ-project-meta">
-        <div class="econ-field"><label for="project-client" data-i18n="proj.client">Клиент</label><input type="text" id="project-client" maxlength="120" autocomplete="organization" placeholder=""></div>
-        <div class="econ-field"><label for="project-city" data-i18n="proj.city">Город</label><input type="text" id="project-city" maxlength="80" autocomplete="address-level2" placeholder=""></div>
-        <div class="econ-field"><label for="project-title" data-i18n="proj.title">Название проекта</label><input type="text" id="project-title" maxlength="120" autocomplete="off" placeholder=""></div>
-        <div class="econ-field econ-field--wide"><label for="project-note" data-i18n="proj.note">Комментарий для PDF</label><input type="text" id="project-note" maxlength="240" autocomplete="off" placeholder=""></div>
-      </div>
     <ul class="econ-warnings" id="econ-warnings" hidden></ul>
     <div class="econ-planting-sync" id="econ-planting-sync" hidden></div>
       <div class="econ-toolbar">
@@ -3603,6 +3779,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 <script src="js/planting-econ-glue.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/standards-catalog-table.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-app-nav.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-ux.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-public-api.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-snapshot.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/georgy-mode.js?v=2026-05-20-p109-pdf-sections"></script>
@@ -4172,7 +4349,10 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   var _standardsCatalog = global.DG_createStandardsCatalogTable({
     $: $, pt: pt, tr: tr, htmlEsc: htmlEsc,
     allVfCultivars: allVfCultivars, allPalletCultivars: allPalletCultivars, allGhCultivars: allGhCultivars,
-    VF_SECTIONS: VF_SECTIONS, PALLET_SECTIONS: PALLET_SECTIONS
+    VF_SECTIONS: VF_SECTIONS, PALLET_SECTIONS: PALLET_SECTIONS,
+    openCultivarInCalc: function (cvId, env) {
+      if (global.DG_plantingUx) global.DG_plantingUx.openCultivarInCalc(cvId, env);
+    }
   });
   function renderStandardsCatalog(){ return _standardsCatalog.renderStandardsCatalog(); }
 
@@ -4212,6 +4392,15 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   function updateCalcBuildBadge(r){ return _appNav.updateCalcBuildBadge(r); }
   function syncPalletLoadWarn(){ return _appNav.syncPalletLoadWarn(); }
   function updatePageSub(){ return _appNav.updatePageSub(); }
+
+  global.DG_plantingUx = global.DG_createPlantingUx({
+    $: $,
+    getState: function(){ return state; },
+    ui: ui,
+    setAppView: setAppView,
+    renderAll: renderAll
+  });
+  global.DG_plantingUx.init();
 
   /* ---- Date helpers ---- */
   function addDays(date, n){
