@@ -46,7 +46,8 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; }
 :root {
-  --paper: #BDECB6; --paper-deep: #BDECB6; --card: #BDECB6;
+  --page-bg: #ECEBBD;
+  --paper: #FAF6EC; --paper-deep: #F2EDDF; --card: #FFFCF5;
   --ink: #1F1D17; --ink-soft: #4A4738; --ink-faint: #847D69;
   --rule: #E2DBC5; --rule-strong: #C7BFA5;
   --brand: #276D5C; --brand-deep: #1F5548; --brand-pale: #E6F0ED; --brand-text: #1A4A3F;
@@ -75,12 +76,12 @@
   --brick-pale: rgba(155,56,38,0.18); --brick-text: #E89A87;
   --sky-pale: rgba(63,104,150,0.18); --sky-text: #9BB8D9;
 }
-html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink);
+html, body { margin: 0; padding: 0; background: var(--page-bg); color: var(--ink);
   font-family: var(--font-body); font-size: 15px; line-height: 1.55;
   -webkit-font-smoothing: antialiased; }
 body {
   min-height: 100vh; padding: 28px 18px 56px;
-  background: #BDECB6;
+  background: var(--page-bg);
 }
 [data-theme="dark"] body {
   background: var(--paper);
@@ -2608,8 +2609,8 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 .adv-infl-form label { display: flex; flex-direction: column; gap: 4px; color: var(--ink-faint); }
 .adv-infl-form input { width: 72px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: var(--radius); }
 </style>
-<link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-27-bg-geom">
-<link rel="stylesheet" href="css/econ-unify.css?v=2026-05-27-bg-geom">
+<link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-27-page-bg">
+<link rel="stylesheet" href="css/econ-unify.css?v=2026-05-27-page-bg">
 <link rel="stylesheet" href="css/mobile.css?v=2026-05-19-desktop-page-width">
 <link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-preview-mode">
 </head>

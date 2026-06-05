@@ -15,7 +15,7 @@
   padding: 16px 18px 14px;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(39, 109, 92, 0.22);
-  background: var(--paper);
+  background: linear-gradient(135deg, var(--brand-pale) 0%, var(--card) 62%);
   box-shadow: var(--shadow-sm);
 }
 
@@ -133,7 +133,7 @@
 
 #view-economics .econ-panel--highlight {
   border-left-width: 4px;
-  background: var(--paper);
+  background: linear-gradient(180deg, rgba(39, 109, 92, 0.04) 0%, var(--card) 120px);
 }
 
 #view-economics .section-h {
@@ -363,7 +363,7 @@
 }
 
 #view-economics .econ-results-final-cards .m.hl {
-  background: var(--paper);
+  background: linear-gradient(180deg, var(--brand-pale), var(--card));
   border-color: rgba(39, 109, 92, 0.35);
 }
 
@@ -489,7 +489,7 @@
 
 #view-economics .econ-pb-callout {
   border-color: rgba(39, 109, 92, 0.35);
-  background: var(--paper);
+  background: linear-gradient(135deg, var(--brand-pale), var(--card));
   border-radius: var(--radius-lg);
 }
 
@@ -592,7 +592,7 @@
 #view-planting #planting-hero {
   border-left: 4px solid var(--brand);
   border-radius: var(--radius-lg);
-  background: var(--paper);
+  background: linear-gradient(180deg, rgba(39, 109, 92, 0.05) 0%, var(--card) 100px);
   box-shadow: var(--shadow-sm);
   padding: 16px 20px;
   margin-bottom: 14px;
@@ -623,13 +623,13 @@
   padding: 14px 16px;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(39, 109, 92, 0.18);
-  background: var(--paper);
+  background: linear-gradient(135deg, var(--brand-pale) 0%, var(--card) 70%);
 }
 
 #view-planting .planting-subpanel.panel {
   border-left: 2px solid rgba(39, 109, 92, 0.25);
   border-radius: var(--radius);
-  background: var(--paper);
+  background: var(--paper-deep);
   padding: 14px 16px;
   margin-bottom: 14px;
   min-width: 0;
