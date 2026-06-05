@@ -47,16 +47,14 @@
         { selector: '#econ-equipment-total', mode: 'equip-total' }
       ],
       'econ-results': [
-        { titleKey: 'pdf.vec.cultMetrics', selector: '#econ-results-metrics .econ-results-per-culture', mode: 'culture-metrics' },
         { titleKey: 'pdf.vec.farmTotals', selector: '#econ-results-final-cards .econ-results', mode: 'metric-cards' },
         { titleKey: 'pdf.vec.byCult', selector: '#econ-cultures-breakdown' },
         { titleKey: 'pdf.vec.costsMargin', selector: '#econ-breakdown-table' },
-        { titleKey: 'pdf.vec.mixBreakdown', selector: '#econ-mix-breakdown-table' },
-        { titleKey: 'pdf.vec.electricity', selector: '#econ-results-metrics table.econ-breakdown' }
+        { titleKey: 'pdf.vec.mixBreakdown', selector: '#econ-mix-breakdown-table' }
       ],
       'econ-results-client': [
         { titleKey: 'pdf.vec.farmTotals', selector: '#econ-results-final-cards .econ-results', mode: 'metric-cards' },
-        { titleKey: 'pdf.vec.byCult', selector: '#econ-cultures-breakdown', clientCultTable: true },
+        { titleKey: 'pdf.vec.byCult', selector: '#econ-cultures-breakdown' },
         { titleKey: 'pdf.vec.costsMargin', selector: '#econ-breakdown-table' }
       ],
       'econ-sensitivity': [
@@ -498,8 +496,7 @@
       else if (item.mode === 'equip-total') data = parseEquipTotal(el);
       else if (el.tagName === 'TABLE') data = parseHtmlTable(el);
       else data = parseHtmlTable(el.querySelector('table'));
-      if (data && item.clientCultTable) data = dropTableCols(data, [5]);
-      else if (data && item.selector === '#econ-cultures-breakdown') data = sliceTableCols(data, 2);
+      if (data && item.selector === '#econ-cultures-breakdown') data = dropTableCols(data, [5]);
       if (data && (data.rows.length || data.headers.length)) out.push({ title: title, data: data });
     });
     return out;

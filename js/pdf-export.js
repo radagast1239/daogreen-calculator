@@ -312,13 +312,11 @@
       }
     }
 
-    function stripEconBreakdownTable(tbl){
+    function trimEconBreakdownTableForPdf(tbl){
       if (!tbl) return;
       tbl.querySelectorAll('tr').forEach(function(tr){
         var cells = tr.querySelectorAll('th, td');
-        if (cells.length < 3) return;
-        if (cells[0]) cells[0].remove();
-        if (cells[0]) cells[0].remove();
+        if (cells.length > 5 && cells[5]) cells[5].remove();
       });
     }
 
@@ -332,7 +330,19 @@
       root.querySelectorAll('.econ-metric-line--share').forEach(function(el){
         el.style.display = 'none';
       });
-      stripEconBreakdownTable(root.querySelector('#econ-cultures-breakdown'));
+      root.querySelectorAll('.econ-results-per-culture, .econ-results-farm, .econ-elec-charts-wrap').forEach(function(el){
+        el.style.display = 'none';
+      });
+      root.querySelectorAll('.econ-results-metrics .econ-results-section').forEach(function(sec){
+        if (sec.querySelector('.econ-results-per-culture, .econ-results-farm')) sec.style.display = 'none';
+      });
+      trimEconBreakdownTableForPdf(root.querySelector('#econ-cultures-breakdown'));
+    }
+
+    function isClientPdfSections(ids){
+      if (!ids || !ids.length) return false;
+      var allowed = { cover: 1, 'econ-warnings': 1, 'econ-results': 1 };
+      return ids.every(function(id){ return !!allowed[id]; });
     }
 
     function prepareClone(root){
@@ -639,7 +649,8 @@
 
       var pdfPlantingToken = null;
       try {
-        if (deps.setPdfExportContext) deps.setPdfExportContext({ sectionIds: selectedIds.slice() });
+        var clientMode = isClientPdfSections(selectedIds);
+        if (deps.setPdfExportContext) deps.setPdfExportContext({ sectionIds: selectedIds.slice(), clientMode: clientMode });
         var needEcon = selectedIds.some(function(id){ return id.indexOf('econ-') === 0; });
         var needPlanting = selectedIds.some(function(id){ return id.indexOf('econ-') !== 0 && id !== 'cover'; });
         if (needPlanting && deps.preparePlantingForPdfExport){
