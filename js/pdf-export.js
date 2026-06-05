@@ -23,12 +23,12 @@
     { id: 'block-panel-geom', group: 'planting', selector: '#block-panel-geom' },
     { id: 'panel-system', group: 'planting', selector: '#panel-system' },
     { id: 'panel-pallet-geom', group: 'planting', selector: '#panel-pallet-geom' },
-    { id: 'panel-planting-advanced', group: 'planting', selector: '#panel-planting-advanced' },
     { id: 'panel-gh-yield', group: 'planting', selector: '#panel-gh-yield-totals' },
     { id: 'panel-cv-compare', group: 'planting', selector: '#panel-cv-compare' },
     { id: 'panel-metrics', group: 'planting', selector: '#panel-metrics' },
     { id: 'panel-scenarios', group: 'planting', selector: '#panel-scenarios' },
     { id: 'panel-schema', group: 'planting', selector: '#panel-schema' },
+    { id: 'panel-planting-advanced', group: 'planting', selector: '#panel-planting-advanced' },
     { id: 'block-panel-recs', group: 'planting', selector: '#block-panel-recs' },
     { id: 'panel-channel-guide', group: 'planting', selector: '#panel-channel-guide' },
     { id: 'panel-pallet-guide', group: 'planting', selector: '#panel-pallet-guide' },
@@ -66,8 +66,7 @@
     planting: [
       'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'panel-bio-margin',
       'block-panel-geom', 'panel-gh-yield',
-      'panel-metrics', 'panel-schema', 'block-panel-recs',
-      'panel-planting-advanced',
+      'panel-metrics', 'panel-schema', 'panel-planting-advanced', 'block-panel-recs',
       'econ-cult-unit-cost', 'econ-farm-final'
     ],
     econ: [

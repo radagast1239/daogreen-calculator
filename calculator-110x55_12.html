@@ -2612,7 +2612,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 .adv-infl-form input { width: 72px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: var(--radius); }
 </style>
 <link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-27-masthead-menu">
-<link rel="stylesheet" href="css/econ-unify.css?v=2026-05-27-econ-ui">
+<link rel="stylesheet" href="css/econ-unify.css?v=2026-05-27-planting-ui">
 <link rel="stylesheet" href="css/mobile.css?v=2026-05-19-desktop-page-width">
 <link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-preview-mode">
 </head>
@@ -2761,6 +2761,8 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     <p class="georgy-mode-intro georgy-only" id="georgy-mode-intro" data-i18n="georgy.intro">Упрощённый режим теплицы: сроки, плотность, свет и срезки подставляются автоматически.</p>
   </div>
 
+  <div class="planting-zone planting-zone--culture">
+    <h2 class="planting-zone-label" data-i18n="ui.planting.zone.culture">Культура</h2>
   <div id="planting-active-cv-bar" class="planting-active-cv-bar" aria-live="polite">
     <div class="planting-active-cv-inner">
       <span class="planting-active-cv-label" data-i18n="planting.activeCv">Настройка культуры</span>
@@ -2773,9 +2775,9 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     </div>
   </div>
 
-  <section class="panel collapse-block" id="panel-cultivars">
+  <section class="panel econ-panel collapse-block" id="panel-cultivars">
     <div class="collapse-head" data-collapse-target="panel-cultivars">
-      <span>Культуры</span>
+      <span class="section-h" data-i18n="cultivars.title">Культуры</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="panel-cultivars-body">
@@ -2790,7 +2792,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   <section class="planting-hero env-block-hidden" id="planting-hero" aria-label="Ключевые показатели">
     <div class="planting-hero-grid" id="planting-hero-grid"></div>
   </section>
-  <section class="panel georgy-only georgy-panel" id="panel-georgy-simple">
+  <section class="panel econ-panel georgy-only georgy-panel" id="panel-georgy-simple">
     <div class="section-h" data-i18n="georgy.panel.title">Расчёт для Георгия</div>
     <p class="georgy-mode-intro" data-i18n="georgy.panel.lead">Салаты — один срез и подбор по шапке. Руккола и салат беби — стаканы, 2 ряда, многосрезка 80–110&nbsp;шт/м².</p>
     <p class="georgy-step-label georgy-baby-only" data-i18n="georgy.baby.params">Беби в стаканах (руккола / салат)</p>
@@ -2875,7 +2877,10 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </div>
     </section>
   </section>
-  <section class="panel" id="env-panel">
+  </div>
+  <div class="planting-zone planting-zone--env">
+    <h2 class="planting-zone-label" data-i18n="ui.planting.zone.env">Климат и свет</h2>
+  <section class="panel econ-panel" id="env-panel">
     <div class="collapse-block vf-only env-block-hidden" id="block-env-vf-light">
       <div class="collapse-head" data-collapse-target="block-env-vf-light">
         <span>Искусственный свет (закрытое помещение)</span>
@@ -2982,7 +2987,10 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 
     <div class="env-summary" id="env-summary"></div>
   </section>
-  <section class="panel" id="panel-culture">
+  </div>
+  <div class="planting-zone planting-zone--cycle">
+    <h2 class="planting-zone-label" data-i18n="ui.planting.zone.cycle">Цикл и система</h2>
+  <section class="panel econ-panel" id="panel-culture">
     <div class="section-h">Параметры цикла</div>
 
     <div class="collapse-block" id="block-grow-time" data-collapse-vf="germination,day">
@@ -3183,9 +3191,9 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </div>
     </div>
   </section>
-  <section class="panel collapse-block" id="block-panel-geom">
+  <section class="panel econ-panel collapse-block" id="block-panel-geom">
     <div class="collapse-head" data-collapse-target="block-panel-geom">
-      <span data-i18n="ui.planting.geomTitle">Размер системы</span>
+      <span class="section-h" data-i18n="ui.planting.geomTitle">Размер системы</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="block-panel-geom-body">
@@ -3281,15 +3289,18 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </div>
         </div>
   </section>
-  <section class="panel collapse-block" id="panel-metrics">
+  </div>
+  <div class="planting-zone planting-zone--results">
+    <h2 class="planting-zone-label" data-i18n="ui.planting.zone.results">Результаты расчёта</h2>
+  <section class="panel econ-panel collapse-block" id="panel-metrics">
     <div class="collapse-head" data-collapse-target="panel-metrics">
-      <span data-i18n="ui.planting.metricsTitle">Показатели</span>
+      <span class="section-h" data-i18n="ui.planting.metricsTitle">Показатели</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="panel-metrics-body">
       <div class="collapse-block" id="block-stage" data-collapse-vf="">
         <div class="collapse-head" data-collapse-target="block-stage">
-          <span>Фаза роста</span>
+          <span class="section-h" data-i18n="stage.title">Фаза роста</span>
           <span class="collapse-chev" aria-hidden="true">▼</span>
         </div>
         <div class="collapse-body" id="block-stage-body">
@@ -3310,9 +3321,9 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <div class="metrics" id="metrics-sys"></div>
     </div>
   </section>
-  <section class="panel collapse-block" id="panel-schema">
+  <section class="panel econ-panel collapse-block" id="panel-schema">
     <div class="collapse-head" data-collapse-target="panel-schema">
-      <span data-i18n="ui.planting.schemaTitle" id="schema-section-title">Схема — вид сверху</span>
+      <span class="section-h" data-i18n="ui.planting.schemaTitle">Схема — вид сверху</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="panel-schema-body">
@@ -3332,18 +3343,12 @@ html.share-mode .page { user-select: text; padding-top: 0; }
         </div>
     </div>
   </section>
-  <section class="panel collapse-block" id="block-panel-recs">
-    <div class="collapse-head" data-collapse-target="block-panel-recs">
-      <span>Рекомендации</span>
-      <span class="collapse-chev" aria-hidden="true">▼</span>
-    </div>
-    <div class="collapse-body" id="block-panel-recs-body">
-    <div id="recs"></div>
-    </div>
-  </section>
-  <section class="panel collapse-block" id="panel-bio-margin">
+  </div>
+  <div class="planting-zone planting-zone--more">
+    <h2 class="planting-zone-label" data-i18n="ui.planting.zone.more">Уточнения</h2>
+  <section class="panel econ-panel collapse-block" id="panel-bio-margin">
     <div class="collapse-head" data-collapse-target="panel-bio-margin">
-      <span data-i18n="ui.planting.bioMarginTitle">Биологический разброс</span>
+      <span class="section-h" data-i18n="ui.planting.bioMarginTitle">Биологический разброс</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="panel-bio-margin-body">
@@ -3364,9 +3369,9 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </div>
     </div>
   </section>
-  <section class="panel collapse-block" id="panel-gh-yield-totals">
+  <section class="panel econ-panel collapse-block" id="panel-gh-yield-totals">
     <div class="collapse-head" data-collapse-target="panel-gh-yield-totals">
-      <span data-i18n="gh.yield.title" id="gh-yield-section-title">Урожай с полезной площади теплицы</span>
+      <span class="section-h" data-i18n="gh.yield.title" id="gh-yield-section-title">Урожай с полезной площади теплицы</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="panel-gh-yield-totals-body">
@@ -3419,15 +3424,15 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     <span class="farm-cal-nudge-text" data-i18n="farmCal.nudge">Есть замеры с вашей фермы? Подгоните модель под факт.</span>
     <button type="button" class="auto-btn" data-farm-cal-open data-i18n="farmCal.nudgeOpen">Калибровка по замерам</button>
   </div>
-  <section class="panel collapse-block" id="panel-planting-advanced">
+  <section class="panel econ-panel collapse-block" id="panel-planting-advanced">
     <div class="collapse-head" data-collapse-target="panel-planting-advanced">
-      <span data-i18n="ui.planting.advancedTitle">Дополнительно</span>
+      <span class="section-h" data-i18n="ui.planting.advancedTitle">Дополнительно</span>
       <span class="collapse-chev" aria-hidden="true">▼</span>
     </div>
     <div class="collapse-body" id="panel-planting-advanced-body">
       <div class="planting-subpanel panel collapse-block sheet-standards-panel" id="block-panel-standards">
         <div class="collapse-head" data-collapse-target="block-panel-standards">
-          <span>Мои стандарты</span>
+          <span class="section-h" data-i18n="ui.planting.metricsTitle">Показатели</span>
           <span class="collapse-chev" aria-hidden="true">▼</span>
         </div>
         <div class="collapse-body" id="block-panel-standards-body">
@@ -3458,7 +3463,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     
       <div class="planting-subpanel panel collapse-block" id="block-panel-growth">
         <div class="collapse-head" data-collapse-target="block-panel-growth">
-          <span>Кривая роста</span>
+          <span class="section-h" data-i18n="ui.planting.schemaTitle">Схема — вид сверху</span>
           <span class="collapse-chev" aria-hidden="true">▼</span>
         </div>
         <div class="collapse-body" id="block-panel-growth-body">
@@ -3595,7 +3600,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 
       <div class="planting-subpanel panel collapse-block" id="block-panel-farm-calibration">
         <div class="collapse-head" data-collapse-target="block-panel-farm-calibration">
-          <span>Калибровка по замерам</span>
+          <span class="section-h" data-i18n="ui.planting.bioMarginTitle">Биологический разброс</span>
           <span class="collapse-chev" aria-hidden="true">▼</span>
         </div>
         <div class="collapse-body" id="block-panel-farm-calibration-body">
@@ -3645,7 +3650,18 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </div>
         </div>
   </section>
+  </div>
 
+  <section class="panel econ-panel collapse-block planting-recs-panel" id="block-panel-recs">
+    <div class="collapse-head" data-collapse-target="block-panel-recs">
+      <span class="section-h" data-i18n="recs.title">Рекомендации</span>
+      <span class="collapse-chev" aria-hidden="true">▼</span>
+    </div>
+    <div class="collapse-body" id="block-panel-recs-body">
+    <div id="recs"></div>
+    </div>
+  </section>
+  
 <footer class="colophon">
     <div><strong>Модель роста.</strong> Логистическая: <span class="formula">M(t) = M<sub>max</sub> / (1 + e<sup>−k(t−t₅₀)</sup>)</span>, шапка <span class="formula">d = c · √M</span></div>
     <div id="colophon-light"></div>

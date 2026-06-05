@@ -123,12 +123,20 @@ if (build){
   var vp = html.slice(vpStart, vpEnd);
   var gs = vp.indexOf('id="panel-georgy-simple"');
   var ep = vp.indexOf('id="env-panel"');
-  if (gs >= 0 && ep > gs){
+    if (gs >= 0 && ep > gs){
     var between = vp.slice(gs, ep);
     var open = (between.match(/<section\b/g) || []).length;
     var close = (between.match(/<\/section>/g) || []).length;
     if (open > close) fail('env-panel nested inside panel-georgy-simple (missing </section>)');
     else ok('planting DOM: env-panel outside georgy panel');
+  }
+  var recsPos = vp.indexOf('id="block-panel-recs"');
+  var advPos = vp.indexOf('<section class="panel econ-panel collapse-block" id="panel-planting-advanced"');
+  if (advPos < 0) advPos = vp.lastIndexOf('id="panel-planting-advanced"');
+  if (recsPos >= 0 && advPos >= 0 && recsPos > advPos) {
+    ok('planting DOM: recs after advanced');
+  } else if (recsPos >= 0) {
+    fail('block-panel-recs should be last block before footer (recs=' + recsPos + ' adv=' + advPos + ')');
   }
 })();
 

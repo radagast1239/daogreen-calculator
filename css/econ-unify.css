@@ -514,3 +514,133 @@
     font-size: 15px;
   }
 }
+
+/* —— Planting tab (same visual language as economics) —— */
+#view-planting {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+#view-planting .planting-zone {
+  margin-bottom: 6px;
+}
+
+#view-planting .planting-zone-label {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--brand);
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#view-planting .planting-zone-label::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, rgba(39, 109, 92, 0.38), transparent 88%);
+}
+
+#view-planting .planting-zone--more {
+  margin-top: 4px;
+}
+
+#view-planting .econ-panel.panel {
+  border-left: 3px solid var(--brand);
+  border-radius: var(--radius-lg);
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+#view-planting .econ-panel.panel:focus-within {
+  border-color: var(--rule-strong);
+  box-shadow: var(--shadow-md), inset 3px 0 0 var(--brand);
+}
+
+#view-planting .econ-panel.collapse-block.panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+#view-planting .econ-panel.collapse-block > .collapse-head {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-deep);
+}
+
+#view-planting .econ-panel.collapse-block > .collapse-body {
+  padding: 16px 20px 20px;
+}
+
+#view-planting .econ-panel > .section-h,
+#view-planting .econ-panel.collapse-block > .collapse-head .section-h {
+  color: var(--brand-text);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  margin-bottom: 0;
+}
+
+#view-planting .econ-panel.collapse-block > .collapse-head .section-h::after {
+  display: none;
+}
+
+#view-planting #planting-hero {
+  border-left: 4px solid var(--brand);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(39, 109, 92, 0.05) 0%, var(--card) 100px);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 20px;
+  margin-bottom: 14px;
+}
+
+#view-planting #planting-active-cv-bar {
+  border-left: 3px solid rgba(39, 109, 92, 0.45);
+  border-radius: var(--radius-lg);
+  background: var(--paper-deep);
+  margin-bottom: 14px;
+}
+
+#view-planting .planting-recs-panel {
+  margin-top: 8px;
+  border-left-color: rgba(39, 109, 92, 0.55);
+}
+
+#view-planting #recs .rec {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--rule);
+  border-left: 3px solid rgba(39, 109, 92, 0.45);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+#view-planting .facility-env-wrap {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(39, 109, 92, 0.18);
+  background: linear-gradient(135deg, var(--brand-pale) 0%, var(--card) 70%);
+}
+
+#view-planting .planting-subpanel.panel {
+  border-left: 2px solid rgba(39, 109, 92, 0.25);
+  border-radius: var(--radius);
+  background: var(--paper-deep);
+  padding: 0;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 640px) {
+  #view-planting .econ-panel.collapse-block > .collapse-body,
+  #view-planting .econ-panel.panel:not(.collapse-block) {
+    padding: 14px 14px;
+  }
+
+  #view-planting .planting-zone-label {
+    font-size: 15px;
+  }
+}

@@ -46,7 +46,7 @@
     'block-env-climate': false,
     'block-panel-growth': true,
     'block-panel-multicut': false,
-    'block-panel-recs': false,
+    'block-panel-recs': true,
     'block-panel-standards': true,
     'block-grow-time': false,
     'block-mass': false,
