@@ -57,11 +57,10 @@
       'panel-channel-guide', 'panel-pallet-guide', 'block-panel-standards'
     ],
     econ: [
-      'cover', 'econ-warnings', 'econ-general', 'econ-yield',
+      'cover', 'econ-general', 'econ-yield',
       'econ-elec', 'econ-payroll', 'econ-costs', 'econ-equipment', 'econ-results',
       'econ-advanced', 'econ-sensitivity', 'econ-payback'
     ],
-    client: ['cover', 'econ-warnings', 'econ-results'],
     full: null
   };
 
@@ -147,7 +146,6 @@
     var dialog = document.getElementById('pdf-export-dialog');
     var checklist = document.getElementById('pdf-export-checklist');
     var btnOpen = document.getElementById('btn-export-pdf');
-    var btnClient = document.getElementById('btn-export-pdf-client');
     if (!dialog || !checklist || !btnOpen){
       console.warn('PDF: не найдены элементы диалога (pdf-export-dialog / checklist / btn-export-pdf)');
       return;
@@ -187,7 +185,6 @@
     var selNone = document.getElementById('pdf-select-none');
     var presetPlanting = document.getElementById('pdf-preset-planting');
     var presetEcon = document.getElementById('pdf-preset-econ');
-    var presetClient = document.getElementById('pdf-preset-client');
     var presetFull = document.getElementById('pdf-preset-full');
     if (selAll) selAll.addEventListener('click', function(){
       checklist.querySelectorAll('input[name="pdf-sec"]').forEach(function(cb){ cb.checked = true; });
@@ -197,7 +194,6 @@
     });
     if (presetPlanting) presetPlanting.addEventListener('click', function(){ applyPreset(PDF_PRESETS.planting); });
     if (presetEcon) presetEcon.addEventListener('click', function(){ applyPreset(PDF_PRESETS.econ); });
-    if (presetClient) presetClient.addEventListener('click', function(){ applyPreset(PDF_PRESETS.client); });
     if (presetFull) presetFull.addEventListener('click', function(){
       applyPreset(SECTIONS.map(function(s){ return s.id; }));
     });
@@ -242,8 +238,7 @@
 
     function buildCover(){
       var meta = deps.getExportMeta ? deps.getExportMeta() : {};
-      var ctx = deps.getPdfExportContext ? deps.getPdfExportContext() : null;
-      var brand = !!(ctx && ctx.clientMode) || meta.brandCover;
+      var brand = !!meta.brandCover;
       var kpis = meta.kpiCards || [];
       var lines = meta.lines || [];
       var wrap = document.createElement('div');
@@ -337,12 +332,6 @@
         if (sec.querySelector('.econ-results-per-culture, .econ-results-farm')) sec.style.display = 'none';
       });
       trimEconBreakdownTableForPdf(root.querySelector('#econ-cultures-breakdown'));
-    }
-
-    function isClientPdfSections(ids){
-      if (!ids || !ids.length) return false;
-      var allowed = { cover: 1, 'econ-warnings': 1, 'econ-results': 1 };
-      return ids.every(function(id){ return !!allowed[id]; });
     }
 
     function prepareClone(root){
@@ -649,8 +638,7 @@
 
       var pdfPlantingToken = null;
       try {
-        var clientMode = isClientPdfSections(selectedIds);
-        if (deps.setPdfExportContext) deps.setPdfExportContext({ sectionIds: selectedIds.slice(), clientMode: clientMode });
+        if (deps.setPdfExportContext) deps.setPdfExportContext({ sectionIds: selectedIds.slice() });
         var needEcon = selectedIds.some(function(id){ return id.indexOf('econ-') === 0; });
         var needPlanting = selectedIds.some(function(id){ return id.indexOf('econ-') !== 0 && id !== 'cover'; });
         if (needPlanting && deps.preparePlantingForPdfExport){
@@ -711,20 +699,6 @@
       }
     }
 
-    function exportClientPdf(){
-      if (deps.setPdfExportContext) deps.setPdfExportContext({ sectionIds: PDF_PRESETS.client.slice(), clientMode: true });
-      return runExport(PDF_PRESETS.client).catch(function(err){
-        console.error(err);
-        alert((global.DG_tFmt ? global.DG_tFmt('pdf.err.export', { msg: (err && err.message ? err.message : String(err)) }) : 'PDF: ' + err));
-      });
-    }
-
-    if (btnClient && !btnClient.dataset.pdfClientBound){
-      btnClient.dataset.pdfClientBound = '1';
-      btnClient.addEventListener('click', function(){
-        exportClientPdf();
-      });
-    }
   }
 
   global.DG_initPdfExport = initPdfExport;

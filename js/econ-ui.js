@@ -1033,6 +1033,20 @@
     const hasPcs = res.sellPcs > 0 || res.outPcs > 0;
     const mixed = hasKg && hasPcs;
 
+    function outputTotalRow(label, sellVal, opts){
+      if (!(sellVal > 0)) return '';
+      opts = opts || {};
+      const mixed = opts.mixed;
+      const pctShow = opts.pctShow;
+      const farm = opts.farm;
+      const res = opts.res;
+      const wasteSuffix = res.wastePct > 0 && !opts.skipWaste ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '';
+      const unit = opts.unit || uPcs();
+      const valStr = opts.decimals != null ? deps.fmtNum(sellVal, { decimals: opts.decimals }) : deps.fmtNum(sellVal);
+      return '<tr class="econ-total-row"><td><strong>' + label + '</strong></td><td>' + (mixed ? '—' : pctShow) + '</td><td>' + (mixed ? '—' : deps.r1(farm.areaUsed)) + '</td><td>' +
+        valStr + ' ' + unit + wasteSuffix + '</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+    }
+
     const cultTbl = deps.$('econ-cultures-breakdown');
     if (cultTbl){
       if (parts.length){
@@ -1054,15 +1068,17 @@
           ch += '<tr><td>' + p.name + '</td><td>' + deps.r1(p.pct) + '</td><td>' + deps.r1(p.slice.area) + '</td><td>' + out + '</td><td>' + uc + '</td><td>' + consSqm + '</td><td>' + moneyFmt(revNet) + '</td><td>' + moneyFmt(p.slice.margin) + '</td></tr>';
         });
         const pctShow = deps.r1(farm.totalPct > 100 ? 100 : farm.totalPct);
+        const totOpts = { mixed: mixed, pctShow: pctShow, farm: farm, res: res, skipWaste: mixed };
         if (hasKg){
           ch += '<tr class="econ-total-row"><td><strong>' + L('econ.tbl.totalKg') + '</strong></td><td>' + pctShow + '</td><td>' + deps.r1(farm.areaUsed) + '</td><td>' +
             (res.sellKg > 0 ? deps.r1(res.sellKg) + ' ' + uKg() + (res.wastePct > 0 ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '') : '—') +
             '</td><td><strong>' + (res.unitCostKg > 0 ? moneyFmt(res.unitCostKg) : '—') + '</strong></td><td>—</td><td><strong>' + moneyFmt(res.revKg) + '</strong></td><td><strong>' + moneyFmt(res.marginKg) + '</strong></td></tr>';
         }
-        if (hasPcs){
-          ch += '<tr class="econ-total-row"><td><strong>' + L('econ.tbl.totalPcs') + '</strong></td><td>' + (mixed ? '—' : pctShow) + '</td><td>' + (mixed ? '—' : deps.r1(farm.areaUsed)) + '</td><td>' +
-            (res.sellPcs > 0 ? deps.fmtNum(res.sellPcs) + ' ' + uPcs() + (res.wastePct > 0 && !mixed ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '') : '—') +
-            '</td><td><strong>' + (res.unitCostPcs > 0 ? fmtUnitCost(res.unitCostPcs, 'шт') : '—') + '</strong></td><td>—</td><td><strong>' + moneyFmt(res.revPcs) + '</strong></td><td><strong>' + moneyFmt(res.marginPcs) + '</strong></td></tr>';
+        ch += outputTotalRow(L('econ.tbl.outMicroBaby'), res.sellMicroBabyPcs, totOpts);
+        ch += outputTotalRow(L('econ.tbl.outFlowers'), res.sellFlowersPcs, totOpts);
+        ch += outputTotalRow(L('econ.tbl.outWheatgrass'), res.sellWheatgrassPcs, totOpts);
+        if (res.sellOtherPcs > 0){
+          ch += outputTotalRow(L('econ.tbl.outOtherPcs'), res.sellOtherPcs, totOpts);
         }
         if (!hasKg && !hasPcs){
           ch += '<tr><td><strong>' + L('econ.tbl.total') + '</strong></td><td colspan="7">—</td></tr>';
@@ -1150,7 +1166,23 @@
     metrics += '<tr class="econ-row-total"><td><strong>' + L('econ.elec.total') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr></table></div></div>';
     deps.$('econ-results-metrics').innerHTML = metrics;
 
-    let farmCards = '<div class="econ-results" style="margin-top:0">' +
+    let farmCards = '<div class="econ-results" style="margin-top:0">';
+    if (res.sellKg > 0){
+      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.totalKg') + '</div><div class="m-val">' + deps.r1(res.sellKg) + ' <span class="m-u">' + uKg() + '</span></div></div>';
+    }
+    if (res.sellMicroBabyPcs > 0){
+      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outMicroBaby') + '</div><div class="m-val">' + deps.fmtNum(res.sellMicroBabyPcs) + ' <span class="m-u">' + uPcs() + '</span></div></div>';
+    }
+    if (res.sellFlowersPcs > 0){
+      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outFlowers') + '</div><div class="m-val">' + deps.fmtNum(res.sellFlowersPcs) + ' <span class="m-u">' + uPcs() + '</span></div></div>';
+    }
+    if (res.sellWheatgrassPcs > 0){
+      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outWheatgrass') + '</div><div class="m-val">' + deps.fmtNum(res.sellWheatgrassPcs) + ' <span class="m-u">' + uPcs() + '</span></div></div>';
+    }
+    if (res.sellOtherPcs > 0){
+      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outOtherPcs') + '</div><div class="m-val">' + deps.fmtNum(res.sellOtherPcs) + ' <span class="m-u">' + uPcs() + '</span></div></div>';
+    }
+    farmCards +=
       '<div class="m"><div class="m-label">' + L('econ.metrics.opex') + '</div><div class="m-val">' + moneyFmt(res.monthlyOpex) + '</div></div>' +
       '<div class="m"><div class="m-label">' + L('econ.bd.revenue') + '</div><div class="m-val">' + moneyFmt(res.revenue) + '</div></div>' +
       '<div class="m ' + (res.margin >= 0 ? 'hl' : 'bad-tint') + '"><div class="m-label">' + L('econ.metrics.marginAll') + '</div><div class="m-val">' + moneyFmt(res.margin) + '</div></div>';

@@ -15,6 +15,19 @@
     'pl-spinach-baby': { density: 220, yieldPerCut: 3, cutIntervalDays: 7, consumablesPerPot: 4 },
     'pl-edible-flowers': { yieldPerCut: 30, cutIntervalDays: 7, consumablesPerPot: 4, potHarvestMonths: 5 }
   };
+  /** Группы выпуска в шт для итоговых строк */
+  const ECON_PCS_OUTPUT_GROUPS = {
+    microBaby: ['pl-microgreens', 'pl-baby-living'],
+    flowers: ['pl-edible-flowers'],
+    wheatgrass: ['pl-wheatgrass']
+  };
+  function econOutputPcsGroup(cvId){
+    if (!cvId) return 'otherPcs';
+    if (ECON_PCS_OUTPUT_GROUPS.microBaby.indexOf(cvId) >= 0) return 'microBaby';
+    if (ECON_PCS_OUTPUT_GROUPS.flowers.indexOf(cvId) >= 0) return 'flowers';
+    if (ECON_PCS_OUTPUT_GROUPS.wheatgrass.indexOf(cvId) >= 0) return 'wheatgrass';
+    return 'otherPcs';
+  }
   const ECON_SALAD_MIX_ID = '__salad_mix__'; // legacy id (kept for compatibility)
   const ECON_SALAD_MIX_CV_IDS = [
     'vf-kale-baby', 'vf-mizuna-baby', 'vf-mustard-baby', 'vf-chard-baby',
@@ -1126,6 +1139,10 @@
     let consumablesCost = 0;
     let outKg = 0;
     let outPcs = 0;
+    let outMicroBabyPcs = 0;
+    let outFlowersPcs = 0;
+    let outWheatgrassPcs = 0;
+    let outOtherPcs = 0;
     let revKg = 0;
     let revPcs = 0;
     let areaKg = 0;
@@ -1137,6 +1154,11 @@
         outPcs += p.slice.monthlyOutput;
         revPcs += p.slice.revenue;
         areaPcs += p.slice.area;
+        const g = econOutputPcsGroup(p.cvId);
+        if (g === 'microBaby') outMicroBabyPcs += p.slice.monthlyOutput;
+        else if (g === 'flowers') outFlowersPcs += p.slice.monthlyOutput;
+        else if (g === 'wheatgrass') outWheatgrassPcs += p.slice.monthlyOutput;
+        else outOtherPcs += p.slice.monthlyOutput;
       } else {
         outKg += p.slice.monthlyOutput;
         revKg += p.slice.revenue;
@@ -1147,6 +1169,10 @@
     const areaUsed = parts.reduce((s, p) => s + p.slice.area, 0);
     const sellKg = outKg * wasteFactor;
     const sellPcs = outPcs * wasteFactor;
+    const sellMicroBabyPcs = outMicroBabyPcs * wasteFactor;
+    const sellFlowersPcs = outFlowersPcs * wasteFactor;
+    const sellWheatgrassPcs = outWheatgrassPcs * wasteFactor;
+    const sellOtherPcs = outOtherPcs * wasteFactor;
     revKg *= wasteFactor;
     revPcs *= wasteFactor;
     const revenue = revKg + revPcs;
@@ -1239,6 +1265,10 @@
       wastePct: parseFloat(e.wastePct) || 0,
       sellKg: sellKg,
       sellPcs: sellPcs,
+      sellMicroBabyPcs: sellMicroBabyPcs,
+      sellFlowersPcs: sellFlowersPcs,
+      sellWheatgrassPcs: sellWheatgrassPcs,
+      sellOtherPcs: sellOtherPcs,
       outKg: outKg,
       outPcs: outPcs,
       revKg: revKg,

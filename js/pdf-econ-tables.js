@@ -52,11 +52,6 @@
         { titleKey: 'pdf.vec.costsMargin', selector: '#econ-breakdown-table' },
         { titleKey: 'pdf.vec.mixBreakdown', selector: '#econ-mix-breakdown-table' }
       ],
-      'econ-results-client': [
-        { titleKey: 'pdf.vec.farmTotals', selector: '#econ-results-final-cards .econ-results', mode: 'metric-cards' },
-        { titleKey: 'pdf.vec.byCult', selector: '#econ-cultures-breakdown' },
-        { titleKey: 'pdf.vec.costsMargin', selector: '#econ-breakdown-table' }
-      ],
       'econ-sensitivity': [
         { titleKey: 'pdf.vec.scenarios', selector: '#econ-sensitivity-body table.econ-sens-table' }
       ],
@@ -463,10 +458,7 @@
   }
 
   function collectTablesForSection(sectionId, exportOpts){
-    exportOpts = exportOpts || {};
-    var specKey = sectionId;
-    if (exportOpts.clientMode && sectionId === 'econ-results') specKey = 'econ-results-client';
-    var spec = vectorSections()[specKey];
+    var spec = vectorSections()[sectionId];
     if (!spec) return [];
     var out = [];
     spec.forEach(function(item){

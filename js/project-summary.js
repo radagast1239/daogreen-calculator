@@ -31,10 +31,22 @@
       rows.push({ k: t(deps, 'sum.margin'), a: farm.margin, b: moneyUnit(deps), num: true, highlight: true, money: true });
       rows.push({ k: t(deps, 'sum.marginPct'), a: farm.marginPct, b: '%', num: true });
       if (farm.sellKg > 0){
-        rows.push({ k: t(deps, 'sum.sales'), a: farm.sellKg, b: t(deps, 'sum.unit.kgMo'), num: true });
+        rows.push({ k: t(deps, 'sum.salesKg'), a: farm.sellKg, b: t(deps, 'sum.unit.kgMo'), num: true });
         rows.push({ k: t(deps, 'sum.unitCost'), a: farm.unitCostKg, b: moneyUnit(deps, deps.t ? deps.t('econ.perKg') : '/кг'), num: true, money: true });
-      } else if (farm.sellPcs > 0){
-        rows.push({ k: t(deps, 'sum.sales'), a: farm.sellPcs, b: t(deps, 'sum.unit.pcsMo'), num: true });
+      }
+      if (farm.sellMicroBabyPcs > 0){
+        rows.push({ k: t(deps, 'sum.salesMicroBaby'), a: farm.sellMicroBabyPcs, b: t(deps, 'sum.unit.pcsMo'), num: true });
+      }
+      if (farm.sellFlowersPcs > 0){
+        rows.push({ k: t(deps, 'sum.salesFlowers'), a: farm.sellFlowersPcs, b: t(deps, 'sum.unit.pcsMo'), num: true });
+      }
+      if (farm.sellWheatgrassPcs > 0){
+        rows.push({ k: t(deps, 'sum.salesWheatgrass'), a: farm.sellWheatgrassPcs, b: t(deps, 'sum.unit.pcsMo'), num: true });
+      }
+      if (farm.sellOtherPcs > 0){
+        rows.push({ k: t(deps, 'sum.salesOtherPcs'), a: farm.sellOtherPcs, b: t(deps, 'sum.unit.pcsMo'), num: true });
+      }
+      if (farm.sellPcs > 0 && farm.sellKg <= 0){
         rows.push({ k: t(deps, 'sum.unitCost'), a: farm.unitCostPcs, b: moneyUnit(deps, deps.t ? deps.t('econ.perPcs') : '/шт'), num: true, money: true });
       }
       if (farm.breakEvenRevenue > 0){

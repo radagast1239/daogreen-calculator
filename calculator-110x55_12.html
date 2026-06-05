@@ -2357,8 +2357,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
           </div>
           <div class="masthead-group masthead-group--export">
         <button type="button" class="auto-btn" id="btn-project-compare" data-i18n="btn.compare" data-i18n-attr="title" data-readonly-allow>Сравнить</button>
-        <button type="button" class="auto-btn auto-btn--primary" id="btn-export-pdf-client" data-i18n="btn.pdfClient" data-i18n-attr="title" data-readonly-allow>PDF для клиента</button>
-        <button type="button" class="auto-btn" id="btn-export-pdf" data-i18n="btn.pdf" data-i18n-attr="title" data-readonly-allow>PDF</button>
+        <button type="button" class="auto-btn auto-btn--primary" id="btn-export-pdf" data-i18n="btn.pdf" data-i18n-attr="title" data-readonly-allow>PDF</button>
           </div>
           <div class="masthead-group masthead-group--app">
         <button type="button" class="auto-btn" id="btn-simple-ui" data-i18n="ui.simple.btn" data-readonly-allow title="Скрыть второстепенные панели">Простой интерфейс</button>
@@ -3453,7 +3452,6 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <div class="pdf-export-toolbar">
         <button type="button" class="auto-btn" id="pdf-preset-planting">Посадка</button>
         <button type="button" class="auto-btn" id="pdf-preset-econ">Экономика</button>
-        <button type="button" class="auto-btn" id="pdf-preset-client">Для клиента</button>
         <button type="button" class="auto-btn" id="pdf-preset-full">Полный</button>
         <button type="button" class="auto-btn" id="pdf-select-all">Все</button>
         <button type="button" class="auto-btn" id="pdf-select-none">Снять</button>
@@ -4253,15 +4251,22 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     if (farm.plantingArea > 0){
       cards.push({ label: ui('ui.pdf.meta.farmArea'), value: r1(farm.plantingArea), unit: tr('sum.unit.sqm') });
     }
-    if (farm.sellPcs > 0){
-      cards.push({ label: ui('ui.pdf.meta.outputMo'), value: fmtNum(farm.sellPcs), unit: tr('sum.unit.pcsMo') });
-    } else if (farm.sellKg > 0){
-      cards.push({ label: ui('ui.pdf.meta.outputMo'), value: fmtNum(farm.sellKg, { decimals: 1 }), unit: tr('sum.unit.kgMo') });
+    if (farm.sellKg > 0){
+      cards.push({ label: ui('ui.pdf.kpi.outKg'), value: fmtNum(farm.sellKg, { decimals: 1 }), unit: tr('sum.unit.kgMo') });
     }
-    if ((farm.parts || []).length > 1){
-      cards.push({ label: ui('ui.pdf.meta.culturesN'), value: String(farm.parts.length), unit: '' });
+    if (farm.sellMicroBabyPcs > 0){
+      cards.push({ label: ui('ui.pdf.kpi.outMicroBaby'), value: fmtNum(farm.sellMicroBabyPcs), unit: tr('sum.unit.pcsMo') });
     }
-    return cards.slice(0, 4);
+    if (farm.sellFlowersPcs > 0){
+      cards.push({ label: ui('ui.pdf.kpi.outFlowers'), value: fmtNum(farm.sellFlowersPcs), unit: tr('sum.unit.pcsMo') });
+    }
+    if (farm.sellWheatgrassPcs > 0){
+      cards.push({ label: ui('ui.pdf.kpi.outWheatgrass'), value: fmtNum(farm.sellWheatgrassPcs), unit: tr('sum.unit.pcsMo') });
+    }
+    if (farm.sellOtherPcs > 0){
+      cards.push({ label: ui('ui.pdf.kpi.outOtherPcs'), value: fmtNum(farm.sellOtherPcs), unit: tr('sum.unit.pcsMo') });
+    }
+    return cards.slice(0, 8);
   }
 
   function initPlantingPdfExport(){
@@ -4279,7 +4284,6 @@ html.share-mode .page { user-select: text; padding-top: 0; }
           var farm = calcFarmEconomics(state.econ);
           if (farm && (farm.parts || []).length){
             var pm = projectMetaFields();
-            var clientMode = ctx && ctx.clientMode;
             return {
               title: econCoverTitle(pm),
               projectTitle: econCoverTitle(pm),
@@ -4318,8 +4322,8 @@ html.share-mode .page { user-select: text; padding-top: 0; }
         };
       },
       pdfFilename: function(ctx){
-        var clientMode = ctx && ctx.clientMode;
-        if (clientMode){
+        var pdfCtx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
+        if (pdfExportIsEconLed(pdfCtx)){
           var pm = projectMetaFields();
           var slugSrc = pm.client || pm.city || pm.title;
           if (!slugSrc){
@@ -4328,17 +4332,8 @@ html.share-mode .page { user-select: text; padding-top: 0; }
               slugSrc = econCvDisplayName(row.cvId);
             }
           }
-          var slug = slugFromName(slugSrc) || 'client';
+          var slug = slugFromName(slugSrc) || 'econ';
           return 'Daogreen-' + slug + '-' + new Date().toISOString().slice(0, 10);
-        }
-        var pdfCtx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
-        if (pdfExportIsEconLed(pdfCtx)){
-          var row = primaryEconCultureRow();
-          if (row && row.cvId){
-            var name = (typeof econCvDisplayName === 'function') ? econCvDisplayName(row.cvId) : row.cvId;
-            var slug = slugFromName(name);
-            return 'daogreen-econ-' + (slug || 'econ') + '-' + new Date().toISOString().slice(0, 10);
-          }
         }
         var cv = getActiveCv();
         var slug = slugFromName(cv && cv.name);
