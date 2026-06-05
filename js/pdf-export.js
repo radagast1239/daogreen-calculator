@@ -61,6 +61,7 @@
       'econ-elec', 'econ-payroll', 'econ-costs', 'econ-equipment', 'econ-results',
       'econ-advanced', 'econ-sensitivity', 'econ-payback'
     ],
+    client: ['cover', 'econ-warnings', 'econ-results'],
     full: null
   };
 
@@ -146,6 +147,7 @@
     var dialog = document.getElementById('pdf-export-dialog');
     var checklist = document.getElementById('pdf-export-checklist');
     var btnOpen = document.getElementById('btn-export-pdf');
+    var btnClient = document.getElementById('btn-export-pdf-client');
     if (!dialog || !checklist || !btnOpen){
       console.warn('PDF: не найдены элементы диалога (pdf-export-dialog / checklist / btn-export-pdf)');
       return;
@@ -185,6 +187,7 @@
     var selNone = document.getElementById('pdf-select-none');
     var presetPlanting = document.getElementById('pdf-preset-planting');
     var presetEcon = document.getElementById('pdf-preset-econ');
+    var presetClient = document.getElementById('pdf-preset-client');
     var presetFull = document.getElementById('pdf-preset-full');
     if (selAll) selAll.addEventListener('click', function(){
       checklist.querySelectorAll('input[name="pdf-sec"]').forEach(function(cb){ cb.checked = true; });
@@ -194,6 +197,7 @@
     });
     if (presetPlanting) presetPlanting.addEventListener('click', function(){ applyPreset(PDF_PRESETS.planting); });
     if (presetEcon) presetEcon.addEventListener('click', function(){ applyPreset(PDF_PRESETS.econ); });
+    if (presetClient) presetClient.addEventListener('click', function(){ applyPreset(PDF_PRESETS.client); });
     if (presetFull) presetFull.addEventListener('click', function(){
       applyPreset(SECTIONS.map(function(s){ return s.id; }));
     });
@@ -228,18 +232,53 @@
       });
     });
 
+    function htmlEsc(s){
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
     function buildCover(){
       var meta = deps.getExportMeta ? deps.getExportMeta() : {};
+      var ctx = deps.getPdfExportContext ? deps.getPdfExportContext() : null;
+      var brand = !!(ctx && ctx.clientMode) || meta.brandCover;
+      var kpis = meta.kpiCards || [];
       var lines = meta.lines || [];
       var wrap = document.createElement('div');
-      wrap.className = 'pdf-page-block pdf-cover-block';
+      wrap.className = 'pdf-page-block pdf-cover-block' + (brand ? ' pdf-cover-brand-page' : '');
+
+      if (brand){
+        var title = meta.projectTitle || meta.title || pdfT('pdf.cover');
+        var client = meta.client ? String(meta.client).trim() : '';
+        var note = meta.projectNote ? String(meta.projectNote).trim() : '';
+        wrap.innerHTML =
+          '<div class="pdf-cover-topbar"></div>' +
+          '<div class="pdf-cover-brand">Daogreen</div>' +
+          '<h1 class="pdf-cover-title">' + htmlEsc(title) + '</h1>' +
+          (client ? '<p class="pdf-cover-client">' + htmlEsc(client) + '</p>' : '') +
+          (meta.subtitle ? '<p class="pdf-cover-sub">' + htmlEsc(meta.subtitle) + '</p>' : '') +
+          '<p class="pdf-cover-date">' + htmlEsc(meta.date || '') + '</p>' +
+          (kpis.length ? ('<div class="pdf-cover-kpi-grid">' + kpis.map(function(k){
+            return '<div class="pdf-cover-kpi">' +
+              '<div class="pdf-cover-kpi-l">' + htmlEsc(k.label) + '</div>' +
+              '<div class="pdf-cover-kpi-v">' + htmlEsc(k.value) +
+              (k.unit ? ' <span class="pdf-cover-kpi-u">' + htmlEsc(k.unit) + '</span>' : '') +
+              '</div></div>';
+          }).join('') + '</div>') : '') +
+          (note ? '<p class="pdf-cover-note">' + htmlEsc(note) + '</p>' : '') +
+          '<p class="pdf-cover-disclaimer">' + htmlEsc(pdfT('pdf.cover.disclaimer')) + '</p>';
+        return wrap;
+      }
+
       wrap.innerHTML =
         '<div class="pdf-cover-brand">Daogreen</div>' +
-        '<h1 class="pdf-cover-title">' + (meta.title || pdfT('pdf.cover')) + '</h1>' +
-        '<p class="pdf-cover-sub">' + (meta.subtitle || '') + '</p>' +
-        '<p class="pdf-cover-date">' + (meta.date || '') + '</p>' +
+        '<h1 class="pdf-cover-title">' + htmlEsc(meta.title || pdfT('pdf.cover')) + '</h1>' +
+        '<p class="pdf-cover-sub">' + htmlEsc(meta.subtitle || '') + '</p>' +
+        '<p class="pdf-cover-date">' + htmlEsc(meta.date || '') + '</p>' +
         '<div class="pdf-cover-metrics">' + lines.map(function(l){
-          return '<div class="pdf-cover-metric"><span class="pdf-cover-m-l">' + l.label + '</span><span class="pdf-cover-m-v">' + l.value + (l.unit ? ' <span class="pdf-cover-m-u">' + l.unit + '</span>' : '') + '</span></div>';
+          return '<div class="pdf-cover-metric"><span class="pdf-cover-m-l">' + htmlEsc(l.label) + '</span><span class="pdf-cover-m-v">' + htmlEsc(l.value) + (l.unit ? ' <span class="pdf-cover-m-u">' + htmlEsc(l.unit) + '</span>' : '') + '</span></div>';
         }).join('') + '</div>';
       return wrap;
     }
@@ -642,8 +681,10 @@
         await waitForPaint(hasCharts ? 350 : 200);
 
         var meta = deps.getExportMeta ? deps.getExportMeta() : {};
-        var fname = (deps.pdfFilename ? deps.pdfFilename() : 'daogreen-calc') + '.pdf';
-        var docTitle = meta.title || pdfT('pdf.cover');
+        var ctx = deps.getPdfExportContext ? deps.getPdfExportContext() : null;
+        var fnameBase = (deps.pdfFilename ? deps.pdfFilename(ctx) : 'daogreen-calc');
+        var fname = fnameBase + (String(fnameBase).slice(-4) === '.pdf' ? '' : '.pdf');
+        var docTitle = meta.projectTitle || meta.title || pdfT('pdf.cover');
         await buildPdfFromSections(orderedIds, secMap, fname, docTitle);
       } finally {
         if (deps.restorePlantingAfterPdfExport && pdfPlantingToken){
@@ -654,6 +695,21 @@
         if (badge2) badge2.style.visibility = '';
         if (btn){ btn.disabled = false; btn.textContent = prevText || pdfT('pdf.btn.download'); }
       }
+    }
+
+    function exportClientPdf(){
+      if (deps.setPdfExportContext) deps.setPdfExportContext({ sectionIds: PDF_PRESETS.client.slice(), clientMode: true });
+      return runExport(PDF_PRESETS.client).catch(function(err){
+        console.error(err);
+        alert((global.DG_tFmt ? global.DG_tFmt('pdf.err.export', { msg: (err && err.message ? err.message : String(err)) }) : 'PDF: ' + err));
+      });
+    }
+
+    if (btnClient && !btnClient.dataset.pdfClientBound){
+      btnClient.dataset.pdfClientBound = '1';
+      btnClient.addEventListener('click', function(){
+        exportClientPdf();
+      });
     }
   }
 

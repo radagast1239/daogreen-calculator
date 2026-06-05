@@ -151,6 +151,38 @@
   color: var(--brand-text);
 }
 
+#view-economics .econ-project-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px 14px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed rgba(39, 109, 92, 0.18);
+}
+
+#view-economics .econ-field--wide {
+  grid-column: 1 / -1;
+}
+
+#view-economics .econ-mix-fold {
+  margin: 10px 0 12px;
+}
+
+#view-economics .econ-panel.collapse-block > .collapse-head .section-h {
+  margin-bottom: 0;
+}
+
+#view-economics .econ-panel.collapse-block > .collapse-head .section-h::after {
+  display: none;
+}
+
+.masthead-group--project .project-recent-select {
+  max-width: 168px;
+  padding: 7px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
 /* —— Fields & grids —— */
 #view-economics .econ-field label {
   color: var(--ink-soft);

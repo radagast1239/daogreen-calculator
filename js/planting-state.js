@@ -103,7 +103,11 @@
       /** В режиме Георгия: не перезатирать ghCutMasses нормативом при каждой перерасчёте (правки по срезкам у беби). */
       georgyManualCutMasses: false,
       /** Замеры с фермы: cvId → { measuredMass, measuredYieldSqm, measuredAt, comment, patch } */
-      farmCalibrations: {}
+      farmCalibrations: {},
+      /** Поля для PDF и «последних проектов» */
+      projectClient: '',
+      projectTitle: '',
+      projectNote: ''
     };
   }
 

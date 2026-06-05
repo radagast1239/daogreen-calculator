@@ -2021,9 +2021,19 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .pdf-page-block { margin-bottom: 16px; padding: 12px 0; border-bottom: 1px solid #ddd; }
 .pdf-page-block + .pdf-page-block { page-break-before: always; break-before: page; }
 .pdf-cover-block { padding: 24px 8px 32px; border: none; }
-.pdf-cover-brand { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #6B7B2E; margin-bottom: 12px; }
-.pdf-cover-title { font-size: 26px; margin: 0 0 8px; font-weight: 400; color: #111; }
+.pdf-cover-brand-page { padding: 0 8px 36px; min-height: 720px; box-sizing: border-box; }
+.pdf-cover-topbar { height: 10px; background: #276D5C; margin: 0 -8px 28px; border-radius: 0; }
+.pdf-cover-brand { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #276D5C; margin-bottom: 12px; font-weight: 600; }
+.pdf-cover-title { font-size: 28px; margin: 0 0 8px; font-weight: 600; color: #111; line-height: 1.25; }
+.pdf-cover-client { font-size: 16px; color: #276D5C; margin: 0 0 10px; font-weight: 500; }
 .pdf-cover-sub, .pdf-cover-date { font-size: 14px; color: #444; margin: 0 0 6px; }
+.pdf-cover-kpi-grid { margin: 28px 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pdf-cover-kpi { background: #f4faf8; border: 1px solid rgba(39,109,92,.22); border-radius: 10px; padding: 14px 16px; }
+.pdf-cover-kpi-l { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: #667; }
+.pdf-cover-kpi-v { font-size: 22px; font-weight: 700; color: #276D5C; margin-top: 6px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.pdf-cover-kpi-u { font-size: 12px; font-weight: 500; color: #667; }
+.pdf-cover-note { font-size: 13px; color: #444; line-height: 1.5; margin: 16px 0 0; padding: 12px 14px; background: #fafafa; border-left: 3px solid #276D5C; border-radius: 0 8px 8px 0; }
+.pdf-cover-disclaimer { font-size: 10px; color: #888; line-height: 1.55; margin-top: 36px; padding-top: 14px; border-top: 1px solid #e8e8e8; }
 .pdf-cover-metrics { margin: 20px 0; display: grid; gap: 8px; }
 .pdf-cover-metric { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 6px; }
 .pdf-cover-m-l { color: #666; }
@@ -2032,7 +2042,7 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .pdf-note { font-size: 13px; color: #666; padding: 12px; }
 .pdf-static-val { font-weight: 500; }
 .pdf-staging .pdf-export-wrap { margin-bottom: 20px; page-break-inside: avoid; }
-.pdf-staging .pdf-section-title { font-family: "Segoe UI", system-ui, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #333; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 2px solid #6B7B2E; letter-spacing: .02em; }
+.pdf-staging .pdf-section-title { font-family: "Segoe UI", system-ui, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #333; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 2px solid #276D5C; letter-spacing: .02em; }
 .pdf-staging .panel { background: #fff !important; border: 1px solid #ddd !important; border-radius: 8px; padding: 16px 18px !important; margin-bottom: 0 !important; box-shadow: none !important; }
 .pdf-staging .section-h { color: #222 !important; }
 .pdf-staging .m-val, .pdf-staging .ctrl-val { color: #111 !important; }
@@ -2336,6 +2346,9 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <div class="masthead-toolbar">
         <div class="masthead-actions" role="toolbar" aria-label="Действия калькулятора">
           <div class="masthead-group masthead-group--project">
+        <select class="auto-btn project-recent-select" id="project-recent-picker" title="Последние проекты" data-i18n="proj.recent.placeholder" data-i18n-attr="title">
+          <option value="">Последние проекты…</option>
+        </select>
         <button type="button" class="auto-btn" id="btn-project-save" data-i18n="btn.save" data-i18n-attr="title">Сохранить</button>
         <button type="button" class="auto-btn" id="btn-project-load" data-i18n="btn.load" data-i18n-attr="title">Загрузить</button>
         <button type="button" class="auto-btn" id="btn-project-export" data-i18n="btn.json" data-i18n-attr="title">JSON</button>
@@ -2343,7 +2356,8 @@ html.share-mode .page { user-select: text; padding-top: 0; }
           </div>
           <div class="masthead-group masthead-group--export">
         <button type="button" class="auto-btn" id="btn-project-compare" data-i18n="btn.compare" data-i18n-attr="title" data-readonly-allow>Сравнить</button>
-        <button type="button" class="auto-btn auto-btn--primary" id="btn-export-pdf" data-i18n="btn.pdf" data-i18n-attr="title" data-readonly-allow>PDF</button>
+        <button type="button" class="auto-btn auto-btn--primary" id="btn-export-pdf-client" data-i18n="btn.pdfClient" data-i18n-attr="title" data-readonly-allow>PDF для клиента</button>
+        <button type="button" class="auto-btn" id="btn-export-pdf" data-i18n="btn.pdf" data-i18n-attr="title" data-readonly-allow>PDF</button>
           </div>
           <div class="masthead-group masthead-group--app">
         <button type="button" class="auto-btn" id="btn-simple-ui" data-i18n="ui.simple.btn" data-readonly-allow title="Скрыть второстепенные панели">Простой интерфейс</button>
@@ -3310,6 +3324,11 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 
     <section class="panel econ-panel" id="econ-panel-general">
       <div class="section-h" data-i18n="econ.section.general">Общие параметры</div>
+      <div class="econ-project-meta" id="econ-project-meta">
+        <div class="econ-field"><label for="project-client" data-i18n="proj.client">Клиент</label><input type="text" id="project-client" maxlength="120" autocomplete="organization" placeholder=""></div>
+        <div class="econ-field"><label for="project-title" data-i18n="proj.title">Название проекта</label><input type="text" id="project-title" maxlength="120" autocomplete="off" placeholder=""></div>
+        <div class="econ-field econ-field--wide"><label for="project-note" data-i18n="proj.note">Комментарий для PDF</label><input type="text" id="project-note" maxlength="240" autocomplete="off" placeholder=""></div>
+      </div>
       <div class="econ-grid" id="econ-inputs-general"></div>
     </section>
 
@@ -3317,6 +3336,15 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <div class="section-h" data-i18n="econ.section.cultures">Состав фермы по культурам</div>
       <p class="econ-cultures-intro econ-lead" data-i18n="econ.cultures.intro">До 12 культур. Доли площади — не больше 100%. Расходники на посев: шт/м² × цена за горшок (семена, горшок, субстрат) — ориентир 3–6 за горшок, по умолчанию 4; сумма ÷ срок урожая с посева → в месяц на м². Урожай и свет — вручную или «Импорт из посадки» (в т.ч. культуры поддонов <code>pl-*</code>).</p>
       <p class="econ-cultures-total" id="econ-cultures-total"></p>
+      <div class="collapse-block econ-mix-fold" id="block-econ-mix">
+        <div class="collapse-head">
+          <span data-i18n="econ.mix.panel">Настройки микса</span>
+          <span class="collapse-chev" aria-hidden="true">▶</span>
+        </div>
+        <div class="collapse-body is-collapsed">
+          <p class="econ-hint econ-mix-hint" data-i18n="econ.mix.panelHint">В карточках культур ниже отметьте «В микс» и долю.</p>
+        </div>
+      </div>
       <div class="econ-cultures-list" id="econ-cultures-list"></div>
       <div class="econ-actions">
         <button type="button" class="auto-btn" id="econ-add-culture" data-i18n="econ.addCulture">+ Культура</button>
@@ -3386,14 +3414,20 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </div>
     </section>
 
-    <section class="panel econ-panel" id="econ-panel-advanced">
-      <div class="section-h" data-i18n="econ.section.advanced">Расширенная модель</div>
-      <div id="econ-advanced-body"></div>
+    <section class="panel econ-panel collapse-block" id="econ-panel-advanced">
+      <div class="collapse-head">
+        <span class="section-h" data-i18n="econ.section.advanced">Расширенная модель</span>
+        <span class="collapse-chev" aria-hidden="true">▶</span>
+      </div>
+      <div class="collapse-body is-collapsed" id="econ-advanced-body"></div>
     </section>
 
-    <section class="panel econ-panel" id="econ-panel-sensitivity">
-      <div class="section-h" data-i18n="econ.section.sensitivity">Сценарии «что если»</div>
-      <div id="econ-sensitivity-body"></div>
+    <section class="panel econ-panel collapse-block" id="econ-panel-sensitivity">
+      <div class="collapse-head">
+        <span class="section-h" data-i18n="econ.section.sensitivity">Сценарии «что если»</span>
+        <span class="collapse-chev" aria-hidden="true">▶</span>
+      </div>
+      <div class="collapse-body is-collapsed" id="econ-sensitivity-body"></div>
     </section>
 
     <section class="panel econ-panel" id="econ-panel-payback">
@@ -3417,6 +3451,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <div class="pdf-export-toolbar">
         <button type="button" class="auto-btn" id="pdf-preset-planting">Посадка</button>
         <button type="button" class="auto-btn" id="pdf-preset-econ">Экономика</button>
+        <button type="button" class="auto-btn" id="pdf-preset-client">Для клиента</button>
         <button type="button" class="auto-btn" id="pdf-preset-full">Полный</button>
         <button type="button" class="auto-btn" id="pdf-select-all">Все</button>
         <button type="button" class="auto-btn" id="pdf-select-none">Снять</button>
@@ -4213,12 +4248,49 @@ html.share-mode .page { user-select: text; padding-top: 0; }
             lines.push({ label: ui('ui.pdf.meta.mode'), value: tr('mode.economics'), unit: '' });
             var sub = name;
             if (farm.parts && farm.parts.length > 1) sub += ' · ' + farm.parts.length + ' культ.';
+            var money = function(n, dec){
+              if (window.DG_fmtMoneyPlain) return DG_fmtMoneyPlain(n, { decimals: dec != null ? dec : 0 });
+              return String(Math.round(n));
+            };
+            var kpiCards = [];
+            if (farm.revenue > 0){
+              kpiCards.push({ label: ui('ui.pdf.kpi.revenue'), value: money(farm.revenue), unit: ui('ui.pdf.kpi.perMonth') });
+            }
+            kpiCards.push({ label: ui('ui.pdf.kpi.margin'), value: money(farm.margin), unit: ui('ui.pdf.kpi.perMonth') });
+            if (part && part.slice && part.slice.unitCostFull > 0){
+              var isPcsKpi = part.slice.outputUnit === 'шт';
+              kpiCards.push({
+                label: ui('ui.pdf.meta.unitCost'),
+                value: money(part.slice.unitCostFull, isPcsKpi ? 2 : 2),
+                unit: isPcsKpi ? '₽/шт' : '₽/кг'
+              });
+            }
+            if (part && part.slice){
+              var sellKpi = part.slice.monthlyOutput * wf;
+              var isPcsOut = part.slice.outputUnit === 'шт';
+              kpiCards.push({
+                label: ui('ui.pdf.meta.outputMo'),
+                value: sellKpi > 0 ? fmtNum(sellKpi) : '—',
+                unit: isPcsOut ? tr('sum.unit.pcsMo') : tr('sum.unit.kgMo')
+              });
+              kpiCards.push({
+                label: ui('ui.pdf.meta.plantingArea'),
+                value: r1(part.slice.area),
+                unit: tr('sum.unit.sqm')
+              });
+            }
+            var clientMode = ctx && ctx.clientMode;
             return {
               title: pt('econ.title'),
+              projectTitle: (state.projectTitle || '').trim() || pt('econ.title'),
+              client: (state.projectClient || '').trim(),
+              projectNote: (state.projectNote || '').trim(),
               subtitle: sub,
               date: new Date().toLocaleDateString((window.DG_getLocale && DG_getLocale() === 'en') ? 'en-US' : 'ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }),
               build: CALC_BUILD,
-              lines: lines
+              lines: lines,
+              kpiCards: kpiCards,
+              brandCover: !!clientMode
             };
           }
         }
@@ -4244,9 +4316,19 @@ html.share-mode .page { user-select: text; padding-top: 0; }
           lines: lines
         };
       },
-      pdfFilename: function(){
-        var ctx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
-        if (pdfExportIsEconLed(ctx)){
+      pdfFilename: function(ctx){
+        var clientMode = ctx && ctx.clientMode;
+        if (clientMode){
+          var client = String(state.projectClient || state.projectTitle || '').trim();
+          var row = primaryEconCultureRow();
+          if (!client && row && row.cvId && typeof econCvDisplayName === 'function'){
+            client = econCvDisplayName(row.cvId);
+          }
+          var slug = slugFromName(client) || 'client';
+          return 'Daogreen-' + slug + '-' + new Date().toISOString().slice(0, 10);
+        }
+        var pdfCtx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
+        if (pdfExportIsEconLed(pdfCtx)){
           var row = primaryEconCultureRow();
           if (row && row.cvId){
             var name = (typeof econCvDisplayName === 'function') ? econCvDisplayName(row.cvId) : row.cvId;

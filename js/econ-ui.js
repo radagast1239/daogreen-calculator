@@ -724,6 +724,12 @@
     });
     list.innerHTML = html;
 
+    var mixCollapsed = st().sectionCollapsed['block-econ-mix'] !== false;
+    if (st().sectionCollapsed['block-econ-mix'] === undefined) mixCollapsed = true;
+    list.querySelectorAll('.econ-mix-inline').forEach(function(el){
+      el.style.display = mixCollapsed ? 'none' : '';
+    });
+
     const total = deps.econCulturesTotalPct();
     if (totalEl){
       let cls = 'ok';

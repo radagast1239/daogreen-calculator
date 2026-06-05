@@ -681,10 +681,42 @@ const dlg = $('cv-add-dialog');
       applyState: applyProjectState,
       getBuild: function(){ return CALC_BUILD; },
       getCvName: function(){ var cv = getActiveCv(); return cv ? cv.name : 'calc'; },
+      getProjectLabel: function(st){
+        var row = (st.econ && st.econ.cultures || []).filter(function(r){
+          return r && r.cvId && (parseFloat(r.pct) || 0) > 0;
+        }).sort(function(a, b){ return (parseFloat(b.pct) || 0) - (parseFloat(a.pct) || 0); })[0];
+        if (row && row.cvId && typeof econCvDisplayName === 'function') return econCvDisplayName(row.cvId);
+        var cv = getActiveCv();
+        return cv ? cv.name : 'calc';
+      },
       toast: showToast,
-      onApplied: function(){ showToast(ui('ui.toast.projectLoaded')); renderAll(); }
+      onApplied: function(){ syncProjectMetaInputs(); showToast(ui('ui.toast.projectLoaded')); renderAll(); }
     });
   }
+
+  function syncProjectMetaInputs(){
+    var client = $('project-client');
+    var title = $('project-title');
+    var note = $('project-note');
+    if (client && document.activeElement !== client) client.value = state.projectClient || '';
+    if (title && document.activeElement !== title) title.value = state.projectTitle || '';
+    if (note && document.activeElement !== note) note.value = state.projectNote || '';
+  }
+  function bindProjectMetaInputs(){
+    [['project-client', 'projectClient'], ['project-title', 'projectTitle'], ['project-note', 'projectNote']].forEach(function(pair){
+      var el = $(pair[0]);
+      if (!el || el.dataset.projectBound) return;
+      el.dataset.projectBound = '1';
+      el.addEventListener('input', function(){
+        state[pair[1]] = el.value;
+      });
+      el.addEventListener('change', function(){
+        state[pair[1]] = el.value;
+      });
+    });
+    syncProjectMetaInputs();
+  }
+  bindProjectMetaInputs();
 
   document.querySelectorAll('.app-tab').forEach(btn => {
     btn.addEventListener('click', () => {
