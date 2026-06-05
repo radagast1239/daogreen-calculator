@@ -116,6 +116,22 @@ if (build){
   else fail('sw.js CACHE not synced to CALC_BUILD');
 }
 
+(function(){
+  var vpStart = html.indexOf('id="view-planting"');
+  var vpEnd = html.indexOf('<footer class="colophon"');
+  if (vpStart < 0 || vpEnd < 0) return;
+  var vp = html.slice(vpStart, vpEnd);
+  var gs = vp.indexOf('id="panel-georgy-simple"');
+  var ep = vp.indexOf('id="env-panel"');
+  if (gs >= 0 && ep > gs){
+    var between = vp.slice(gs, ep);
+    var open = (between.match(/<section\b/g) || []).length;
+    var close = (between.match(/<\/section>/g) || []).length;
+    if (open > close) fail('env-panel nested inside panel-georgy-simple (missing </section>)');
+    else ok('planting DOM: env-panel outside georgy panel');
+  }
+})();
+
 const failed = checks.filter(c => !c.ok);
 checks.forEach(c => console.log((c.ok ? 'OK  ' : 'FAIL') + ' ' + c.msg));
 console.log('\n' + (failed.length ? failed.length + ' failed' : 'All checks passed'));
