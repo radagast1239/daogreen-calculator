@@ -67,6 +67,18 @@
         meta.usefulAreaBasis = 'main_hall';
         return meta;
       }
+      if (
+        deps.isPalletView &&
+        deps.isPalletView() &&
+        cv &&
+        global.DG_isTrayLotCrop &&
+        global.DG_isTrayLotCrop(cv)
+      ) {
+        meta.usefulAreaBasis = 'full_cycle';
+        meta.mainHallIntervalDays = 0;
+        meta.harvestCyclesPerMonth = 0;
+        return meta;
+      }
       var palletPiecesMonthly =
         deps.isPalletView &&
         deps.isPalletView() &&

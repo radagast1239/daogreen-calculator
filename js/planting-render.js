@@ -1203,6 +1203,7 @@
   /* ---- Render: metrics ---- */
   function renderMetrics(r){
     const pallet = showAsPalletCalc(r);
+    const trayLot = !!(r && r.trayLot) || (global.DG_isTrayLotCrop && r.cv && global.DG_isTrayLotCrop(r.cv));
     let rateClass = 'hl';
     if (r.rgrMass < 2) rateClass = 'warn-tint';
     if (r.t_ch >= r.tBoltCh) rateClass = 'bad-tint';
@@ -1226,10 +1227,24 @@
     const vegU = pallet ? pm('u.vegPal') : (isVF() ? pm('u.vegVf') : pm('u.vegCh'));
     const growth = [
       { l: massLabel, vHtml: massHtml, cls: 'hl' },
-      { l: pm('m.canopyDiam'), vHtml: withRange(r.canopy, canopyRange, pm('unit.mm')) },
-      { l: pm('m.massGain'), v: r1(r.rgrMass), u: pm('u.pctDay'), cls: rateClass },
-      { l: pm('m.canopyGain'), v: r1(r.rgrCanopy), u: pm('u.pctDay') },
+      ...(trayLot ? [] : [
+        { l: pm('m.canopyDiam'), vHtml: withRange(r.canopy, canopyRange, pm('unit.mm')) },
+        { l: pm('m.massGain'), v: r1(r.rgrMass), u: pm('u.pctDay'), cls: rateClass },
+        { l: pm('m.canopyGain'), v: r1(r.rgrCanopy), u: pm('u.pctDay') }
+      ]),
       (function(){
+        if (trayLot) {
+          var germT = Math.round(st().germination);
+          var harvestT = Math.round(r.t_ch);
+          var subT = tr('m.trayLotAgeBreakdown', { germ: germT, channel: harvestT });
+          if (!subT || subT === 'm.trayLotAgeBreakdown') subT = germT + '+' + harvestT;
+          return {
+            l: pm('m.totalAge'),
+            vHtml: round(r.t_total) + '<span class="m-unit">' + pm('unit.days') + '</span>' +
+              '<span class="m-range">' + subT + '</span>',
+            cls: 'hl'
+          };
+        }
         var ghCh = deps.getGhChannelSimple && deps.getGhChannelSimple();
         var showBreakdown = ghCh && ghCh.isEnabled && ghCh.isEnabled() &&
           ghCh.isHeadSalad && ghCh.isHeadSalad(r.cv);
@@ -1249,7 +1264,9 @@
             '<span class="m-range">' + sub + '</span>'
         };
       })(),
-      { l: pm('m.harvestRec'), vHtml: withRange(r.tHarvestCh, dayRange, vegU) },
+      ...(trayLot ? [] : [
+        { l: pm('m.harvestRec'), vHtml: withRange(r.tHarvestCh, dayRange, vegU) }
+      ]),
       ...((function(){
         if (!supportsMulticut(r.cv) || !st().multicut) return [];
         if (georgyModeRef() && georgyModeRef().isGeorgyGh()) return [];
@@ -1267,7 +1284,13 @@
       return '<div class="m ' + (m.cls || '') + '"><div class="m-label">' + m.l + '</div><div class="' + valClass + '">' + inner + '</div></div>';
     }).join('');
 
-    const geom = pallet ? [
+    const geom = pallet ? (trayLot ? [
+      { l: pm('m.zoneLen'), v: ((r.zoneLenMm || 0) / 1000).toFixed(1), u: ui('ui.metrics.zoneLen', { along: r.alongLength || 0 }) },
+      { l: pm('m.palAlong'), v: r.alongLength, u: pm('u.pcs') },
+      { l: pm('m.palTotal'), v: r.totalPallets, u: pm('u.pcs') },
+      { l: pm('m.plantsPal'), v: r.plantsPerPallet, u: pm('u.pcs') },
+      { l: pm('m.densityTrayLot'), v: round(r.rhoA || 0), u: pm('u.pcsSqm') }
+    ] : [
       { l: pm('m.zoneLen'), v: ((r.zoneLenMm || 0) / 1000).toFixed(1), u: ui('ui.metrics.zoneLen', { along: r.alongLength || 0 }) },
       { l: pm('m.palAlong'), v: r.alongLength, u: pm('u.pcs') },
       { l: pm('m.palTotal'), v: r.totalPallets, u: pm('u.pcs') },
@@ -1279,7 +1302,7 @@
       ]),
       { l: pm('m.plantsPal'), v: r.plantsPerPallet, u: pm('u.pcs') },
       { l: pm('m.cellPitch'), v: round(r.cellPitch), u: pm('unit.mm') }
-    ] : [
+    ]) : [
       { l: pm('m.pitchA'), v: round(r.a), u: pm('unit.mm') },
       ...(r.vfMode ? [
         { l: pm('m.perRow'), v: r.perRow, u: pm('u.pcs') },
@@ -1307,20 +1330,20 @@
     } else if (r.leafGap < -25) leafCls = 'bad-tint';
     else if (r.leafGap < 0) leafCls = 'warn-tint';
 
-    const canopyArr = [
+    const canopyArr = trayLot ? [] : [
       { l: pm('m.canopyDiam'), vHtml: withRange(r.canopy, rangeCanopy(r.canopy), pm('unit.mm')) },
       { l: pallet ? pm('m.cellPitch') : pm('m.nearest'), v: round(pallet ? r.cellPitch : r.nearest), u: pm('unit.mm') },
       { l: r.leafGap >= 0 ? pm('m.leafGap') : pm('m.leafOverlap'), v: round(Math.abs(r.leafGap)), u: pm('unit.mm'), cls: leafCls }
     ];
-    $('metrics-canopy').innerHTML = canopyArr.map(m => {
+    $('metrics-canopy').innerHTML = canopyArr.length ? canopyArr.map(m => {
       const inner = m.vHtml || (m.v + '<span class="m-unit">' + m.u + '</span>');
       const valClass = (m.vHtml && st().showRange) ? 'm-val has-range' : 'm-val';
       return '<div class="m ' + (m.cls || '') + '"><div class="m-label">' + m.l + '</div><div class="' + valClass + '">' + inner + '</div></div>';
-    }).join('');
+    }).join('') : '';
 
     const drift = Math.abs(r.rhoA - r.rhoT) > 0.5;
     const sys = [
-      { l: pm('m.density'), v: round(r.rhoA), u: pm('u.pcsSqm'), cls: drift ? 'hl' : '' },
+      { l: trayLot ? pm('m.densityTrayLot') : pm('m.density'), v: round(r.rhoA), u: pm('u.pcsSqm'), cls: (trayLot || drift) ? 'hl' : '' },
       { l: pm('m.sysWidth'), v: round(r.sysWmm), u: pm('unit.mm'), cls: (!pallet && r.widthExceeds) ? 'bad-tint' : ((!pallet && r.widthClose) ? 'warn-tint' : '') },
       { l: pallet ? pm('m.plantsPal') : pm('m.plantsChan'), v: r.perChan, u: pm('u.pcs') },
       ...(pallet && r.palletTiers > 1 ? [
@@ -1333,7 +1356,7 @@
       ...(pallet && r.footprintAreaM2 != null ? [
         { l: pm('m.footprint'), v: r.footprintAreaM2.toFixed(2), u: 'm²' }
       ] : []),
-      { l: (function(){
+      { l: trayLot ? pm('m.cycle') : (function(){
           if (st().multicut && supportsMulticut(r.cv)) return pm('m.firstCut');
           if (georgyModeRef() && georgyModeRef().isGeorgyGh() && georgyModeRef().isGeorgyHeadSalad(r.cv)) return ui('georgy.totalDaysFromSow');
           if (!pallet && !isVF() && r.usefulAreaBasis === 'main_hall' && r.mainHallIntervalDays > 0) {
@@ -1797,6 +1820,15 @@
     const pw = PALLET_L_MM * sc, ph = PALLET_W_MM * sc;
     const oX = padL + (dW - pw) / 2;
     const oY = padT + (dH - ph) / 2;
+    if (r.trayLot || (r.cv && global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(r.cv))){
+      const trayD = global.DG_TRAY_LOT_DENSITY || 45;
+      const perPal = r.plantsPerPallet || Math.round(trayD * PALLET_L_M * PALLET_W_M);
+      let svg = '<rect x="' + oX.toFixed(1) + '" y="' + oY.toFixed(1) + '" width="' + pw.toFixed(1) + '" height="' + ph.toFixed(1) + '" class="svg-pallet" rx="5"/>';
+      svg += '<text x="' + (oX + pw / 2).toFixed(1) + '" y="' + (oY + ph / 2 - 6).toFixed(1) + '" text-anchor="middle" class="svg-dim-t" font-size="12">' + ui('ui.schema.trayLotTitle', { per: perPal }) + '</text>';
+      svg += '<text x="' + (oX + pw / 2).toFixed(1) + '" y="' + (oY + ph / 2 + 12).toFixed(1) + '" text-anchor="middle" class="svg-dim-t" font-size="10">' + ui('ui.schema.trayLotDensity', { density: trayD }) + '</text>';
+      $('schema').innerHTML = svg;
+      return;
+    }
     const canopyMm = r.canopy > 0 ? r.canopy : 80;
     const mount = r.mountMode || palletMountMode();
     const nCas = mount === 'cassette' ? CASSETTES_PER_PALLET : 1;
@@ -2300,9 +2332,9 @@
     if (!showAsPalletCalc(r) && st().length >= 8){
       push('info', 'info', pr('rec.channel.long', { len: st().length }));
     }
-    if (st().nursery < 12){
+    if (!(global.DG_isTrayLotCrop && r.cv && global.DG_isTrayLotCrop(r.cv)) && st().nursery < 12){
       push('info', 'info', pr('rec.nursery.short', { days: st().nursery }));
-    } else if (st().nursery > 18){
+    } else if (!(global.DG_isTrayLotCrop && r.cv && global.DG_isTrayLotCrop(r.cv)) && st().nursery > 18){
       push('warn', 'warn', pr('rec.nursery.long', { days: st().nursery }));
     }
 
@@ -2416,14 +2448,20 @@
     var massVal = st().showRange
       ? round(r.mass - rangeMass(r.mass)) + '–' + round(r.mass + rangeMass(r.mass))
       : String(round(r.mass));
-    var yrU = areaYieldSqmUnit(r.cv, plantingHarvestYieldParams ? plantingHarvestYieldParams(r.cv, r) : null);
+    var hy = plantingHarvestYieldParams ? plantingHarvestYieldParams(r.cv, r) : null;
+    var sqmU = areaYieldSqmUnit(r.cv, hy);
+    var pcsSqm = countIsPieces(r.cv) || (hy && hy.unitIsPieces);
+    var sqmMoVal = hy
+      ? (pcsSqm ? r1(hy.yieldPerSqmMonthPcs || 0) : r2(hy.yieldPerSqmMonthKg || 0))
+      : (pcsSqm ? r1((r.yieldPerSqmYear || 0) / 12) : r2((r.yieldPerSqmYear || 0) / 12));
+    var trayLot = !!(r.trayLot) || (global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(r.cv));
     var tiles = [
       { l: massLabel, v: massVal, u: outUnit, cls: 'hl' },
-      { l: countIsPieces(r.cv) ? pm('m.pcsSqmYear') : pm('m.kgSqmYear'), v: r1(r.yieldPerSqmYear || 0), u: yrU, cls: 'hl' },
+      { l: pcsSqm ? pm('m.pcsSqmMo') : pm('m.kgSqmMo'), v: sqmMoVal, u: sqmU, cls: 'hl' },
       { l: pm('m.totalAge'), v: String(round(r.t_total)), u: pm('unit.days') },
-      { l: pm('m.density'), v: String(round(r.rhoA || 0)), u: pm('u.pcsSqm') },
+      { l: trayLot ? pm('m.densityTrayLot') : pm('m.density'), v: String(round(r.rhoA || 0)), u: pm('u.pcsSqm') },
       { l: pm('m.totalPlants'), v: String(r.total || 0), u: pm('u.pcs') },
-      { l: pm('m.canopyDiam'), v: String(round(r.canopy)), u: pm('unit.mm') }
+      ...(trayLot ? [] : [{ l: pm('m.canopyDiam'), v: String(round(r.canopy)), u: pm('unit.mm') }])
     ];
     grid.innerHTML = tiles.map(function(t){
       return '<div class="planting-hero-tile ' + (t.cls || '') + '">' +
@@ -2474,6 +2512,7 @@
     }
     updateCalcBuildBadge(r);
     updatePlantingGeomUI();
+    if (deps.syncTrayLotUI) deps.syncTrayLotUI();
     syncGhFacilityPanels();
     renderActiveCvBar(r);
     renderPlantingHero(r);

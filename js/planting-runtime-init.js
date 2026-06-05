@@ -304,6 +304,7 @@
     syncCutMassUI: syncCutMassUI,
     syncCanopyUI: syncCanopyUI,
     syncMulticutDetailUI: syncMulticutDetailUI,
+    syncTrayLotUI: function(){ return _palletRuntime.syncTrayLotUI(); },
     manualHarvestMass: manualHarvestMass,
     modelCanopyFromMass: modelCanopyFromMass,
     applyCutStandardsFromSheet: applyCutStandardsFromSheet,
@@ -345,6 +346,7 @@
   function syncPalletMountUI(){ return _palletRuntime.syncPalletMountUI(); }
   function syncPalletTierHint(){ return _palletRuntime.syncPalletTierHint(); }
   function syncPalletPlantsHint(){ return _palletRuntime.syncPalletPlantsHint(); }
+  function syncTrayLotUI(){ return _palletRuntime.syncTrayLotUI(); }
   function schemaCanopyMm(r){ return _palletRuntime.schemaCanopyMm(r); }
   function syncSchemaCanopyLegend(mm){ return _palletRuntime.syncSchemaCanopyLegend(mm); }
   function getCellCenters(n, l, w){ return _palletRuntime.getCellCenters(n, l, w); }
@@ -641,6 +643,7 @@
     syncPalletZoneLength: syncPalletZoneLength,
     syncPalletMountButtons: syncPalletMountButtons,
     syncPalletPlantsHint: syncPalletPlantsHint,
+    syncTrayLotUI: syncTrayLotUI,
     syncPalletTierHint: syncPalletTierHint,
     syncPalletCellButtons: syncPalletCellButtons,
     syncBioMarginVisibility: syncBioMarginVisibility
@@ -657,6 +660,7 @@
       constants: PC,
       getState: deps.getState,
       getCv: getCv,
+      getPalletCv: getPalletCv,
       isPalletView: isPalletView,
       georgyChannelTwoRows: georgyChannelTwoRows,
       syncPalletZoneLength: syncPalletZoneLength,
@@ -789,6 +793,7 @@
       syncPalletMountUI: syncPalletMountUI,
       syncPalletTierHint: syncPalletTierHint,
       syncPalletPlantsHint: syncPalletPlantsHint,
+    syncTrayLotUI: syncTrayLotUI,
       schemaCanopyMm: schemaCanopyMm,
       syncSchemaCanopyLegend: syncSchemaCanopyLegend,
       getCellCenters: getCellCenters,

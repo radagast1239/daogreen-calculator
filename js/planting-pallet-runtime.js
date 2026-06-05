@@ -218,6 +218,21 @@
     if (tierHint) tierHint.textContent = String(tiers);
   }
   function syncPalletPlantsHint(){
+    const cv = getPalletCv();
+    const trayLot = global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv);
+    if (trayLot){
+      const trayD = global.DG_TRAY_LOT_DENSITY || 45;
+      const per = Math.round(trayD * PALLET_L_M * PALLET_W_M);
+      const form = $('pallet-plants-formula');
+      if (form) form.textContent = ui('ui.pal.formulaTrayLot', { density: trayD });
+      const pEl = $('pallet-plants-per');
+      if (pEl) pEl.textContent = String(per);
+      const prefix = $('pallet-plants-prefix');
+      if (prefix) prefix.textContent = ui('ui.pal.prefixTray');
+      const mid = $('pallet-plants-mid');
+      if (mid) mid.textContent = ui('ui.pal.traysSuffix');
+      return;
+    }
     const cells = effectivePalletHoleCount();
     const per = plantsPerPalletCount();
     const lid = palletMountMode() === 'lid';
@@ -229,6 +244,43 @@
     if (prefix) prefix.textContent = lid ? ui('ui.pal.prefixLid') : ui('ui.pal.plantsPrefix');
     const mid = $('pallet-plants-mid');
     if (mid) mid.textContent = ui('ui.pal.plantsSuffix');
+  }
+
+  function syncTrayLotUI(){
+    const cv = getPalletCv();
+    const tray = isPalletView() && global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv);
+    if (typeof document !== 'undefined' && document.documentElement){
+      document.documentElement.classList.toggle('tray-lot-active', !!tray);
+    }
+    if (tray){
+      st().nursery = 0;
+      st().density = global.DG_TRAY_LOT_DENSITY || 45;
+      const nLab = $('nursery-v');
+      if (nLab) nLab.textContent = '0';
+      const nInp = $('nursery');
+      if (nInp) nInp.value = '0';
+      const dLab = $('density-v');
+      if (dLab) dLab.textContent = String(st().density);
+    }
+    const flowNote = document.querySelector('#block-grow-time-body .grow-flow-note');
+    if (flowNote){
+      flowNote.innerHTML = tray ? ui('ui.grow.flowTrayLot') : ui('ui.grow.flowNote');
+    }
+    const dayLbl = $('ctrl-day') && $('ctrl-day').querySelector('.ctrl-label');
+    if (dayLbl){
+      const badge = dayLbl.querySelector('.vf-sheet-badge');
+      dayLbl.textContent = tray ? ui('ui.grow.trayHarvestDays') : ui('ui.grow.channelDays');
+      if (badge) dayLbl.appendChild(badge);
+    }
+    const sysHint = $('pallet-sys-hint');
+    if (sysHint && tray){
+      sysHint.innerHTML = ui('ui.pal.sysHintTrayLot', { density: global.DG_TRAY_LOT_DENSITY || 45 });
+    } else if (sysHint && !tray){
+      sysHint.innerHTML = ui('ui.pal.sysHint');
+    }
+    const mountWrap = $('pallet-mount') && $('pallet-mount').parentElement;
+    if (mountWrap) mountWrap.classList.toggle('env-block-hidden', !!tray);
+    syncPalletPlantsHint();
   }
 
   function schemaCanopyMm(r){
@@ -346,6 +398,7 @@
       syncPalletMountUI: syncPalletMountUI,
       syncPalletTierHint: syncPalletTierHint,
       syncPalletPlantsHint: syncPalletPlantsHint,
+      syncTrayLotUI: syncTrayLotUI,
       schemaCanopyMm: schemaCanopyMm,
       syncSchemaCanopyLegend: syncSchemaCanopyLegend,
       getCellCenters: getCellCenters,

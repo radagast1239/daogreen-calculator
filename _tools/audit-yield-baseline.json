@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-01T17:59:21.945Z",
+  "updatedAt": "2026-06-05T20:44:08.246Z",
   "vf": {
     "vf-sorrel": {
       "yieldPerCutG": 17,
@@ -276,7 +276,7 @@
     "pl-microgreens": {
       "yieldPerCutG": 1,
       "channelDays": 12,
-      "density": 275
+      "density": 45
     },
     "pl-salad": {
       "yieldPerCutG": 1,
@@ -286,7 +286,7 @@
     "pl-baby-living": {
       "yieldPerCutG": 1,
       "channelDays": 29,
-      "density": 73
+      "density": 45
     },
     "pl-wheatgrass": {
       "yieldPerCutG": 1,

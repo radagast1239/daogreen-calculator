@@ -1205,9 +1205,58 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 }
 .econ-planting-sync-stale { color: #b45309; font-weight: 600; }
 .econ-planting-sync-ok { color: var(--brand-text); }
-.calc-trace { margin-top: 10px; font-size: 12.5px; }
-.calc-trace-dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 0; }
+.calc-trace {
+  grid-column: 1 / -1;
+  margin-top: 10px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  min-width: 0;
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--paper-deep);
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  box-sizing: border-box;
+}
+.calc-trace summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--brand-text);
+  overflow-wrap: anywhere;
+}
+.calc-trace-dl {
+  display: grid;
+  grid-template-columns: minmax(7.5em, max-content) minmax(0, 1fr);
+  gap: 6px 12px;
+  margin: 8px 0 0;
+}
+.calc-trace-dl dt {
+  margin: 0;
+  color: var(--ink-soft);
+  min-width: 0;
+}
+.calc-trace-dl dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .calc-trace-src { color: var(--ink-faint); font-weight: 400; }
+html.tray-lot-active #block-mass,
+html.tray-lot-active #block-stage,
+html.tray-lot-active #canopy-section-title,
+html.tray-lot-active #metrics-canopy,
+html.tray-lot-active #ctrl-nursery,
+html.tray-lot-active #nursery-yield-hint,
+html.tray-lot-active #ctrl-pallet-cells,
+html.tray-lot-active #ctrl-pallet-lid-holes,
+html.tray-lot-active #pallet-mount,
+html.tray-lot-active #block-panel-multicut,
+html.tray-lot-active #channel-day-yield-hint,
+html.tray-lot-active .grow-auto-day-row { display: none !important; }
+html.tray-lot-active #pallet-mount ~ *,
+html.tray-lot-active #pallet-mount { display: none !important; }
+html.tray-lot-active .ctrl:has(#pallet-mount) { display: none !important; }
 .farm-cal-status { margin-top: 0; }
 .farm-cal-applied-line { color: var(--brand-text); font-weight: 500; }
 .cv-badge--farm { background: #276D5C; color: #fff; }

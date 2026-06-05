@@ -78,6 +78,7 @@
         deps.syncPalletMountButtons();
         deps.syncPalletPlantsHint();
         deps.syncPalletTierHint();
+        if (deps.syncTrayLotUI) deps.syncTrayLotUI();
       }
       var secTitle = $('system-section-title');
       if (secTitle) {

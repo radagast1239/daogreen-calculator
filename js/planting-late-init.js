@@ -398,6 +398,7 @@
         syncVfStdControls: deps.syncVfStdControls,
         renderGhStandardsPanel: deps.renderGhStandardsPanel, renderVfStandardsPanel: deps.renderVfStandardsPanel,
         renderVfStdGrid: deps.renderVfStdGrid, updatePlantingGeomUI: deps.updatePlantingGeomUI,
+        syncTrayLotUI: deps.syncTrayLotUI,
         syncGhFacilityPanels: deps.syncGhFacilityPanels, syncGhCutsUI: deps.syncGhCutsUI,
         syncCanopyUI: deps.syncCanopyUI, syncManualMassUI: deps.syncManualMassUI,
         syncMoneySliderDisplays: deps.syncMoneySliderDisplays, updatePageSub: deps.updatePageSub,

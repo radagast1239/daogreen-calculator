@@ -69,6 +69,9 @@
     }
 
     function plantLayoutPallet(cellsOverride) {
+      if (deps.getPalletCv && global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(deps.getPalletCv())) {
+        return plantLayoutTrayLot();
+      }
       if (deps.syncPalletZoneLength) deps.syncPalletZoneLength();
       var state = st();
       var mount = deps.palletMountMode();
@@ -119,6 +122,63 @@
         nearest: geo.cellPitch,
         offMm: 0,
         diag: geo.cellPitch,
+        ratio: 1,
+        constrained: false,
+        vfMode: false,
+        maxChannelsFit: across,
+        palletTiers: tiers,
+        tierGapMm: tierGap,
+        rackHeightMm: rackHeightMm,
+        totalPlantsAllTiers: total,
+        totalPalletSlots: totalPallets * tiers
+      };
+    }
+
+    function plantLayoutTrayLot() {
+      if (deps.syncPalletZoneLength) deps.syncPalletZoneLength();
+      var state = st();
+      var trayD = global.DG_TRAY_LOT_DENSITY || 45;
+      var along = Math.max(1, state.palletsAlong || 1);
+      var across = Math.max(1, state.nch || 1);
+      var tiers = Math.max(1, state.palletTiers || 1);
+      var totalPallets = along * across;
+      var palletAreaM2 = PALLET_L_M * PALLET_W_M;
+      var footprintAreaM2 = totalPallets * palletAreaM2;
+      var sysArea = footprintAreaM2 * tiers;
+      var rhoA = trayD;
+      var traysPerPallet = Math.round(rhoA * palletAreaM2);
+      var total = Math.round(rhoA * sysArea);
+      var pitchW = PALLET_W_MM;
+      var sysWmm = (across - 1) * pitchW + PALLET_W_MM;
+      var tierGap = state.tierGapMm || 350;
+      var rackHeightMm = tiers * tierGap + PALLET_TIER_ZONE_MM;
+      return {
+        palletMode: true,
+        trayLot: true,
+        mountMode: 'tray',
+        alongLength: along,
+        acrossPallets: across,
+        zoneLenMm: along * PALLET_L_MM,
+        totalPallets: totalPallets,
+        plantsPerPallet: traysPerPallet,
+        cellsPerCassette: 0,
+        cassettesPerPallet: 0,
+        cellPitch: 0,
+        cellD: 0,
+        perChan: traysPerPallet,
+        perRow: along,
+        total: total,
+        plantsPerTier: traysPerPallet * totalPallets,
+        footprintAreaM2: footprintAreaM2,
+        rhoA: rhoA,
+        rhoT: rhoA,
+        sysWmm: sysWmm,
+        sysArea: sysArea,
+        a: 0,
+        b: pitchW,
+        nearest: 0,
+        offMm: 0,
+        diag: 0,
         ratio: 1,
         constrained: false,
         vfMode: false,

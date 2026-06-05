@@ -128,6 +128,14 @@ function syncVegPeriodTotal(){
     el.textContent = deps.ui('georgy.vegTotal', { day: stateRef().day, dUnit: deps.pt('unit.days') });
     return;
   }
+  if (deps.isPalletView && deps.isPalletView() && deps.getPalletCv &&
+      global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(deps.getPalletCv())){
+    const germ = stateRef().germination;
+    const day = stateRef().day;
+    el.textContent = deps.ui('ui.veg.trayLotTotal', { germ: germ, day: day, sum: germ + day, dUnit: deps.pt('unit.days') });
+    if (deps.syncYieldTurnoverHint) deps.syncYieldTurnoverHint();
+    return;
+  }
   const germ = stateRef().germination;
   const nursery = stateRef().nursery;
   const day = stateRef().day;

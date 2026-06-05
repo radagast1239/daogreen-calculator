@@ -21,20 +21,29 @@
       if (!cv) return;
       var state = st();
       var $ = deps.$;
-      var dMax = densityMax(cv);
+      var trayLot = global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv);
+      var trayD = global.DG_TRAY_LOT_DENSITY || 45;
+      var dMax = trayLot ? trayD : densityMax(cv);
       if ($('density')) $('density').max = dMax;
       if ($('day')) $('day').max = 70;
       state.germination = deps.clamp(cv.germination, 1, 21);
       state.day = deps.clamp(cv.channelDays, 1, 70);
-      state.density = deps.clamp(cv.density, 15, dMax);
-      if (cv.palletCells) state.palletCells = cv.palletCells;
+      state.nursery = trayLot ? 0 : state.nursery;
+      state.density = trayLot ? trayD : deps.clamp(cv.density, 15, dMax);
+      if (cv.palletCells && !trayLot) state.palletCells = cv.palletCells;
       state.useManualMass = false;
       state.useManualCanopy = false;
       state.canopyPct = 100;
+      if (trayLot) {
+        state.manualMass = 1;
+        state.multicut = false;
+        if ($('multicut')) $('multicut').checked = false;
+      } else {
       var cutMid = deps.cutIntervalRange(cv).mid;
       if (cutMid > 0) state.cutInterval = cutMid;
       state.multicut = !!cv.multicut;
       if ($('multicut')) $('multicut').checked = state.multicut;
+      }
       deps.syncCycleSlidersFromState();
       if ($('density')) {
         $('density').value = state.density;
@@ -45,6 +54,7 @@
       deps.syncManualMassUI();
       deps.syncCanopyUI();
       deps.syncMulticutDetailUI();
+      if (deps.syncTrayLotUI) deps.syncTrayLotUI();
     }
 
     function palletEffectiveGermination(cv) {
@@ -61,6 +71,9 @@
 
     function palletEffectiveDensity(cv) {
       cv = cv || deps.getPalletCv();
+      if (global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv)) {
+        return global.DG_TRAY_LOT_DENSITY || 45;
+      }
       var state = st();
       return state.palletStd.density ? cv.density : state.density;
     }
@@ -101,8 +114,16 @@
       var dMax = densityMax(cv);
       if (force || state.palletStd.germination) state.germination = deps.clamp(cv.germination, 1, 21);
       if (force || state.palletStd.day) state.day = deps.clamp(cv.channelDays, 1, 70);
-      if (force || state.palletStd.density) state.density = deps.clamp(cv.density, 15, dMax);
-      if ((force || state.palletStd.cells) && cv.palletCells) state.palletCells = cv.palletCells;
+      if (global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv)) {
+        state.nursery = 0;
+        state.density = global.DG_TRAY_LOT_DENSITY || 45;
+        state.multicut = false;
+      } else if (force || state.palletStd.density) {
+        state.density = deps.clamp(cv.density, 15, dMax);
+      }
+      if ((force || state.palletStd.cells) && cv.palletCells && !(global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv))) {
+        state.palletCells = cv.palletCells;
+      }
       if (force || state.palletStd.mass) {
         state.manualMass = Math.round(cv.yieldPerCutG) || 10;
         state.useManualMass = false;
@@ -189,6 +210,53 @@
           mass: 0,
           canopy: 0
         };
+      }
+      if (global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv)) {
+        var stateTray = st();
+        var germT = stateTray.germination;
+        var harvestDays = stateTray.day;
+        var tTotalT = germT + harvestDays;
+        var layT = deps.plantLayoutPallet();
+        var massT = 1;
+        var totalCycleDaysT = tTotalT;
+        var cyclesPerYearT = totalCycleDaysT > 0 ? 365 / totalCycleDaysT : 0;
+        var yieldPerSqmCycleT = layT.rhoA;
+        var yieldPerCycleKgT = massT * layT.total;
+        return Object.assign({
+          cv: cv,
+          trayLot: true,
+          t_ch: harvestDays,
+          t_total: tTotalT,
+          mass: massT,
+          massAuto: massT,
+          canopy: 0,
+          massRaw: massT,
+          canopyRaw: 0,
+          crowdF: 1,
+          rgrMass: 0,
+          rgrCanopy: 0,
+          tHarvestCh: harvestDays,
+          tBoltCh: 999,
+          st: 'full',
+          a: 0,
+          b: layT.b,
+          diag: 0,
+          nearest: 0,
+          edgeGap: 0,
+          offMm: 0,
+          constrained: false,
+          rhoT: layT.rhoA,
+          rhoA: layT.rhoA,
+          leafGap: 0,
+          totalCycleDays: totalCycleDaysT,
+          cyclesPerYear: cyclesPerYearT,
+          yieldPerCycleKg: yieldPerCycleKgT,
+          yieldPerSqmCycle: yieldPerSqmCycleT,
+          yieldPerSqmYear: yieldPerSqmCycleT * cyclesPerYearT,
+          palletSheet: true,
+          countUnit: cv.countUnit,
+          palletMode: true
+        }, layT);
       }
       var state = st();
       var germ = state.germination;

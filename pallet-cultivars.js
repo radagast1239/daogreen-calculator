@@ -82,12 +82,20 @@
       babyGreen: section === 'baby',
       heatSigma: 70, heatBolt: 1.1,
       econLotSale: !!opts.lotSale,
-      econLotSalePot: !!(opts.lotSale && (opts.salePot || opts.lotSalePot))
+      econLotSalePot: !!(opts.lotSale && (opts.salePot || opts.lotSalePot)),
+      trayLot: !!opts.trayLot
     };
     if (opts.lotSale){
       out.yieldPerCutG = 1;
       out.multicut = false;
       out.partialCut = false;
+    }
+    if (opts.trayLot){
+      out.cutInterval = 0;
+      out.multicut = false;
+      out.partialCut = false;
+      out.density = 45;
+      out.densityStd = '45';
     }
     return out;
   }
@@ -99,9 +107,9 @@
   ];
 
   const PALLET_CULTIVARS = [
-    plC('pl-microgreens', 'Микрозелень', 'baby', '2-3', '10-12', '200-300', '54', '12', '12', '1', { unit: 'шт', lotSale: true, replaceNote: '3-6 недель', sub: 'микрозелень · 1 лоток = 1 шт' }),
+    plC('pl-microgreens', 'Микрозелень', 'baby', '2-3', '10-12', '45', '54', '12', '12', '1', { unit: 'шт', lotSale: true, trayLot: true, replaceNote: '3-6 недель', sub: 'микрозелень · 1 лоток = 1 шт' }),
     plC('pl-salad', 'Салат', 'adult', '2-3', '25-35', '50-80', '9-14', '-', '-', '1', { unit: 'шт', lotSale: true, salePot: true, cutNote: '1 горшок = 1 шт', replaceNote: '2-3 месяца', sub: 'салат · 1 горшок = 1 шт', multicut: false }),
-    plC('pl-baby-living', 'Беби-зелень (растущая)', 'baby', '5-7', '25-30', '50-80', '14-24', '28', '28', '1', { unit: 'шт', lotSale: true, cutNote: '1 горшок = 1 шт', replaceNote: '2-3 месяца', sub: 'беби D6 · горшок в продаже' }),
+    plC('pl-baby-living', 'Беби-зелень (растущая)', 'baby', '5-7', '25-30', '45', '14-24', '-', '-', '1', { unit: 'шт', lotSale: true, trayLot: true, cutNote: '1 лоток = 1 шт', replaceNote: '2-3 месяца', sub: 'беби · лоток · 1 лоток = 1 шт' }),
     plC('pl-wheatgrass', 'Витграсс', 'baby', '2-3', '10-14', '150-200', '54', '12', '12', '1', { unit: 'шт', lotSale: true, cutNote: '1 лоток = 1 шт', replaceNote: '3-4 недели', sub: 'витграсс · лоток' }),
     plC('pl-edible-flowers', 'Пищевые цветы', 'flowers', '3-5', '35', '60', '14', '7', '7', '21', { partialCut: true, unit: 'шт', replaceNote: '5 месяца', sub: 'цветы · ~5400 шт/м²·мес' }),
     plC('pl-cabbage-avg', 'Капуста (общая)', 'baby', '3-4', '28', '100-140', '14-24', '16', '16', '18', { replaceNote: '3-4 месяца', sub: 'беби · капустные (среднее)' }),

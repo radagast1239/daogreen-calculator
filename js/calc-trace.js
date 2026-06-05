@@ -27,12 +27,17 @@
       unitPcs ? t('farmCal.unitMassPcs', 'шт') : t('unit.g', 'г'),
       state.useManualMass ? t('trace.src.manual', 'ручной ввод')
         : (cv.calibrated === false ? t('trace.src.modelEst', 'модель (оценка)') : t('trace.src.model', 'модель роста')));
-    push('canopy', t('trace.canopy', 'Диаметр шапки'), Math.round(r.canopy), t('unit.mm', 'мм'),
-      state.useManualCanopy ? t('trace.src.manual', 'ручной ввод') : t('trace.src.fromMass', 'из массы'));
-    push('rhoA', t('trace.rhoA', 'Плотность стояния'), Math.round(r.rhoA * 10) / 10,
-      t('trace.unit.pcsSqm', 'шт/м²'), t('trace.src.geom', 'геометрия'));
-    push('leafGap', t('trace.leafGap', 'Зазор шапок'), Math.round(r.leafGap), t('unit.mm', 'мм'),
-      t('trace.src.geom', 'геометрия'));
+    if (!(global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv))) {
+      push('canopy', t('trace.canopy', 'Диаметр шапки'), Math.round(r.canopy), t('unit.mm', 'мм'),
+        state.useManualCanopy ? t('trace.src.manual', 'ручной ввод') : t('trace.src.fromMass', 'из массы'));
+      push('rhoA', t('trace.rhoA', 'Плотность стояния'), Math.round(r.rhoA * 10) / 10,
+        t('trace.unit.pcsSqm', 'шт/м²'), t('trace.src.geom', 'геометрия'));
+      push('leafGap', t('trace.leafGap', 'Зазор шапок'), Math.round(r.leafGap), t('unit.mm', 'мм'),
+        t('trace.src.geom', 'геометрия'));
+    } else {
+      push('rhoA', t('trace.trayDensity', 'Лотков на м²'), global.DG_TRAY_LOT_DENSITY || 45,
+        t('trace.unit.pcsSqm', 'шт/м²'), t('trace.src.trayStd', 'стандарт лотков'));
+    }
 
     var yKg = r.yieldPerSqmMonthKg;
     var yPcs = r.yieldPerSqmMonthPcs;
