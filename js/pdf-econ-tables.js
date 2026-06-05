@@ -7,24 +7,49 @@
   var PDF_HEADER_BAND_MM = 14;
   var fontLoadPromise = null;
 
+  var PDF_THEME = {
+    brand: [39, 109, 92],
+    brandLight: [244, 250, 248],
+    zebra: [248, 249, 244],
+    border: [220, 224, 210],
+    headerBorder: [180, 200, 192],
+    inkMuted: [102, 102, 102],
+    inkSoft: [70, 75, 65]
+  };
+
   function pdfContentTop(margin){
     return margin + PDF_HEADER_BAND_MM;
   }
 
   var COMPACT = {
-    fontSize: 7,
-    headerSize: 7.5,
-    pad: 1.1,
-    lineHMul: 0.38,
-    minRowMm: 3.8,
-    sectionTitleSize: 10.5,
-    sectionTitleGap: 5,
+    fontSize: 7.5,
+    headerSize: 8,
+    pad: 1.2,
+    lineHMul: 0.4,
+    minRowMm: 4,
+    sectionTitleSize: 11,
+    sectionTitleGap: 5.5,
     sectionBlockGap: 8,
-    tableGap: 3,
+    tableGap: 3.5,
     subTitleGap: 3.5,
     subTitleBeforeGap: 2,
-    subTitleSize: 8
+    subTitleSize: 8.5
   };
+
+  function looksNumericCell(text){
+    var t = plainCellText(text);
+    if (!t || t === '—') return false;
+    if (/[→]/.test(t)) return false;
+    if (/[a-zA-Zа-яА-ЯёЁ]/.test(t)) return false;
+    return /\d/.test(t);
+  }
+
+  function cellAlign(ci, cell, cols){
+    if (ci === 0) return 'left';
+    if (ci === cols - 1 && looksNumericCell(cell)) return 'right';
+    if (ci > 0 && looksNumericCell(cell)) return 'right';
+    return 'left';
+  }
 
   function pdfT(k){
     return (global.DG_t && global.DG_t(k)) || k;
@@ -220,6 +245,7 @@
     if (!table || table.tagName !== 'TABLE') return null;
     var headers = [];
     var rows = [];
+    var rowFlags = [];
     var trs = table.querySelectorAll('tr');
     trs.forEach(function(tr, ri){
       var cells = [];
@@ -228,13 +254,17 @@
       });
       if (!cells.length) return;
       if (ri === 0 && tr.querySelector('th')) headers = cells;
-      else rows.push(cells);
+      else {
+        rows.push(cells);
+        rowFlags.push(tr.classList.contains('econ-total-row') || !!tr.querySelector('strong'));
+      }
     });
     if (!headers.length && rows.length){
       headers = rows[0].map(function(_, i){ return 'Col ' + (i + 1); });
+      rowFlags = rowFlags.slice(1);
       rows = rows.slice(1);
     }
-    return { headers: headers, rows: rows };
+    return { headers: headers, rows: rows, rowFlags: rowFlags };
   }
 
   function sliceTableCols(data, fromCol){
@@ -425,8 +455,8 @@
     ensureSpace(ctx, headerH);
     var y0 = ctx.y;
 
-    pdf.setFillColor(39, 109, 92);
-    pdf.setDrawColor(180, 200, 192);
+    pdf.setFillColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+    pdf.setDrawColor(PDF_THEME.headerBorder[0], PDF_THEME.headerBorder[1], PDF_THEME.headerBorder[2]);
     pdf.rect(margin, y0, contentW, headerH, 'FD');
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(headerSize);
@@ -447,19 +477,28 @@
       var rh = rowHeight(row, false);
       ensureSpace(ctx, rh);
       y0 = ctx.y;
-      if (ri % 2 === 0) pdf.setFillColor(248, 249, 244);
+      var isTotal = table.rowFlags && table.rowFlags[ri];
+      if (isTotal) pdf.setFillColor(PDF_THEME.brandLight[0], PDF_THEME.brandLight[1], PDF_THEME.brandLight[2]);
+      else if (ri % 2 === 0) pdf.setFillColor(PDF_THEME.zebra[0], PDF_THEME.zebra[1], PDF_THEME.zebra[2]);
       else pdf.setFillColor(255, 255, 255);
       pdf.rect(margin, y0, contentW, rh, 'F');
-      pdf.setDrawColor(220, 224, 210);
+      pdf.setDrawColor(PDF_THEME.border[0], PDF_THEME.border[1], PDF_THEME.border[2]);
       pdf.rect(margin, y0, contentW, rh, 'S');
-      pdf.setFontSize(fontSize);
+      pdf.setFontSize(isTotal ? fontSize + 0.3 : fontSize);
+      if (isTotal) pdf.setTextColor(20, 55, 45);
       row.forEach(function(cell, ci){
-        var x = colX(margin, colWidths, ci) + pad;
-        var lines = splitLines(pdf, cell, colWidths[ci] - pad * 2, fontSize);
+        var align = cellAlign(ci, cell, cols);
+        var cellW = colWidths[ci] - pad * 2;
+        var lines = splitLines(pdf, cell, cellW, isTotal ? fontSize + 0.3 : fontSize);
+        var xLeft = colX(margin, colWidths, ci) + pad;
+        var xRight = colX(margin, colWidths, ci) + colWidths[ci] - pad;
         lines.forEach(function(ln, li){
-          pdf.text(ln, x, y0 + pad + 2.8 + li * lineH);
+          var yLine = y0 + pad + 2.8 + li * lineH;
+          if (align === 'right') pdf.text(ln, xRight, yLine, { align: 'right' });
+          else pdf.text(ln, xLeft, yLine);
         });
       });
+      pdf.setTextColor(0, 0, 0);
       ctx.y = y0 + rh;
     });
 
@@ -468,14 +507,93 @@
   }
 
   function drawSectionTitle(pdf, ctx, title){
-    ensureSpace(ctx, 14);
+    ensureSpace(ctx, 16);
     if (!ctx.firstContent) ctx.y += COMPACT.sectionBlockGap;
+    var label = title == null || title === '' ? '—' : String(title);
+    var barY = ctx.y - 3.5;
+    pdf.setFillColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+    pdf.rect(ctx.margin, barY, 2.8, 7, 'F');
     pdf.setFontSize(COMPACT.sectionTitleSize);
-    pdf.setTextColor(39, 109, 92);
-    pdf.text(title == null || title === '' ? '—' : String(title), ctx.margin, ctx.y);
+    pdf.setTextColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+    pdf.text(label, ctx.margin + 5, ctx.y);
+    ctx.y += 2.5;
+    pdf.setDrawColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+    pdf.setLineWidth(0.35);
+    pdf.line(ctx.margin, ctx.y, ctx.margin + ctx.contentW * 0.42, ctx.y);
     ctx.y += COMPACT.sectionTitleGap;
     pdf.setTextColor(0, 0, 0);
     ctx.firstContent = false;
+  }
+
+  function drawPdfTableOfContents(pdf, margin, entries){
+    var pageW = pdf.internal.pageSize.getWidth();
+    var contentW = pageW - margin * 2;
+    var top = pdfContentTop(margin);
+    var y = top + 4;
+    pdf.setFont(FONT_NAME, 'normal');
+    pdf.setFontSize(13);
+    pdf.setTextColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+    pdf.text(pdfT('pdf.toc.title'), margin, y);
+    y += 8;
+    pdf.setDrawColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+    pdf.setLineWidth(0.35);
+    pdf.line(margin, y, margin + contentW * 0.35, y);
+    y += 7;
+    pdf.setFontSize(9);
+    pdf.setTextColor(30, 30, 30);
+    entries.forEach(function(entry){
+      if (y > pdf.internal.pageSize.getHeight() - margin - 8){
+        pdf.addPage();
+        y = top + 4;
+      }
+      var title = entry.n + '. ' + entry.title;
+      var pageStr = String(entry.page);
+      pdf.setFontSize(9);
+      pdf.setTextColor(30, 30, 30);
+      var titleMax = contentW - pdf.getTextWidth(pageStr) - 6;
+      var lines = splitLines(pdf, title, titleMax, 9);
+      lines.forEach(function(ln, li){
+        pdf.text(ln, margin, y + li * 4.2);
+      });
+      var lineY = y + (lines.length - 1) * 4.2;
+      pdf.text(pageStr, pageW - margin, lineY, { align: 'right' });
+      y += lines.length * 4.2 + 3.5;
+    });
+  }
+
+  function drawPdfClosingPage(pdf, margin, opts){
+    opts = opts || {};
+    var pageW = pdf.internal.pageSize.getWidth();
+    var pageH = pdf.internal.pageSize.getHeight();
+    var cx = pageW / 2;
+    var y = pageH * 0.28;
+    pdf.setFont(FONT_NAME, 'normal');
+    if (opts.logoDataUrl){
+      var logoMm = 28;
+      pdf.addImage(opts.logoDataUrl, 'PNG', cx - logoMm / 2, y, logoMm, logoMm, undefined, 'FAST');
+      y += logoMm + 10;
+    }
+    pdf.setFontSize(12);
+    pdf.setTextColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+    splitLines(pdf, opts.tagline || pdfT('pdf.brand.tagline'), pageW - margin * 2, 12).forEach(function(ln){
+      pdf.text(ln, cx, y, { align: 'center' });
+      y += 5.5;
+    });
+    y += 4;
+    pdf.setFontSize(9);
+    pdf.setTextColor(PDF_THEME.inkMuted[0], PDF_THEME.inkMuted[1], PDF_THEME.inkMuted[2]);
+    if (opts.site) pdf.text(opts.site, cx, y, { align: 'center' });
+    y += 6;
+    if (opts.date) pdf.text(opts.date, cx, y, { align: 'center' });
+    if (opts.qrDataUrl){
+      var qrMm = 32;
+      pdf.addImage(opts.qrDataUrl, 'PNG', cx - qrMm / 2, pageH * 0.58, qrMm, qrMm, undefined, 'FAST');
+      pdf.setFontSize(7.5);
+      pdf.text(pdfT('pdf.closing.qrHint'), cx, pageH * 0.58 + qrMm + 5, { align: 'center' });
+    }
+    pdf.setFontSize(8);
+    pdf.setTextColor(PDF_THEME.inkSoft[0], PDF_THEME.inkSoft[1], PDF_THEME.inkSoft[2]);
+    pdf.text(pdfT('pdf.closing.note'), cx, pageH - margin - 4, { align: 'center' });
   }
 
   function collectTablesForSection(sectionId, exportOpts){
@@ -570,6 +688,7 @@
 
   global.DG_PDF_HEADER_BAND_MM = PDF_HEADER_BAND_MM;
   global.DG_pdfContentTop = pdfContentTop;
+  global.DG_PDF_THEME = PDF_THEME;
 
   global.DG_PDF_VECTOR_ECON = vectorSections;
   global.DG_isVectorEconPdfSection = isVectorEconSection;
@@ -578,4 +697,6 @@
   global.DG_renderVectorEconPdfSection = renderVectorEconSection;
   global.DG_appendCanvasToPdfCtx = appendCanvasAt;
   global.DG_parseHtmlTableForPdf = parseHtmlTable;
+  global.DG_drawPdfTableOfContents = drawPdfTableOfContents;
+  global.DG_drawPdfClosingPage = drawPdfClosingPage;
 })(typeof window !== 'undefined' ? window : this);

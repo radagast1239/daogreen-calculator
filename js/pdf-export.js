@@ -3,6 +3,11 @@
   'use strict';
 
   function pdfT(k){ return (global.DG_t && global.DG_t(k)) || k; }
+  function pdfBrandTagline(){
+    var key = 'pdf.brand.tagline';
+    var t = pdfT(key);
+    return t !== key ? t : PDF_BRAND_TAGLINE;
+  }
   function secLabel(id){ return pdfT('pdf.sec.' + id); }
   function grpLabel(g){ return pdfT('pdf.grp.' + g); }
 
@@ -51,6 +56,7 @@
   var PDF_LOGO_PATH = 'assets/dao-logo.png';
   var PDF_LOGO_SMALL_MM = 9;
   var PDF_BRAND_TAGLINE = 'DAOGREEN проектирование и запуск вертикальных ферм';
+  var PDF_SITE_LABEL = 'daogreen.ru';
 
   var PDF_PRESETS = {
     planting: [
@@ -280,6 +286,10 @@
       return '<div class="pdf-cover-logo-lg"><img src="' + htmlEsc(pdfLogoSrc()) + '" alt="Daogreen" crossorigin="anonymous"></div>';
     }
 
+    function coverTaglineHtml(){
+      return '<p class="pdf-cover-tagline">' + htmlEsc(pdfBrandTagline()) + '</p>';
+    }
+
     function buildCover(){
       var meta = deps.getExportMeta ? deps.getExportMeta() : {};
       var brand = !!meta.brandCover;
@@ -296,13 +306,15 @@
         wrap.innerHTML =
           '<div class="pdf-cover-topbar"></div>' +
           coverLogoLargeHtml() +
+          coverTaglineHtml() +
           '<h1 class="pdf-cover-title">' + htmlEsc(title) + '</h1>' +
-          (client ? '<p class="pdf-cover-client">' + htmlEsc(client) + '</p>' : '') +
+          (client ? '<p class="pdf-cover-client"><span class="pdf-cover-client-lbl">' + htmlEsc(pdfT('pdf.cover.forClient')) + '</span> ' + htmlEsc(client) + '</p>' : '') +
           (city ? '<p class="pdf-cover-city">' + htmlEsc(city) + '</p>' : '') +
           (meta.subtitle ? '<p class="pdf-cover-sub">' + htmlEsc(meta.subtitle) + '</p>' : '') +
           '<p class="pdf-cover-date">' + htmlEsc(meta.date || '') + '</p>' +
-          (kpis.length ? ('<div class="pdf-cover-kpi-grid">' + kpis.map(function(k){
-            return '<div class="pdf-cover-kpi">' +
+          (kpis.length ? ('<div class="pdf-cover-kpi-grid">' + kpis.map(function(k, idx){
+            var wide = idx === 0 && kpis.length > 2 ? ' pdf-cover-kpi--wide' : '';
+            return '<div class="pdf-cover-kpi' + wide + '">' +
               '<div class="pdf-cover-kpi-l">' + htmlEsc(k.label) + '</div>' +
               '<div class="pdf-cover-kpi-v">' + htmlEsc(k.value) +
               (k.unit ? ' <span class="pdf-cover-kpi-u">' + htmlEsc(k.unit) + '</span>' : '') +
@@ -315,6 +327,7 @@
 
       wrap.innerHTML =
         coverLogoLargeHtml() +
+        coverTaglineHtml() +
         '<h1 class="pdf-cover-title">' + htmlEsc(meta.title || pdfT('pdf.cover')) + '</h1>' +
         '<p class="pdf-cover-sub">' + htmlEsc(meta.subtitle || '') + '</p>' +
         '<p class="pdf-cover-date">' + htmlEsc(meta.date || '') + '</p>' +
@@ -643,7 +656,30 @@
       return lines.length ? lines : [''];
     }
 
-    function addPdfFooters(pdf, metaTitle, logoDataUrl){
+    function loadQrDataUrl(url){
+      return new Promise(function(resolve){
+        if (!global.QRCode || typeof global.QRCode.toDataURL !== 'function') return resolve(null);
+        global.QRCode.toDataURL(url, { width: 220, margin: 1, errorCorrectionLevel: 'M' }, function(err, data){
+          resolve(err ? null : data);
+        });
+      });
+    }
+
+    function insertPdfTableOfContents(pdf, margin, tocEntries, insertAt){
+      if (!global.DG_drawPdfTableOfContents || !tocEntries.length) return;
+      if (typeof pdf.insertPage !== 'function') return;
+      pdf.insertPage(insertAt);
+      tocEntries.forEach(function(e){
+        if (e.page >= insertAt) e.page++;
+      });
+      pdf.setPage(insertAt);
+      DG_drawPdfTableOfContents(pdf, margin, tocEntries);
+    }
+
+    function addPdfPageDecorations(pdf, metaTitle, logoDataUrl, opts){
+      opts = opts || {};
+      var coverPage = opts.coverPage || 0;
+      var closingPage = opts.closingPage || 0;
       var pageCount = pdf.internal.getNumberOfPages();
       var pageW = pdf.internal.pageSize.getWidth();
       var pageH = pdf.internal.pageSize.getHeight();
@@ -654,11 +690,16 @@
       var tagSize = 6.5;
       var tagLineH = tagSize * 1.25;
       var tagMaxW = logoX - PDF_MARGIN_MM - 3;
+      var contentTop = global.DG_pdfContentTop ? DG_pdfContentTop(PDF_MARGIN_MM) : PDF_MARGIN_MM + 14;
+      var siteLabel = pdfT('pdf.closing.site');
+      if (siteLabel === 'pdf.closing.site') siteLabel = PDF_SITE_LABEL;
       if (pdf.__dgDejaVu) pdf.setFont('DejaVu', 'normal');
       for (var p = 1; p <= pageCount; p++){
         pdf.setPage(p);
-        if (logoDataUrl){
-          var tagLines = splitPdfTagline(pdf, pdfT('pdf.brand.tagline') || PDF_BRAND_TAGLINE, tagMaxW, tagSize);
+        var isCover = coverPage > 0 && p === coverPage;
+        var isClosing = closingPage > 0 && p === closingPage;
+        if (logoDataUrl && !isCover && !isClosing){
+          var tagLines = splitPdfTagline(pdf, pdfBrandTagline(), tagMaxW, tagSize);
           var tagBlockH = tagLines.length * tagLineH;
           var tagStartY = logoY + (logoSize - tagBlockH) / 2 + tagSize * 0.85;
           pdf.setFontSize(tagSize);
@@ -667,15 +708,20 @@
             pdf.text(ln, logoX - 2, tagStartY + idx * tagLineH, { align: 'right' });
           });
           pdf.addImage(logoDataUrl, 'PNG', logoX, logoY, logoSize, logoSize, undefined, 'FAST');
+          pdf.setDrawColor(39, 109, 92);
+          pdf.setLineWidth(0.25);
+          pdf.line(PDF_MARGIN_MM, contentTop - 2.5, pageW - PDF_MARGIN_MM, contentTop - 2.5);
         }
         pdf.setFontSize(8);
         pdf.setTextColor(130);
         pdf.text(footer, PDF_MARGIN_MM, pageH - 5);
+        pdf.text(siteLabel, pageW / 2, pageH - 5, { align: 'center' });
         pdf.text(pdfTextArg(global.DG_tFmt ? global.DG_tFmt('pdf.page', { p: p, total: pageCount }) : ('p. ' + p + ' / ' + pageCount)), pageW - PDF_MARGIN_MM, pageH - 5, { align: 'right' });
       }
     }
 
-    async function buildPdfFromSections(orderedIds, secMap, filename, metaTitle){
+    async function buildPdfFromSections(orderedIds, secMap, filename, metaTitle, exportMeta){
+      exportMeta = exportMeta || {};
       var logoDataUrl = await loadPdfLogoDataUrl();
       var apis = pdfApis();
       var pdf = new apis.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
@@ -688,8 +734,22 @@
         }));
       var pdfCtx = useVector ? DG_createPdfCtx(pdf, margin) : null;
       var hasContent = false;
+      var hasCover = orderedIds.indexOf('cover') >= 0;
+      var tocEntries = [];
+      var secNum = 0;
 
       if (useVector) await DG_ensurePdfCyrillicFont(pdf);
+
+      function sectionDisplayTitle(id){
+        if (id === 'cover') return secLabel(id);
+        return secNum + '. ' + secLabel(id);
+      }
+
+      function noteSectionStart(id){
+        if (id === 'cover') return;
+        secNum++;
+        tocEntries.push({ n: secNum, title: secLabel(id), page: pdf.internal.getNumberOfPages() });
+      }
 
       for (var i = 0; i < orderedIds.length; i++){
         var id = orderedIds[i];
@@ -697,8 +757,9 @@
         if (!sec) continue;
 
         if (useVector && DG_isVectorEconPdfSection(vectorSectionKey(sec))){
+          noteSectionStart(id);
           var exportCtx = deps.getPdfExportContext ? deps.getPdfExportContext() : null;
-          await DG_renderVectorEconPdfSection(pdf, pdfCtx, vectorSectionKey(sec), secLabel(sec.id), exportCtx);
+          await DG_renderVectorEconPdfSection(pdf, pdfCtx, vectorSectionKey(sec), sectionDisplayTitle(id), exportCtx);
           if (id === 'econ-payback') await appendPaybackChartRaster(pdf, pdfCtx, apis);
           hasContent = true;
           continue;
@@ -706,7 +767,8 @@
 
         var block = blockForSection(sec);
         if (!block) continue;
-        var wrapped = wrapWithSectionTitle(block, secLabel(sec.id));
+        noteSectionStart(id);
+        var wrapped = wrapWithSectionTitle(block, sectionDisplayTitle(id));
         var stagingOne = document.createElement('div');
         stagingOne.className = 'pdf-staging' + (isEconSectionId(id) ? ' pdf-staging--econ' : '');
         applyStagingLayout(stagingOne);
@@ -732,8 +794,30 @@
       if (!hasContent){
         throw new Error(pdfT('pdf.err.empty'));
       }
+
+      var tocInsertAt = hasCover ? 2 : 1;
+      if (tocEntries.length >= 2 && typeof pdf.insertPage === 'function'){
+        insertPdfTableOfContents(pdf, margin, tocEntries, tocInsertAt);
+      }
+
+      if (global.DG_drawPdfClosingPage){
+        var qrUrl = exportMeta.calculatorUrl || (typeof location !== 'undefined' ? location.href.split('#')[0] : '');
+        var qrDataUrl = qrUrl ? await loadQrDataUrl(qrUrl) : null;
+        pdf.addPage();
+        DG_drawPdfClosingPage(pdf, margin, {
+          logoDataUrl: logoDataUrl,
+          tagline: pdfBrandTagline(),
+          site: pdfT('pdf.closing.site') !== 'pdf.closing.site' ? pdfT('pdf.closing.site') : PDF_SITE_LABEL,
+          date: exportMeta.date || '',
+          qrDataUrl: qrDataUrl
+        });
+      }
+
       if (global.DG_ensurePdfCyrillicFont && !pdf.__dgDejaVu) await DG_ensurePdfCyrillicFont(pdf);
-      addPdfFooters(pdf, metaTitle, logoDataUrl);
+      addPdfPageDecorations(pdf, metaTitle, logoDataUrl, {
+        coverPage: hasCover ? 1 : 0,
+        closingPage: global.DG_drawPdfClosingPage ? pdf.internal.getNumberOfPages() : 0
+      });
       pdf.save(filename);
     }
 
@@ -794,7 +878,7 @@
         var fnameBase = (deps.pdfFilename ? deps.pdfFilename(ctx) : 'daogreen-calc');
         var fname = fnameBase + (String(fnameBase).slice(-4) === '.pdf' ? '' : '.pdf');
         var docTitle = meta.projectTitle || meta.client || meta.title || pdfT('pdf.cover');
-        await buildPdfFromSections(orderedIds, secMap, fname, docTitle);
+        await buildPdfFromSections(orderedIds, secMap, fname, docTitle, meta);
       } finally {
         if (deps.restorePlantingAfterPdfExport && pdfPlantingToken){
           deps.restorePlantingAfterPdfExport(pdfPlantingToken);

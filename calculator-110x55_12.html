@@ -2048,13 +2048,16 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .pdf-cover-brand-page { padding: 0 8px 36px; min-height: 720px; box-sizing: border-box; }
 .pdf-cover-topbar { height: 10px; background: #276D5C; margin: 0 -8px 28px; border-radius: 0; }
 .pdf-cover-logo-lg { text-align: center; margin: 4px auto 22px; }
-.pdf-cover-logo-lg img { width: 112px; height: 112px; object-fit: contain; display: inline-block; }
+.pdf-cover-logo-lg img { width: 140px; height: 140px; object-fit: contain; display: inline-block; }
+.pdf-cover-tagline { text-align: center; font-size: 13px; line-height: 1.45; color: #276D5C; font-weight: 600; max-width: 520px; margin: 0 auto 20px; letter-spacing: .01em; }
 .pdf-cover-brand { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #276D5C; margin-bottom: 12px; font-weight: 600; }
 .pdf-cover-title { font-size: 28px; margin: 0 0 8px; font-weight: 600; color: #111; line-height: 1.25; }
 .pdf-cover-client { font-size: 16px; color: #276D5C; margin: 0 0 4px; font-weight: 600; }
+.pdf-cover-client-lbl { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #667; font-weight: 600; }
 .pdf-cover-city { font-size: 14px; color: #444; margin: 0 0 10px; font-weight: 500; }
 .pdf-cover-sub, .pdf-cover-date { font-size: 14px; color: #444; margin: 0 0 6px; }
 .pdf-cover-kpi-grid { margin: 28px 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pdf-cover-kpi--wide { grid-column: 1 / -1; }
 .pdf-cover-kpi { background: #f4faf8; border: 1px solid rgba(39,109,92,.22); border-radius: 10px; padding: 14px 16px; }
 .pdf-cover-kpi-l { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: #667; }
 .pdf-cover-kpi-v { font-size: 22px; font-weight: 700; color: #276D5C; margin-top: 6px; line-height: 1.2; font-variant-numeric: tabular-nums; }
@@ -2069,7 +2072,9 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .pdf-note { font-size: 13px; color: #666; padding: 12px; }
 .pdf-static-val { font-weight: 500; }
 .pdf-staging .pdf-export-wrap { margin-bottom: 20px; page-break-inside: avoid; }
-.pdf-staging .pdf-section-title { font-family: "Segoe UI", system-ui, Arial, sans-serif; font-size: 15px; font-weight: 600; color: #333; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 2px solid #276D5C; letter-spacing: .02em; }
+.pdf-staging .pdf-section-title { font-family: "Segoe UI", system-ui, Arial, sans-serif; font-size: 16px; font-weight: 600; color: #276D5C; margin: 0 0 10px; padding: 0 0 8px 12px; border-bottom: none; letter-spacing: .02em; position: relative; line-height: 1.3; }
+.pdf-staging .pdf-section-title::before { content: ""; position: absolute; left: 0; top: 2px; width: 4px; height: 1.1em; background: #276D5C; border-radius: 1px; }
+.pdf-staging .pdf-section-title::after { content: ""; display: block; width: 42%; height: 2px; background: #276D5C; margin-top: 8px; opacity: .85; }
 .pdf-staging .panel { background: #fff !important; border: 1px solid #ddd !important; border-radius: 8px; padding: 16px 18px !important; margin-bottom: 0 !important; box-shadow: none !important; }
 .pdf-staging .section-h { color: #222 !important; }
 .pdf-staging .m-val, .pdf-staging .ctrl-val { color: #111 !important; }
