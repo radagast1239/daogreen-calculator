@@ -49,8 +49,7 @@
       'econ-results': [
         { titleKey: 'pdf.vec.farmTotals', selector: '#econ-results-final-cards .econ-results', mode: 'metric-cards' },
         { titleKey: 'pdf.vec.byCult', selector: '#econ-cultures-breakdown' },
-        { titleKey: 'pdf.vec.costsMargin', selector: '#econ-breakdown-table' },
-        { titleKey: 'pdf.vec.mixBreakdown', selector: '#econ-mix-breakdown-table' }
+        { titleKey: 'pdf.vec.costsMargin', selector: '#econ-breakdown-table' }
       ],
       'econ-sensitivity': [
         { titleKey: 'pdf.vec.scenarios', selector: '#econ-sensitivity-body table.econ-sens-table' }

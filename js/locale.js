@@ -476,8 +476,7 @@
     { title: 'tour.12.title', body: 'tour.12.body', target: '#econ-panel-results' },
     { title: 'tour.13.title', body: 'tour.13.body', target: '#econ-panel-advanced' },
     { title: 'tour.14.title', body: 'tour.14.body', target: '#btn-pwa-qr' },
-    { title: 'tour.15.title', body: 'tour.15.body', target: '#btn-readonly' },
-    { title: 'tour.16.title', body: 'tour.16.body', target: null }
+    { title: 'tour.15.title', body: 'tour.15.body', target: null }
   ];
 
   var TOUR_TEXT = {
@@ -497,8 +496,7 @@
       'tour.12.title': 'Итог', 'tour.12.body': 'Маржа, «что если», окупаемость.',
       'tour.13.title': 'Расширения', 'tour.13.body': 'Сезонность, площадки, каналы, инфляция.',
       'tour.14.title': 'PWA', 'tour.14.body': 'QR для телефона (HTTPS).',
-      'tour.15.title': 'Просмотр', 'tour.15.body': 'Только чтение для показа.',
-      'tour.16.title': 'Готово', 'tour.16.body': 'Сборка внизу справа. Ctrl+F5 после обновления.'
+      'tour.15.title': 'Готово', 'tour.15.body': 'Сборка внизу справа. Ctrl+F5 после обновления.'
     },
     en: {
       'tour.0.title': 'Welcome', 'tour.0.body': 'Daogreen calculator: planting, economics, PDF, projects. Use start-server.bat or hosting — not file://.',
@@ -516,8 +514,7 @@
       'tour.12.title': 'Results', 'tour.12.body': 'Margin, sensitivity, payback.',
       'tour.13.title': 'Advanced', 'tour.13.body': 'Seasonality, sites, channels, inflation.',
       'tour.14.title': 'PWA', 'tour.14.body': 'QR for phone (HTTPS).',
-      'tour.15.title': 'View only', 'tour.15.body': 'Read-only for presentations.',
-      'tour.16.title': 'Done', 'tour.16.body': 'Build badge bottom-right. Ctrl+F5 after updates.'
+      'tour.15.title': 'Done', 'tour.15.body': 'Build badge bottom-right. Ctrl+F5 after updates.'
     }
   };
 

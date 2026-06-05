@@ -416,8 +416,6 @@
     out.pct = row && row.pct != null ? row.pct : base.pct;
     out.salePrice = row && row.salePrice != null ? row.salePrice : 0;
     out.unitIsPieces = !!(row && row.unitIsPieces);
-    out.mixInMix = !!(row && row.mixInMix);
-    out.mixPct = row && row.mixPct != null ? (parseFloat(row.mixPct) || 0) : 0;
     if (out.cvId){
       const cv = deps.findCvById(out.cvId);
       if (cv && (cv.econLotSale || cv.countUnit === 'шт')) out.unitIsPieces = true;
@@ -922,55 +920,6 @@
     return st().econ.cultures.reduce((s, row) => s + (parseFloat(row.pct) || 0), 0);
   }
 
-  function calcMixReport(e, parts, farm){
-    const wf = farm ? (1 - deps.clamp(parseFloat(farm.wastePct) || 0, 0, 50) / 100) : 1;
-    const picked = (parts || []).filter(function(p){
-      return p && p.row && p.row.mixInMix && p.cvId && p.slice && p.slice.outputUnit !== 'шт';
-    });
-    if (picked.length < 2) return null;
-    const sumPct = picked.reduce(function(s, p){ return s + Math.max(0, parseFloat(p.row.mixPct) || 0); }, 0);
-    const rows = picked.map(function(p){
-      const pct = Math.max(0, parseFloat(p.row.mixPct) || 0);
-      const gross = p.slice.monthlyOutput || 0;
-      const sell = gross * wf;
-      const varOpex = (p.slice.lightCost || 0) + (p.slice.consumablesCost || 0);
-      const fixed = p.slice.allocatedFixed || 0;
-      return {
-        cvId: p.cvId,
-        name: p.name,
-        pct: pct,
-        area: p.slice.area || 0,
-        gross: gross,
-        sell: sell,
-        varOpex: varOpex,
-        fixed: fixed,
-        unitVar: sell > 0 ? varOpex / sell : 0,
-        unitFixed: sell > 0 ? fixed / sell : 0,
-        unitFull: sell > 0 ? (varOpex + fixed) / sell : 0
-      };
-    });
-    // Итог микса — себестоимость 1 кг готового микса по рецепту (% в миксе),
-    // а не среднее по фактическому объёму выращивания (доля на ферме может быть больше).
-    const recipeOk = sumPct > 0 && Math.abs(sumPct - 100) <= 0.05;
-    let unitVar = 0, unitFixed = 0, unitFull = 0;
-    rows.forEach(function(r){
-      r.weight = recipeOk ? (r.pct / 100) : 0;
-      if (recipeOk){
-        unitVar += r.weight * r.unitVar;
-        unitFixed += r.weight * r.unitFixed;
-        unitFull += r.weight * r.unitFull;
-      }
-    });
-    return {
-      sumPct: sumPct,
-      recipeOk: recipeOk,
-      rows: rows,
-      unitVar: unitVar,
-      unitFixed: unitFixed,
-      unitFull: unitFull
-    };
-  }
-
   function calcCultureSliceFromRow(row, e, area, salePrice){
     const bio = econCultureBio(row);
     const monthlyOutput = bio.unitIsPieces
@@ -1060,15 +1009,6 @@
         return c ? c.name : id;
       });
       w.push({ level: 'normal', text: TF('econ.warn.dupCv', { names: names.join(', ') }, 'Один сорт нельзя добавить дважды: {names} — оставьте одну строку.') });
-    }
-    const mixPicked = parts.filter(function(p){ return p && p.row && p.row.mixInMix && p.cvId; });
-    if (mixPicked.length){
-      const sumMix = mixPicked.reduce(function(s, p){ return s + Math.max(0, parseFloat(p.row.mixPct) || 0); }, 0);
-      if (sumMix > 0 && Math.abs(sumMix - 100) > 0.05){
-        w.push({ level: 'normal', text: TF('econ.warn.mixPctSum', { pct: deps.r1(sumMix) }, 'Состав микса: сумма долей {pct}% (нужно 100%).') });
-      } else if (sumMix <= 0){
-        w.push({ level: 'normal', text: T('econ.warn.mixPctZero', 'Состав микса: укажите % для выбранных культур (иначе микс не считается).') });
-      }
     }
     st().econ.cultures.forEach(row => {
       const pct = parseFloat(row.pct) || 0;
@@ -1321,7 +1261,6 @@
       contribPerKg: contribPerKg,
       contribPerPcs: contribPerPcs
     };
-    farm.mixReport = calcMixReport(e, parts, farm);
     farm.warnings = collectEconWarnings(farm, e, parts);
     return farm;
   }

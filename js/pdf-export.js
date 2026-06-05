@@ -319,9 +319,6 @@
       root.querySelectorAll('#econ-panel-cultures, .econ-cultures-intro, .econ-cultures-total').forEach(function(el){
         el.style.display = 'none';
       });
-      root.querySelectorAll('.econ-mix-inline, .econ-mix-check, .econ-mix-pct-lbl').forEach(function(el){
-        el.style.display = 'none';
-      });
       root.querySelectorAll('.econ-metric-line--share').forEach(function(el){
         el.style.display = 'none';
       });

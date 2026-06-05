@@ -777,11 +777,6 @@
       const chev = head.querySelector('.collapse-chev');
       if (chev) chev.textContent = collapsed ? '▶' : '▼';
     }
-    if (blockId === 'block-econ-mix'){
-      document.querySelectorAll('.econ-mix-inline').forEach(function(el){
-        el.style.display = collapsed ? 'none' : '';
-      });
-    }
     if (collapsed && block && usePlantingSheet()){
       const keys = (block.dataset.collapseVf || '').split(',').filter(Boolean);
       const pStd = getPlantingStd();
