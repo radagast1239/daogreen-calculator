@@ -724,8 +724,7 @@
     setText('#farm-cal-save', 'farmCal.save');
     setText('#farm-cal-clear', 'farmCal.clear');
     setText('.farm-cal-nudge-text', 'farmCal.nudge');
-    var farmNudgeBtn = document.querySelector('[data-farm-cal-open]');
-    if (farmNudgeBtn) farmNudgeBtn.textContent = pt('farmCal.nudgeOpen');
+    setText('[data-farm-cal-open]', 'farmCal.nudgeOpen');
     setText('#planting-active-cv-bar .planting-active-cv-label', 'planting.activeCv');
     setText('#planting-active-cv-bar .planting-active-cv-mode-lbl', 'planting.activeCvMode');
     var sh = document.querySelector('#scenario-config > div');
