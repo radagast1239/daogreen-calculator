@@ -668,7 +668,7 @@
     const disp = v === '' ? '' : deps.formatInputValue(v, dec);
     const ph = opts.placeholder ? ' placeholder="' + opts.placeholder + '"' : '';
     const title = opts.title ? ' title="' + opts.title + '"' : '';
-    return '<div><label>' + label + (yUnit ? ' (' + yUnit + ')' : '') + '</label>' +
+    return '<div class="econ-field econ-culture-param"><label>' + label + (yUnit ? ' (' + yUnit + ')' : '') + '</label>' +
       '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="' + dec + '" data-econ-cult-field="' + field + '" data-econ-cult-idx="' + i + '" value="' + disp + '"' + ph + title + '></div>';
   }
 
@@ -697,9 +697,9 @@
       const ySqm = bio.unitIsPieces ? deps.r1(bio.yieldPerSqmMonthPcs) + ' ' + L('econ.yield.pcsSqm') : deps.r2(bio.yieldPerSqmMonthKg) + ' ' + L('econ.yield.kgSqm');
       html += '<div class="econ-culture-card" data-econ-culture-idx="' + i + '">' +
         '<div class="econ-culture-head">' +
-        '<div><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i) + '</select></div>' +
-        '<div><label>' + L('econ.cult.share') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-pct="' + i + '" value="' + deps.formatInputValue(pct, 1) + '"></div>' +
-        '<div><label>' + L('econ.cult.price') + ', ' + moneySym() + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" placeholder="—" data-econ-culture-price="' + i + '" value="' + (sp ? fmtMoneyInp(sp, 0) : '') + '"></div>' +
+        '<div class="econ-field"><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i) + '</select></div>' +
+        '<div class="econ-field"><label>' + L('econ.cult.share') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-pct="' + i + '" value="' + deps.formatInputValue(pct, 1) + '"></div>' +
+        '<div class="econ-field"><label>' + L('econ.cult.price') + ', ' + moneySym() + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" placeholder="—" data-econ-culture-price="' + i + '" value="' + (sp ? fmtMoneyInp(sp, 0) : '') + '"></div>' +
         '<button type="button" class="econ-rm" data-econ-culture-rm="' + i + '" title="' + L('econ.btn.remove') + '" aria-label="' + L('econ.btn.remove') + '">×</button>' +
         '</div>' +
         '<div class="econ-culture-params">' +
@@ -895,7 +895,7 @@
     if (!derived) return;
     const parts = buildEconDerivedRows();
     if (parts.length){
-      let tbl = '<table class="econ-breakdown"><tr><th>' + L('econ.derived.th') + '</th><th>' + L('econ.derived.rho') + '</th><th>' + L('econ.derived.cut') + '</th><th>' + L('econ.derived.interval') + '</th><th>' + L('econ.derived.cutsMo') + '</th><th>' + L('econ.derived.yield') + '</th><th>' + L('econ.derived.kwh') + '</th><th>' + L('econ.derived.lightH') + '</th></tr>';
+      let tbl = '<table class="econ-breakdown econ-breakdown--yield"><tr><th>' + L('econ.derived.th') + '</th><th>' + L('econ.derived.rho') + '</th><th>' + L('econ.derived.cut') + '</th><th>' + L('econ.derived.interval') + '</th><th>' + L('econ.derived.cutsMo') + '</th><th>' + L('econ.derived.yield') + '</th><th>' + L('econ.derived.kwh') + '</th><th>' + L('econ.derived.lightH') + '</th></tr>';
       parts.forEach(function(p){
         const b = p.bio || {};
         const y = b.unitIsPieces ? deps.r1(b.yieldPerSqmMonthPcs) + ' ' + uPcs() : deps.r2(b.yieldPerSqmMonthKg) + ' ' + uKg();
@@ -1006,6 +1006,16 @@
     }
 
     const cultTbl = deps.$('econ-cultures-breakdown');
+    const cultNote = deps.$('econ-cultures-breakdown-note');
+    if (cultNote){
+      if (res.wastePct > 0 && parts.length){
+        cultNote.textContent = tFmt('econ.tbl.outWasteNote', { pct: deps.r1(res.wastePct) });
+        cultNote.hidden = false;
+      } else {
+        cultNote.textContent = '';
+        cultNote.hidden = true;
+      }
+    }
     if (cultTbl){
       if (parts.length){
         const revHdr = res.wastePct > 0 ? L('econ.tbl.revNet') : L('econ.tbl.rev');

@@ -392,6 +392,18 @@
       }
     }
 
+    if (opts.footnote){
+      ensureSpace(ctx, 8);
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(70, 75, 65);
+      splitLines(pdf, opts.footnote, contentW, 7.5).forEach(function(ln){
+        pdf.text(ln, margin, ctx.y);
+        ctx.y += 7.5 * COMPACT.lineHMul;
+      });
+      ctx.y += 2;
+      pdf.setTextColor(0, 0, 0);
+    }
+
     function rowHeight(cells, isHeader){
       var fs = isHeader ? headerSize : fontSize;
       var maxLines = 1;
@@ -412,10 +424,13 @@
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(headerSize);
     table.headers.forEach(function(h, ci){
-      var x = colX(margin, colWidths, ci) + pad;
-      var lines = splitLines(pdf, h, colWidths[ci] - pad * 2, headerSize);
+      var cellW = colWidths[ci] - pad * 2;
+      var lines = splitLines(pdf, h, cellW, headerSize);
+      var cx = colX(margin, colWidths, ci) + colWidths[ci] / 2;
+      var blockH = lines.length * lineH;
+      var yText = y0 + (headerH - blockH) / 2 + lineH * 0.85;
       lines.forEach(function(ln, li){
-        pdf.text(ln, x, y0 + pad + 3 + li * lineH);
+        pdf.text(ln, cx, yText + li * lineH, { align: 'center' });
       });
     });
     ctx.y = y0 + headerH;
@@ -487,7 +502,13 @@
       else if (item.mode === 'equip-total') data = parseEquipTotal(el);
       else if (el.tagName === 'TABLE') data = parseHtmlTable(el);
       else data = parseHtmlTable(el.querySelector('table'));
-      if (data && item.selector === '#econ-cultures-breakdown') data = dropTableCols(data, [5]);
+      if (data && item.selector === '#econ-cultures-breakdown') {
+        data = dropTableCols(data, [5]);
+        var noteEl = document.getElementById('econ-cultures-breakdown-note');
+        if (noteEl && !noteEl.hidden && noteEl.textContent.trim()){
+          data.footnote = plainCellText(noteEl.textContent);
+        }
+      }
       if (data && (data.rows.length || data.headers.length)) out.push({ title: title, data: data });
     });
     return out;
@@ -501,7 +522,8 @@
     tables.forEach(function(t){
       drawPdfTable(pdf, ctx, t.data, {
         title: multi && t.title ? t.title : null,
-        skipTitleIf: sectionTitle
+        skipTitleIf: sectionTitle,
+        footnote: t.data.footnote || null
       });
     });
     return Promise.resolve(ctx);

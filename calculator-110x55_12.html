@@ -972,20 +972,39 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .econ-breakdown td {
   padding: 9px 12px;
   border-bottom: 1px solid var(--rule);
-  text-align: left;
+  vertical-align: middle;
 }
 .econ-breakdown th {
   background: var(--brand-pale); color: var(--brand-text);
-  font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
   border-bottom: 2px solid rgba(39, 109, 92, 0.2);
+  text-align: center;
+  white-space: normal;
+  line-height: 1.25;
+  word-break: break-word;
+  hyphens: auto;
+}
+.econ-breakdown td {
+  text-align: left;
+}
+.econ-breakdown td:not(:first-child) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.econ-breakdown-note {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  background: var(--paper-deep);
+  border-left: 3px solid var(--brand);
+  border-radius: 0 var(--radius) var(--radius) 0;
 }
 .econ-breakdown tbody tr:nth-child(even) td { background: rgba(39, 109, 92, 0.03); }
 [data-theme="dark"] .econ-breakdown tbody tr:nth-child(even) td { background: rgba(255, 255, 255, 0.02); }
-.econ-breakdown td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
 .econ-breakdown.econ-elec-total { margin-bottom: 4px; }
 .econ-breakdown tr.econ-row-total td { border-top: 2px solid var(--rule); padding-top: 8px; }
-.econ-breakdown th:nth-child(2),
-.econ-breakdown td:nth-child(2) { text-align: right; font-variant-numeric: tabular-nums; }
 .econ-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 .econ-cultures-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
 #econ-panel-cultures .section-h { color: var(--ink-soft); }
@@ -1006,28 +1025,40 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   display: grid;
   grid-template-columns: 1fr minmax(72px, 88px) minmax(88px, 110px) 36px;
   gap: 8px;
-  align-items: end;
+  align-items: stretch;
 }
 .econ-culture-params {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px 8px;
+  gap: 8px;
   margin-top: 10px;
-  align-items: end;
+  align-items: stretch;
 }
-.econ-culture-params > div {
+.econ-culture-card .econ-culture-head .econ-field,
+.econ-culture-card .econ-culture-param {
   min-width: 0;
+  padding: 8px 10px 9px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-deep);
 }
-.econ-culture-params label {
-  min-height: 2.6em;
-  display: flex;
-  align-items: flex-end;
-  line-height: 1.12;
-  margin-bottom: 4px;
+.econ-culture-card .econ-culture-head .econ-field:focus-within,
+.econ-culture-card .econ-culture-param:focus-within {
+  border-color: rgba(39, 109, 92, 0.45);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+.econ-culture-card .econ-culture-head .econ-field label,
+.econ-culture-card .econ-culture-param label {
+  display: block;
+  min-height: 0;
+  margin-bottom: 5px;
   font-size: 10px;
-  letter-spacing: 0.02em;
-  color: var(--ink-soft);
   font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: var(--ink-soft);
+  text-transform: none;
 }
 @media (max-width: 900px) {
   .econ-culture-params {
@@ -1102,15 +1133,6 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   background: var(--card);
   color: var(--ink);
 }
-.econ-culture-card label:not(.econ-mix-check):not(.econ-mix-pct-lbl) {
-  display: block;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  margin-bottom: 4px;
-}
 .econ-culture-card .econ-rm {
   padding: 8px;
   border: 1px solid var(--rule-strong);
@@ -1120,6 +1142,8 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   cursor: pointer;
   font-size: 16px;
   line-height: 1;
+  align-self: stretch;
+  min-height: 100%;
 }
 .econ-culture-card .econ-rm:hover { color: var(--ink); border-color: var(--ink-faint); }
 .econ-cultures-total {
@@ -2023,6 +2047,8 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .pdf-cover-block { padding: 24px 8px 32px; border: none; }
 .pdf-cover-brand-page { padding: 0 8px 36px; min-height: 720px; box-sizing: border-box; }
 .pdf-cover-topbar { height: 10px; background: #276D5C; margin: 0 -8px 28px; border-radius: 0; }
+.pdf-cover-logo-lg { text-align: center; margin: 4px auto 22px; }
+.pdf-cover-logo-lg img { width: 112px; height: 112px; object-fit: contain; display: inline-block; }
 .pdf-cover-brand { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #276D5C; margin-bottom: 12px; font-weight: 600; }
 .pdf-cover-title { font-size: 28px; margin: 0 0 8px; font-weight: 600; color: #111; line-height: 1.25; }
 .pdf-cover-client { font-size: 16px; color: #276D5C; margin: 0 0 4px; font-weight: 600; }
@@ -2067,8 +2093,11 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .pdf-staging--econ .econ-cultures-list { gap: 4px; margin: 4px 0; }
 .pdf-staging--econ .econ-culture-card { padding: 5px 6px 4px; }
 .pdf-staging--econ .econ-culture-head { gap: 4px; margin-bottom: 2px; }
+.pdf-staging--econ .econ-culture-head .econ-field,
+.pdf-staging--econ .econ-culture-param { padding: 3px 4px; }
 .pdf-staging--econ .econ-culture-params { gap: 3px 5px; margin-top: 4px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.pdf-staging--econ .econ-culture-params label { min-height: 0; font-size: 8px; margin-bottom: 1px; }
+.pdf-staging--econ .econ-culture-param label,
+.pdf-staging--econ .econ-culture-head .econ-field label { min-height: 0; font-size: 8px; margin-bottom: 1px; }
 .pdf-staging--econ .econ-culture-hint { margin-top: 3px; font-size: 9px; }
 .pdf-staging--econ .econ-cultures-total { margin: 2px 0 4px; font-size: 10px; }
 .pdf-staging--econ .econ-derived { padding: 5px 6px; margin: 4px 0; }
@@ -3337,7 +3366,6 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <div class="econ-cultures-list" id="econ-cultures-list"></div>
       <div class="econ-actions">
         <button type="button" class="auto-btn" id="econ-add-culture" data-i18n="econ.addCulture">+ Культура</button>
-        <!-- Микс теперь формируется из обычных культур (чекбокс «В микс») -->
       </div>
     </section>
 
@@ -3389,6 +3417,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <div class="section-h" data-i18n="econ.section.results">Итог</div>
       <div class="econ-results-stack" id="econ-results-metrics"></div>
       <div class="econ-table-scroll">
+        <p class="econ-breakdown-note" id="econ-cultures-breakdown-note" hidden></p>
         <table class="econ-breakdown econ-cultures-table" id="econ-cultures-breakdown"></table>
       </div>
       <div class="econ-results-final-wrap" id="econ-results-final">

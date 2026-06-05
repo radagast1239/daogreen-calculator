@@ -135,6 +135,16 @@ body {
   .econ-table-scroll .econ-breakdown td {
     padding: 8px 10px;
     font-size: 12px;
+  }
+
+  .econ-table-scroll .econ-breakdown th {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+    font-size: 11px;
+  }
+
+  .econ-table-scroll .econ-breakdown td {
     white-space: nowrap;
   }
 

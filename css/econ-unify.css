@@ -227,6 +227,34 @@
   box-shadow: var(--shadow-md);
 }
 
+#view-economics .econ-culture-card .econ-culture-head .econ-field,
+#view-economics .econ-culture-card .econ-culture-param {
+  padding: 8px 10px 9px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-deep);
+  min-width: 0;
+}
+
+#view-economics .econ-culture-card .econ-culture-head .econ-field:focus-within,
+#view-economics .econ-culture-card .econ-culture-param:focus-within {
+  border-color: rgba(39, 109, 92, 0.45);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+#view-economics .econ-culture-card .econ-culture-head .econ-field label,
+#view-economics .econ-culture-card .econ-culture-param label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: var(--ink-soft);
+  text-transform: none;
+}
+
 #view-economics .econ-cultures-total.ok {
   color: var(--brand-deep);
   font-weight: 600;
@@ -365,6 +393,21 @@
   background: var(--brand-pale);
   color: var(--brand-text);
   border-bottom: 2px solid rgba(39, 109, 92, 0.22);
+  text-align: center;
+  white-space: normal;
+  line-height: 1.25;
+  vertical-align: middle;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+#view-economics .econ-breakdown td:not(:first-child) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#view-economics .econ-breakdown-note {
+  border-left-color: var(--brand);
 }
 
 #view-economics .econ-breakdown tbody tr:nth-child(even) td {

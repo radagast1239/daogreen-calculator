@@ -48,6 +48,8 @@
   var PDF_W_PX = 794;
   var PDF_SCALE = 2.5;
   var PDF_MARGIN_MM = 12;
+  var PDF_LOGO_PATH = 'assets/dao-logo.png';
+  var PDF_LOGO_SMALL_MM = 9;
 
   var PDF_PRESETS = {
     planting: [
@@ -236,6 +238,47 @@
         .replace(/"/g, '&quot;');
     }
 
+    var pdfLogoDataUrl = null;
+
+    function pdfLogoSrc(){
+      return pdfLogoDataUrl || PDF_LOGO_PATH;
+    }
+
+    function loadPdfLogoDataUrl(){
+      if (pdfLogoDataUrl) return Promise.resolve(pdfLogoDataUrl);
+      return fetch(PDF_LOGO_PATH).then(function(r){
+        if (!r.ok) throw new Error('logo');
+        return r.blob();
+      }).then(function(blob){
+        return new Promise(function(resolve, reject){
+          var reader = new FileReader();
+          reader.onload = function(){
+            pdfLogoDataUrl = reader.result;
+            resolve(pdfLogoDataUrl);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }).catch(function(){
+        return null;
+      });
+    }
+
+    function preloadPdfLogoImage(){
+      return loadPdfLogoDataUrl().then(function(dataUrl){
+        if (!dataUrl) return;
+        return new Promise(function(resolve){
+          var img = new Image();
+          img.onload = img.onerror = resolve;
+          img.src = dataUrl;
+        });
+      });
+    }
+
+    function coverLogoLargeHtml(){
+      return '<div class="pdf-cover-logo-lg"><img src="' + htmlEsc(pdfLogoSrc()) + '" alt="Daogreen" crossorigin="anonymous"></div>';
+    }
+
     function buildCover(){
       var meta = deps.getExportMeta ? deps.getExportMeta() : {};
       var brand = !!meta.brandCover;
@@ -251,7 +294,7 @@
         var note = meta.projectNote ? String(meta.projectNote).trim() : '';
         wrap.innerHTML =
           '<div class="pdf-cover-topbar"></div>' +
-          '<div class="pdf-cover-brand">Daogreen</div>' +
+          coverLogoLargeHtml() +
           '<h1 class="pdf-cover-title">' + htmlEsc(title) + '</h1>' +
           (client ? '<p class="pdf-cover-client">' + htmlEsc(client) + '</p>' : '') +
           (city ? '<p class="pdf-cover-city">' + htmlEsc(city) + '</p>' : '') +
@@ -270,7 +313,7 @@
       }
 
       wrap.innerHTML =
-        '<div class="pdf-cover-brand">Daogreen</div>' +
+        coverLogoLargeHtml() +
         '<h1 class="pdf-cover-title">' + htmlEsc(meta.title || pdfT('pdf.cover')) + '</h1>' +
         '<p class="pdf-cover-sub">' + htmlEsc(meta.subtitle || '') + '</p>' +
         '<p class="pdf-cover-date">' + htmlEsc(meta.date || '') + '</p>' +
@@ -316,6 +359,9 @@
     }
 
     function maskEconDomForPdf(root){
+      root.querySelectorAll('#block-econ-mix, .econ-mix-fold, .econ-mix-hint, .econ-mix-bd-hint, .econ-mix-inline').forEach(function(el){
+        el.style.display = 'none';
+      });
       root.querySelectorAll('#econ-panel-cultures, .econ-cultures-intro, .econ-cultures-total').forEach(function(el){
         el.style.display = 'none';
       });
@@ -334,6 +380,9 @@
     function prepareClone(root){
       root.style.background = '#fff';
       root.style.color = '#111';
+      root.querySelectorAll('#block-econ-mix, .econ-mix-fold').forEach(function(el){
+        el.style.display = 'none';
+      });
       root.querySelectorAll('.collapse-body').forEach(function(b){
         b.classList.remove('is-collapsed');
         b.style.display = 'block';
@@ -461,6 +510,26 @@
       ].join(';');
     }
 
+    function waitForBlockImages(block, timeoutMs){
+      var imgs = block ? block.querySelectorAll('img') : [];
+      if (!imgs.length) return Promise.resolve();
+      timeoutMs = timeoutMs || 8000;
+      var pending = [];
+      for (var i = 0; i < imgs.length; i++){
+        var img = imgs[i];
+        if (!(img.complete && img.naturalWidth)) pending.push(img);
+      }
+      if (!pending.length) return Promise.resolve();
+      return Promise.race([
+        Promise.all(pending.map(function(img){
+          return new Promise(function(resolve){
+            img.onload = img.onerror = resolve;
+          });
+        })),
+        new Promise(function(resolve){ setTimeout(resolve, timeoutMs); })
+      ]);
+    }
+
     function waitForPaint(ms){
       return new Promise(function(resolve){
         requestAnimationFrame(function(){
@@ -553,14 +622,18 @@
       return String(v);
     }
 
-    function addPdfFooters(pdf, metaTitle){
+    function addPdfFooters(pdf, metaTitle, logoDataUrl){
       var pageCount = pdf.internal.getNumberOfPages();
       var pageW = pdf.internal.pageSize.getWidth();
       var pageH = pdf.internal.pageSize.getHeight();
       var footer = pdfTextArg(metaTitle) + ' · Daogreen';
+      var logoSize = PDF_LOGO_SMALL_MM;
       if (pdf.__dgDejaVu) pdf.setFont('DejaVu', 'normal');
       for (var p = 1; p <= pageCount; p++){
         pdf.setPage(p);
+        if (logoDataUrl){
+          pdf.addImage(logoDataUrl, 'PNG', pageW - PDF_MARGIN_MM - logoSize, PDF_MARGIN_MM - 2, logoSize, logoSize, undefined, 'FAST');
+        }
         pdf.setFontSize(8);
         pdf.setTextColor(130);
         pdf.text(footer, PDF_MARGIN_MM, pageH - 5);
@@ -569,6 +642,7 @@
     }
 
     async function buildPdfFromSections(orderedIds, secMap, filename, metaTitle){
+      var logoDataUrl = await loadPdfLogoDataUrl();
       var apis = pdfApis();
       var pdf = new apis.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
       var margin = PDF_MARGIN_MM;
@@ -604,6 +678,7 @@
         applyStagingLayout(stagingOne);
         stagingOne.appendChild(wrapped);
         document.body.appendChild(stagingOne);
+        await waitForBlockImages(wrapped);
         await waitForPaint(80);
         try {
           var canvas = await captureBlock(apis.html2canvas, wrapped);
@@ -624,7 +699,7 @@
         throw new Error(pdfT('pdf.err.empty'));
       }
       if (global.DG_ensurePdfCyrillicFont && !pdf.__dgDejaVu) await DG_ensurePdfCyrillicFont(pdf);
-      addPdfFooters(pdf, metaTitle);
+      addPdfFooters(pdf, metaTitle, logoDataUrl);
       pdf.save(filename);
     }
 
@@ -662,6 +737,7 @@
         }
 
         await loadPdfLibs();
+        await preloadPdfLogoImage();
 
         var badge = document.getElementById('calc-build-badge');
         if (badge) badge.style.visibility = 'hidden';

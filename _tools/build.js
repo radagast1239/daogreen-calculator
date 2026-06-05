@@ -92,6 +92,7 @@ function syncServiceWorker(build){
     './' + manifest.htmlFile + '?v=' + build,
     './manifest.webmanifest',
     './icons/icon.svg',
+    './assets/dao-logo.png',
     './sw.js'
   ];
   manifest.versionedScripts.forEach(function(rel){
