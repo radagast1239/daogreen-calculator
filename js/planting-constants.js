@@ -72,8 +72,9 @@
     return countIsPieces(cv) ? m * rho : (m * rho) / 1000;
   }
 
-  /** Микрозелень и беби (растущая): лотки 45 шт/м², без рассады и шапки */
+  /** Микрозелень и беби (растущая): лотки, без рассады и шапки */
   var TRAY_LOT_CROP_IDS = ['pl-microgreens', 'pl-baby-living'];
+  var TRAY_LOT_PER_PALLET = 33;
   var TRAY_LOT_DENSITY = 45;
 
   function isTrayLotCrop(cv) {
@@ -81,6 +82,7 @@
   }
 
   global.DG_isTrayLotCrop = isTrayLotCrop;
+  global.DG_TRAY_LOT_PER_PALLET = TRAY_LOT_PER_PALLET;
   global.DG_TRAY_LOT_DENSITY = TRAY_LOT_DENSITY;
 
   /** Суммарный урожай за цикл по всем растениям: шт или кг */

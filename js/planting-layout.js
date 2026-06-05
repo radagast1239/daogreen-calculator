@@ -137,7 +137,7 @@
     function plantLayoutTrayLot() {
       if (deps.syncPalletZoneLength) deps.syncPalletZoneLength();
       var state = st();
-      var trayD = global.DG_TRAY_LOT_DENSITY || 45;
+      var traysPerPallet = global.DG_TRAY_LOT_PER_PALLET || 33;
       var along = Math.max(1, state.palletsAlong || 1);
       var across = Math.max(1, state.nch || 1);
       var tiers = Math.max(1, state.palletTiers || 1);
@@ -145,9 +145,8 @@
       var palletAreaM2 = PALLET_L_M * PALLET_W_M;
       var footprintAreaM2 = totalPallets * palletAreaM2;
       var sysArea = footprintAreaM2 * tiers;
-      var rhoA = trayD;
-      var traysPerPallet = Math.round(rhoA * palletAreaM2);
-      var total = Math.round(rhoA * sysArea);
+      var total = traysPerPallet * totalPallets * tiers;
+      var rhoA = sysArea > 0 ? total / sysArea : (global.DG_TRAY_LOT_DENSITY || 45);
       var pitchW = PALLET_W_MM;
       var sysWmm = (across - 1) * pitchW + PALLET_W_MM;
       var tierGap = state.tierGapMm || 350;

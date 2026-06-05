@@ -1134,14 +1134,18 @@
       const kwhDay = kwhPerSqmPerDayFromDli(eff);
       const ppfdShow = Math.round(ppfdFromDli(eff, effPh));
       row1 = '<div class="env-row">' +
-        '<span>' + ui('ui.env.lightLamps') + '</span>' +
+        '<span>' + ui('ui.env.idealLightClosed') + '</span>' +
         '<span><strong>' + r1(eff) + '</strong> ' + mol + ' · ' + r1(effPh) + ' ' + hUnit + ' · ~' + ppfdShow + ' ' + ppfdUnit + '</span>' +
         '<span class="env-pill ok">' + ui('ui.env.ledPill', { eff: r1(ledEfficacy()) }) + '</span>' +
-        '<span style="opacity:0.8">' + ui('ui.env.kwhApprox', { val: r1(kwhDay), unit: ui('ui.env.kwhDay') }) + '</span></div>';
+        '<span style="opacity:0.8">' + ui('ui.env.kwhApprox', { val: r1(kwhDay), unit: ui('ui.env.kwhDay') }) + '</span></div>' +
+        '<div class="env-row env-row--hint"><span style="opacity:0.85;font-size:12.5px">' + ui('ui.env.idealLightNote') + '</span></div>';
       row2 = '<div class="env-row">' +
         '<span>' + ui('ui.env.growthRate') + '</span><strong>×' + r2(mult) + '</strong>' +
         dliPill(dliF) + tempPill(tF) +
         '<span style="opacity:0.75">' + ui('ui.env.rhTopt', { rh: st().rh, t: r.cv.t_opt }) + '</span>';
+      if (st().temp > 26){
+        row2 += '<span class="env-pill bad">' + ui('ui.env.tempMoldHint', { temp: r1(st().temp) }) + '</span>';
+      }
       if (boltShift(r.cv) > 0){
         row2 += '<span class="env-pill ' + (boltShift(r.cv) > 5 ? 'bad' : 'warn') + '">' +
           ui('ui.env.boltMinus') + ' ' + r1(boltShift(r.cv)) + ' ' + dUnit + '</span>';
@@ -1234,12 +1238,11 @@
       ]),
       (function(){
         if (trayLot) {
-          var germT = Math.round(st().germination);
           var harvestT = Math.round(r.t_ch);
-          var subT = tr('m.trayLotAgeBreakdown', { germ: germT, channel: harvestT });
-          if (!subT || subT === 'm.trayLotAgeBreakdown') subT = germT + '+' + harvestT;
+          var subT = tr('m.trayLotAgeBreakdown', { channel: harvestT, dUnit: pm('unit.days') });
+          if (!subT || subT === 'm.trayLotAgeBreakdown') subT = pm('m.cycle') + ' ' + harvestT;
           return {
-            l: pm('m.totalAge'),
+            l: pm('m.cycle'),
             vHtml: round(r.t_total) + '<span class="m-unit">' + pm('unit.days') + '</span>' +
               '<span class="m-range">' + subT + '</span>',
             cls: 'hl'
@@ -1821,11 +1824,10 @@
     const oX = padL + (dW - pw) / 2;
     const oY = padT + (dH - ph) / 2;
     if (r.trayLot || (r.cv && global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(r.cv))){
-      const trayD = global.DG_TRAY_LOT_DENSITY || 45;
-      const perPal = r.plantsPerPallet || Math.round(trayD * PALLET_L_M * PALLET_W_M);
+      const perPal = r.plantsPerPallet || (global.DG_TRAY_LOT_PER_PALLET || 33);
       let svg = '<rect x="' + oX.toFixed(1) + '" y="' + oY.toFixed(1) + '" width="' + pw.toFixed(1) + '" height="' + ph.toFixed(1) + '" class="svg-pallet" rx="5"/>';
       svg += '<text x="' + (oX + pw / 2).toFixed(1) + '" y="' + (oY + ph / 2 - 6).toFixed(1) + '" text-anchor="middle" class="svg-dim-t" font-size="12">' + ui('ui.schema.trayLotTitle', { per: perPal }) + '</text>';
-      svg += '<text x="' + (oX + pw / 2).toFixed(1) + '" y="' + (oY + ph / 2 + 12).toFixed(1) + '" text-anchor="middle" class="svg-dim-t" font-size="10">' + ui('ui.schema.trayLotDensity', { density: trayD }) + '</text>';
+      svg += '<text x="' + (oX + pw / 2).toFixed(1) + '" y="' + (oY + ph / 2 + 12).toFixed(1) + '" text-anchor="middle" class="svg-dim-t" font-size="10">' + ui('ui.schema.trayLotDensity', { density: r1(r.rhoA || 0) }) + '</text>';
       $('schema').innerHTML = svg;
       return;
     }
@@ -2126,25 +2128,14 @@
     const effPh = effectivePhotoperiod();
     const monthName = monthLabel(st().month);
 
-    if (isVF()){
-      if (eff < 12){
-        push('bad', 'bad', pr('rec.vf.dli.bad', { dli: r1(eff) }));
-      } else if (eff < 14){
-        push('warn', 'warn', pr('rec.vf.dli.warnLow', { dli: r1(eff) }));
-      } else if (eff >= 14 && eff <= 17){
-        push('check', 'check', pr('rec.vf.dli.ok', { dli: r1(eff) }));
-      } else if (eff > 20){
-        push('warn', 'warn', pr('rec.vf.dli.warnHigh', { dli: r1(eff) }));
-      } else {
-        push('info', 'info', pr('rec.vf.dli.infoHigh', { dli: r1(eff) }));
-      }
-      if (effPh < 15 || effPh > 18){
-        push('info', 'info', pr('rec.vf.ph', { ph: r1(effPh) }));
-      }
-      if (st().rh > 75 && eff > 16){
+    if (isVF() || isPalletView()){
+      if (st().rh > 75){
         push('warn', 'warn', pr('rec.vf.rh.warn', { rh: st().rh, dli: r1(eff) }));
       } else if (st().rh < 50){
         push('info', 'info', pr('rec.vf.rh.low', { rh: st().rh }));
+      }
+      if (st().temp > 26){
+        push('warn', 'warn', pr('rec.closed.temp.mold', { temp: r1(st().temp) }));
       }
     } else if (!st().lighting){
       if (nat < 10){
@@ -2369,6 +2360,14 @@
     lightSync = false;
   }
 
+  function applyIdealClosedLight(){
+    if (!isVF() && !isPalletView()) return;
+    st().targetDli = 17;
+    st().targetPhotoperiod = 16;
+    st().ppfd = Math.round(ppfdFromDli(17, 16));
+    syncVfSlidersFromState();
+  }
+
   function setFacility(mode){
     if (georgyModeRef() && georgyModeRef().isGeorgyGh && georgyModeRef().isGeorgyGh() && mode === 'vertical'){
       showToast(ui('georgy.toast.ghOnly') || 'Режим Георгия — только теплица');
@@ -2401,7 +2400,7 @@
       if (st().temp < 16) st().temp = 16;
       if (tempBEl){ tempBEl.min = 16; tempBEl.max = 32; }
       st().ledEfficacyVf = clamp(st().ledEfficacyVf, LED_VF_MIN, LED_VF_MAX);
-      syncVfSlidersFromState();
+      applyIdealClosedLight();
       if (allVfCultivars().length){
         if (!allVfCultivars().find(c => c.id === st().cvB)) st().cvB = st().vfCv;
         resetVfStdToSheetDefaults();
@@ -2430,7 +2429,7 @@
   function renderColophonLight(){
     const el = $('colophon-light');
     if (!el) return;
-    el.innerHTML = isVF() ? ui('ui.colophon.lightVf') : ui('ui.colophon.lightGh');
+    el.innerHTML = (isVF() || isPalletView()) ? ui('ui.colophon.lightClosed') : ui('ui.colophon.lightGh');
   }
 
   function renderPlantingHero(r){
@@ -2458,7 +2457,7 @@
     var tiles = [
       { l: massLabel, v: massVal, u: outUnit, cls: 'hl' },
       { l: pcsSqm ? pm('m.pcsSqmMo') : pm('m.kgSqmMo'), v: sqmMoVal, u: sqmU, cls: 'hl' },
-      { l: pm('m.totalAge'), v: String(round(r.t_total)), u: pm('unit.days') },
+      { l: trayLot ? pm('m.cycle') : pm('m.totalAge'), v: String(round(trayLot ? (r.totalCycleDays || r.t_total) : r.t_total)), u: pm('unit.days') },
       { l: trayLot ? pm('m.densityTrayLot') : pm('m.density'), v: String(round(r.rhoA || 0)), u: pm('u.pcsSqm') },
       { l: pm('m.totalPlants'), v: String(r.total || 0), u: pm('u.pcs') },
       ...(trayLot ? [] : [{ l: pm('m.canopyDiam'), v: String(round(r.canopy)), u: pm('unit.mm') }])
@@ -2500,6 +2499,7 @@
   }
 
   function renderAll(){
+    if (isVF() || isPalletView()) applyIdealClosedLight();
     let r;
     try {
       r = calc();

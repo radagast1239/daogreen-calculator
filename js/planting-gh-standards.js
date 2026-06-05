@@ -295,6 +295,8 @@
       document.querySelectorAll('.vf-only').forEach(function (el) {
         el.classList.toggle('env-block-hidden', !deps.isVF() && !deps.isPalletView());
       });
+      var vfLight = document.getElementById('block-env-vf-light');
+      if (vfLight) vfLight.classList.add('env-block-hidden');
       document.querySelectorAll('.plant-yield-only').forEach(function (el) {
         el.classList.remove('env-block-hidden');
       });

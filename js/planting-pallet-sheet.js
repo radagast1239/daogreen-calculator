@@ -213,12 +213,10 @@
       }
       if (global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv)) {
         var stateTray = st();
-        var germT = stateTray.germination;
         var harvestDays = stateTray.day;
-        var tTotalT = germT + harvestDays;
         var layT = deps.plantLayoutPallet();
         var massT = 1;
-        var totalCycleDaysT = tTotalT;
+        var totalCycleDaysT = harvestDays;
         var cyclesPerYearT = totalCycleDaysT > 0 ? 365 / totalCycleDaysT : 0;
         var yieldPerSqmCycleT = layT.rhoA;
         var yieldPerCycleKgT = massT * layT.total;
@@ -226,7 +224,8 @@
           cv: cv,
           trayLot: true,
           t_ch: harvestDays,
-          t_total: tTotalT,
+          t_total: harvestDays,
+          germinationDays: stateTray.germination,
           mass: massT,
           massAuto: massT,
           canopy: 0,

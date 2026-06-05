@@ -35,8 +35,10 @@
       push('leafGap', t('trace.leafGap', 'Зазор шапок'), Math.round(r.leafGap), t('unit.mm', 'мм'),
         t('trace.src.geom', 'геометрия'));
     } else {
-      push('rhoA', t('trace.trayDensity', 'Лотков на м²'), global.DG_TRAY_LOT_DENSITY || 45,
-        t('trace.unit.pcsSqm', 'шт/м²'), t('trace.src.trayStd', 'стандарт лотков'));
+      push('traysPerPal', t('trace.traysPerPal', 'Лотков на поддон'), r.plantsPerPallet || (global.DG_TRAY_LOT_PER_PALLET || 33),
+        t('farmCal.unitMassPcs', 'шт'), t('trace.src.trayStd', 'стандарт лотков'));
+      push('rhoA', t('trace.trayDensity', 'Лотков на м²'), Math.round((r.rhoA || 0) * 10) / 10,
+        t('trace.unit.pcsSqm', 'шт/м²'), t('trace.src.geom', 'геометрия'));
     }
 
     var yKg = r.yieldPerSqmMonthKg;

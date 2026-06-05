@@ -221,12 +221,11 @@
     const cv = getPalletCv();
     const trayLot = global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(cv);
     if (trayLot){
-      const trayD = global.DG_TRAY_LOT_DENSITY || 45;
-      const per = Math.round(trayD * PALLET_L_M * PALLET_W_M);
+      const trayPerPal = global.DG_TRAY_LOT_PER_PALLET || 33;
       const form = $('pallet-plants-formula');
-      if (form) form.textContent = ui('ui.pal.formulaTrayLot', { density: trayD });
+      if (form) form.textContent = ui('ui.pal.formulaTrayLot', { per: trayPerPal });
       const pEl = $('pallet-plants-per');
-      if (pEl) pEl.textContent = String(per);
+      if (pEl) pEl.textContent = String(trayPerPal);
       const prefix = $('pallet-plants-prefix');
       if (prefix) prefix.textContent = ui('ui.pal.prefixTray');
       const mid = $('pallet-plants-mid');
@@ -274,7 +273,7 @@
     }
     const sysHint = $('pallet-sys-hint');
     if (sysHint && tray){
-      sysHint.innerHTML = ui('ui.pal.sysHintTrayLot', { density: global.DG_TRAY_LOT_DENSITY || 45 });
+      sysHint.innerHTML = ui('ui.pal.sysHintTrayLot', { per: global.DG_TRAY_LOT_PER_PALLET || 33 });
     } else if (sysHint && !tray){
       sysHint.innerHTML = ui('ui.pal.sysHint');
     }

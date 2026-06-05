@@ -130,9 +130,9 @@ function syncVegPeriodTotal(){
   }
   if (deps.isPalletView && deps.isPalletView() && deps.getPalletCv &&
       global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(deps.getPalletCv())){
-    const germ = stateRef().germination;
     const day = stateRef().day;
-    el.textContent = deps.ui('ui.veg.trayLotTotal', { germ: germ, day: day, sum: germ + day, dUnit: deps.pt('unit.days') });
+    const germ = stateRef().germination;
+    el.textContent = deps.ui('ui.veg.trayLotTotal', { germ: germ, day: day, dUnit: deps.pt('unit.days') });
     if (deps.syncYieldTurnoverHint) deps.syncYieldTurnoverHint();
     return;
   }
