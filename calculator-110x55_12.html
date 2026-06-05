@@ -1335,38 +1335,58 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   color: var(--ink-soft);
 }
 .vf-ctrl-origin { margin: 4px 0 0; grid-column: 1 / -1; }
-.masthead-menu-btn { display: none; }
+.masthead-toolbar { position: relative; }
 .masthead-menu-panel[hidden] { display: none !important; }
+.masthead-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 22px;
+  line-height: 1;
+  padding: 6px 12px;
+  flex-shrink: 0;
+}
+.masthead-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 200;
+  min-width: 280px;
+  max-width: min(420px, calc(100vw - 24px));
+  padding: 12px;
+  background: var(--card);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius, 10px);
+  box-shadow: 0 8px 28px rgba(0,0,0,.12);
+}
+.masthead-menu-panel .masthead-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.masthead-menu-panel .masthead-group:last-child { margin-bottom: 0; }
+.masthead-actions:not(.masthead-actions--open) .masthead-menu-panel,
+.masthead-actions:not(.masthead-actions--open) .masthead-group--menu {
+  display: none !important;
+}
+.masthead-actions.masthead-actions--open .masthead-menu-panel {
+  display: block !important;
+}
+.masthead-group--quick { margin-right: auto; }
 @media (max-width: 720px) {
-  .masthead-menu-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 44px;
-    min-height: 44px;
-    font-size: 22px;
-    line-height: 1;
-    padding: 6px 12px;
-  }
-  .masthead-toolbar { position: relative; }
   .masthead-menu-panel {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
     left: 0;
-    z-index: 200;
-    padding: 12px;
-    background: var(--card);
-    border: 1px solid var(--rule-strong);
-    border-radius: var(--radius, 10px);
-    box-shadow: 0 8px 28px rgba(0,0,0,.12);
+    right: 0;
+    max-width: none;
   }
   .masthead-menu-panel .masthead-group {
-    display: flex;
     flex-direction: column;
     align-items: stretch;
-    width: 100%;
-    margin-bottom: 10px;
   }
   .masthead-menu-panel .auto-btn,
   .masthead-menu-panel .project-recent-select,
@@ -1375,20 +1395,8 @@ html.simple-ui-active #simple-ui-hint { display: block; }
     width: 100%;
     justify-content: center;
   }
-  .masthead-actions:not(.masthead-actions--open) .masthead-menu-panel,
-  .masthead-actions:not(.masthead-actions--open) .masthead-group--menu {
-    display: none !important;
-  }
-  .masthead-actions.masthead-actions--open .masthead-menu-panel {
-    display: block !important;
-  }
-  .masthead-group--quick { flex: 1 1 auto; }
   .brand-tagline { display: none; }
   .page-title { font-size: 24px; }
-}
-@media (min-width: 721px) {
-  .masthead-menu-panel { display: contents; }
-  .masthead-group--menu { display: contents; }
 }
 .stdcat-open-col { width: 1%; white-space: nowrap; }
 .stdcat-open-btn { white-space: nowrap; }
