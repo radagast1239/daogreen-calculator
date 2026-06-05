@@ -694,7 +694,10 @@
       const yieldHint = isLot ? L('econ.cult.yieldCycleHint') : L('econ.cult.yieldHint');
       const consLbl = isLot ? (lotPot ? L('econ.cult.consPot') : L('econ.cult.consTray')) : L('econ.cult.consPot');
       const consPh = isLot ? '10' : String(ECON_CONSUMABLES_PER_POT_HINT);
-      const ySqm = bio.unitIsPieces ? deps.r1(bio.yieldPerSqmMonthPcs) + ' ' + L('econ.yield.pcsSqm') : deps.r2(bio.yieldPerSqmMonthKg) + ' ' + L('econ.yield.kgSqm');
+      const mixToggle = '<div class="econ-mix-inline">' +
+        '<label class="econ-mix-check"><input type="checkbox" data-econ-mix-incl="' + i + '"' + (norm.mixInMix ? ' checked' : '') + '> ' + L('econ.mix.use') + '</label>' +
+        (norm.mixInMix ? ('<label class="econ-mix-pct-lbl">' + L('econ.mix.pct') + ' <input type="text" inputmode="decimal" class="econ-mix-pct" data-econ-mix-pct-row="' + i + '" value="' + deps.formatInputValue(norm.mixPct || 0, 1) + '"></label>') : '') +
+        '</div>';
       html += '<div class="econ-culture-card" data-econ-culture-idx="' + i + '">' +
         '<div class="econ-culture-head">' +
         '<div class="econ-field"><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i) + '</select></div>' +
@@ -702,6 +705,7 @@
         '<div class="econ-field"><label>' + L('econ.cult.price') + ', ' + moneySym() + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" placeholder="—" data-econ-culture-price="' + i + '" value="' + (sp ? fmtMoneyInp(sp, 0) : '') + '"></div>' +
         '<button type="button" class="econ-rm" data-econ-culture-rm="' + i + '" title="' + L('econ.btn.remove') + '" aria-label="' + L('econ.btn.remove') + '">×</button>' +
         '</div>' +
+        mixToggle +
         '<div class="econ-culture-params">' +
         econCultParamInput(i, 'density', L('econ.cult.density'), { step: 1 }) +
         econCultParamInput(i, 'yieldPerCut', yieldLbl, { step: isLot ? 1 : 0.1, decimals: isLot ? 0 : null, title: yieldHint }) +
@@ -744,6 +748,8 @@
       const cvSel = e.target.dataset.econCultureCv;
       const pctInp = e.target.dataset.econCulturePct;
       const priceInp = e.target.dataset.econCulturePrice;
+      const mixIncl = e.target.dataset.econMixIncl;
+      const mixPctRow = e.target.dataset.econMixPctRow;
       if (cvSel != null){
         const i = parseInt(cvSel, 10);
         deps.ensureEconCultures();
@@ -756,6 +762,25 @@
         const keptPct = st().econ.cultures[i].pct;
         const keptPrice = st().econ.cultures[i].salePrice;
         st().econ.cultures[i] = deps.econApplyCultureSelect(st().econ.cultures[i], newId, keptPct, keptPrice);
+        deps.saveEconStore();
+        renderEconomics();
+        return;
+      }
+      if (mixIncl != null){
+        const iMix = parseInt(mixIncl, 10);
+        deps.ensureEconCultures();
+        if (!st().econ.cultures[iMix]) return;
+        st().econ.cultures[iMix].mixInMix = !!e.target.checked;
+        if (!st().econ.cultures[iMix].mixInMix) st().econ.cultures[iMix].mixPct = 0;
+        deps.saveEconStore();
+        renderEconomics();
+        return;
+      }
+      if (mixPctRow != null){
+        const iMixPct = parseInt(mixPctRow, 10);
+        deps.ensureEconCultures();
+        if (!st().econ.cultures[iMixPct]) return;
+        st().econ.cultures[iMixPct].mixPct = deps.clamp(deps.parseNumInput(e.target.value) || 0, 0, 100);
         deps.saveEconStore();
         renderEconomics();
         return;
@@ -802,6 +827,16 @@
       const ySqm = bio.unitIsPieces ? deps.r1(bio.yieldPerSqmMonthPcs) + ' ' + L('econ.yield.pcsSqm') : deps.r2(bio.yieldPerSqmMonthKg) + ' ' + L('econ.yield.kgSqm');
       hint.innerHTML = deps.formatEconCultureHint(st().econ.cultures[i]);
         }
+        return;
+      }
+      if (e.target.dataset.econMixPctRow != null){
+        const iMixInp = parseInt(e.target.dataset.econMixPctRow, 10);
+        if (!isFinite(iMixInp)) return;
+        deps.ensureEconCultures();
+        if (!st().econ.cultures[iMixInp]) return;
+        st().econ.cultures[iMixInp].mixPct = deps.parseNumInput(e.target.value);
+        deps.saveEconStore();
+        renderEconomics();
         return;
       }
       if (e.target.dataset.econCulturePct == null && e.target.dataset.econCulturePrice == null) return;

@@ -4,7 +4,12 @@
 
   var FONT_FILE = 'DejaVuSans.ttf';
   var FONT_NAME = 'DejaVu';
+  var PDF_HEADER_BAND_MM = 14;
   var fontLoadPromise = null;
+
+  function pdfContentTop(margin){
+    return margin + PDF_HEADER_BAND_MM;
+  }
 
   var COMPACT = {
     fontSize: 7,
@@ -330,10 +335,12 @@
   }
 
   function createPdfCtx(pdf, margin){
+    var top = pdfContentTop(margin);
     return {
       pdf: pdf,
       margin: margin,
-      y: margin,
+      y: top,
+      contentTop: top,
       pageW: pdf.internal.pageSize.getWidth(),
       pageH: pdf.internal.pageSize.getHeight(),
       contentW: pdf.internal.pageSize.getWidth() - margin * 2,
@@ -344,7 +351,7 @@
   function ensureSpace(ctx, needMm){
     if (ctx.y + needMm <= ctx.pageH - ctx.margin) return;
     ctx.pdf.addPage();
-    ctx.y = ctx.margin;
+    ctx.y = ctx.contentTop != null ? ctx.contentTop : ctx.margin;
     ctx.pdf.setFont(FONT_NAME, 'normal');
   }
 
@@ -535,7 +542,8 @@
 
   function appendCanvasAt(pdf, ctx, canvas, margin, contentW){
     var pageH = pdf.internal.pageSize.getHeight();
-    var usableH = pageH - margin * 2;
+    var top = ctx.contentTop != null ? ctx.contentTop : margin;
+    var usableH = pageH - top - margin;
     var pxPerMm = canvas.width / contentW;
     var slicePx = Math.floor(usableH * pxPerMm);
     if (slicePx < 1) slicePx = canvas.height;
@@ -559,6 +567,9 @@
     ctx.firstContent = false;
     return ctx;
   }
+
+  global.DG_PDF_HEADER_BAND_MM = PDF_HEADER_BAND_MM;
+  global.DG_pdfContentTop = pdfContentTop;
 
   global.DG_PDF_VECTOR_ECON = vectorSections;
   global.DG_isVectorEconPdfSection = isVectorEconSection;

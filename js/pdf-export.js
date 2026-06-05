@@ -50,6 +50,7 @@
   var PDF_MARGIN_MM = 12;
   var PDF_LOGO_PATH = 'assets/dao-logo.png';
   var PDF_LOGO_SMALL_MM = 9;
+  var PDF_BRAND_TAGLINE = 'DAOGREEN проектирование и запуск вертикальных ферм';
 
   var PDF_PRESETS = {
     planting: [
@@ -568,18 +569,20 @@
     }
 
     function appendCanvasSlicesToPdf(pdf, canvas, margin, contentW, firstPage){
-      var ctx = global.DG_createPdfCtx ? DG_createPdfCtx(pdf, margin) : { pdf: pdf, margin: margin, y: margin, pageH: pdf.internal.pageSize.getHeight(), contentW: contentW, firstContent: firstPage };
+      var contentTop = global.DG_pdfContentTop ? DG_pdfContentTop(margin) : margin + 14;
+      var ctx = global.DG_createPdfCtx ? DG_createPdfCtx(pdf, margin) : { pdf: pdf, margin: margin, y: contentTop, contentTop: contentTop, pageH: pdf.internal.pageSize.getHeight(), contentW: contentW, firstContent: firstPage };
       if (global.DG_appendCanvasToPdfCtx){
         DG_appendCanvasToPdfCtx(pdf, ctx, canvas, margin, contentW);
-        return ctx.y > margin ? 1 : 0;
+        return ctx.y > contentTop ? 1 : 0;
       }
       var pageH = pdf.internal.pageSize.getHeight();
-      var usableH = pageH - margin * 2;
+      var usableH = pageH - contentTop - margin;
       var pxPerMm = canvas.width / contentW;
       var slicePx = Math.floor(usableH * pxPerMm);
       if (slicePx < 1) slicePx = canvas.height;
       var y = 0;
       var pages = 0;
+      var sliceY = contentTop;
       while (y < canvas.height){
         var h = Math.min(slicePx, canvas.height - y);
         var slice = document.createElement('canvas');
@@ -593,9 +596,10 @@
         var sliceHmm = h / pxPerMm;
         if (!firstPage || pages > 0) pdf.addPage();
         firstPage = false;
-        pdf.addImage(slice.toDataURL('image/png'), 'PNG', margin, margin, contentW, sliceHmm);
+        pdf.addImage(slice.toDataURL('image/png'), 'PNG', margin, sliceY, contentW, sliceHmm);
         y += h;
         pages++;
+        sliceY = contentTop;
       }
       return pages;
     }
@@ -622,17 +626,47 @@
       return String(v);
     }
 
+    function splitPdfTagline(pdf, text, maxW, fontSize){
+      pdf.setFontSize(fontSize);
+      var words = String(text || '').split(/\s+/).filter(Boolean);
+      var lines = [];
+      var line = '';
+      words.forEach(function(w){
+        var test = line ? line + ' ' + w : w;
+        if (pdf.getTextWidth(test) <= maxW) line = test;
+        else {
+          if (line) lines.push(line);
+          line = w;
+        }
+      });
+      if (line) lines.push(line);
+      return lines.length ? lines : [''];
+    }
+
     function addPdfFooters(pdf, metaTitle, logoDataUrl){
       var pageCount = pdf.internal.getNumberOfPages();
       var pageW = pdf.internal.pageSize.getWidth();
       var pageH = pdf.internal.pageSize.getHeight();
       var footer = pdfTextArg(metaTitle) + ' · Daogreen';
       var logoSize = PDF_LOGO_SMALL_MM;
+      var logoY = PDF_MARGIN_MM - 2;
+      var logoX = pageW - PDF_MARGIN_MM - logoSize;
+      var tagSize = 6.5;
+      var tagLineH = tagSize * 1.25;
+      var tagMaxW = logoX - PDF_MARGIN_MM - 3;
       if (pdf.__dgDejaVu) pdf.setFont('DejaVu', 'normal');
       for (var p = 1; p <= pageCount; p++){
         pdf.setPage(p);
         if (logoDataUrl){
-          pdf.addImage(logoDataUrl, 'PNG', pageW - PDF_MARGIN_MM - logoSize, PDF_MARGIN_MM - 2, logoSize, logoSize, undefined, 'FAST');
+          var tagLines = splitPdfTagline(pdf, pdfT('pdf.brand.tagline') || PDF_BRAND_TAGLINE, tagMaxW, tagSize);
+          var tagBlockH = tagLines.length * tagLineH;
+          var tagStartY = logoY + (logoSize - tagBlockH) / 2 + tagSize * 0.85;
+          pdf.setFontSize(tagSize);
+          pdf.setTextColor(39, 109, 92);
+          tagLines.forEach(function(ln, idx){
+            pdf.text(ln, logoX - 2, tagStartY + idx * tagLineH, { align: 'right' });
+          });
+          pdf.addImage(logoDataUrl, 'PNG', logoX, logoY, logoSize, logoSize, undefined, 'FAST');
         }
         pdf.setFontSize(8);
         pdf.setTextColor(130);

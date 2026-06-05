@@ -56,7 +56,8 @@
     'panel-pallet-guide': true,
     'block-panel-farm-calibration': false,
     'econ-panel-advanced': true,
-    'econ-panel-sensitivity': true
+    'econ-panel-sensitivity': true,
+    'block-econ-mix': true
   };
 
   /** Цветы и др. — урожай за срез в штуках, не в граммах */
