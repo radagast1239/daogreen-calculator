@@ -585,12 +585,6 @@
     if (opts.site) pdf.text(opts.site, cx, y, { align: 'center' });
     y += 6;
     if (opts.date) pdf.text(opts.date, cx, y, { align: 'center' });
-    if (opts.qrDataUrl){
-      var qrMm = 32;
-      pdf.addImage(opts.qrDataUrl, 'PNG', cx - qrMm / 2, pageH * 0.58, qrMm, qrMm, undefined, 'FAST');
-      pdf.setFontSize(7.5);
-      pdf.text(pdfT('pdf.closing.qrHint'), cx, pageH * 0.58 + qrMm + 5, { align: 'center' });
-    }
     pdf.setFontSize(8);
     pdf.setTextColor(PDF_THEME.inkSoft[0], PDF_THEME.inkSoft[1], PDF_THEME.inkSoft[2]);
     pdf.text(pdfT('pdf.closing.note'), cx, pageH - margin - 4, { align: 'center' });

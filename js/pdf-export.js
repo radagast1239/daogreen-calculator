@@ -31,6 +31,7 @@
     { id: 'panel-channel-guide', group: 'planting', selector: '#panel-channel-guide' },
     { id: 'panel-pallet-guide', group: 'planting', selector: '#panel-pallet-guide' },
     { id: 'block-panel-standards', group: 'planting', selector: '#block-panel-standards' },
+    { id: 'econ-cult-unit-cost', group: 'economics', kind: 'econ-cult-unit-cost', skipPdfWrapTitle: true },
     { id: 'econ-farm-final', group: 'economics', selector: '#econ-results-final', skipPdfWrapTitle: true },
     { id: 'econ-warnings', group: 'economics', selector: '#econ-warnings' },
     { id: 'econ-general', group: 'economics', selector: '#econ-panel-general', vectorId: 'econ-general' },
@@ -64,7 +65,8 @@
       'cover', 'panel-cultivars', 'panel-culture', 'env-panel', 'panel-bio-margin',
       'block-panel-growth', 'panel-system', 'panel-pallet-geom', 'panel-gh-yield',
       'panel-metrics', 'panel-schema', 'block-panel-recs',
-      'panel-channel-guide', 'panel-pallet-guide', 'block-panel-standards', 'econ-farm-final'
+      'panel-channel-guide', 'panel-pallet-guide', 'block-panel-standards',
+      'econ-cult-unit-cost', 'econ-farm-final'
     ],
     econ: [
       'cover', 'econ-general', 'econ-yield',
@@ -461,13 +463,72 @@
       root.querySelectorAll('.econ-elec-charts-wrap').forEach(function(el){
         el.style.display = 'none';
       });
-      if (root.querySelector('#econ-cultures-breakdown, #econ-results-metrics, .econ-culture-card, #econ-panel-cultures')){
+      if (!root.getAttribute('data-pdf-econ-cult-detail') &&
+          root.querySelector('#econ-cultures-breakdown, #econ-results-metrics, .econ-culture-card, #econ-panel-cultures')){
         maskEconDomForPdf(root);
       }
     }
 
     function isEconSectionId(id){
       return id && id.indexOf('econ-') === 0;
+    }
+
+    function econUiLabel(key){
+      var t = global.DG_t && global.DG_t(key);
+      return t && t !== key ? t : key;
+    }
+
+    function buildEconCultUnitCostBlock(){
+      var metricsEl = document.getElementById('econ-results-metrics');
+      var breakdownTbl = document.getElementById('econ-cultures-breakdown');
+      var cultSection = null;
+      if (metricsEl){
+        metricsEl.querySelectorAll('.econ-results-section').forEach(function(sec){
+          if (sec.querySelector('.econ-results-per-culture')) cultSection = sec;
+        });
+      }
+      var hasCards = !!(cultSection && cultSection.querySelector('.econ-culture-metric'));
+      var hasTable = !!(breakdownTbl && breakdownTbl.querySelector('tr'));
+      if (!hasCards && !hasTable) return null;
+
+      var wrap = document.createElement('div');
+      wrap.className = 'pdf-page-block pdf-econ-cult-detail panel econ-panel econ-panel--highlight';
+      wrap.setAttribute('data-pdf-econ-cult-detail', '1');
+      wrap.style.cssText = 'display:block;visibility:visible;opacity:1;background:#fff;color:#111;width:100%;max-width:' + PDF_W_PX + 'px;box-sizing:border-box;padding:8px 10px;';
+
+      var zone = document.createElement('h2');
+      zone.className = 'econ-zone-label';
+      zone.textContent = econUiLabel('econ.zone.results');
+      wrap.appendChild(zone);
+
+      var head = document.createElement('div');
+      head.className = 'section-h';
+      head.textContent = econUiLabel('econ.section.results');
+      wrap.appendChild(head);
+
+      if (hasCards){
+        var stack = document.createElement('div');
+        stack.className = 'econ-results-stack';
+        stack.appendChild(cultSection.cloneNode(true));
+        wrap.appendChild(stack);
+      }
+
+      if (hasTable){
+        var noteEl = document.getElementById('econ-cultures-breakdown-note');
+        var scroll = document.createElement('div');
+        scroll.className = 'econ-table-scroll';
+        if (noteEl && !noteEl.hidden && noteEl.textContent.trim()){
+          var note = document.createElement('p');
+          note.className = 'econ-breakdown-note';
+          note.textContent = noteEl.textContent.trim();
+          scroll.appendChild(note);
+        }
+        scroll.appendChild(breakdownTbl.cloneNode(true));
+        wrap.appendChild(scroll);
+      }
+
+      prepareClone(wrap);
+      return wrap;
     }
 
     function cloneSection(el){
@@ -484,6 +545,7 @@
 
     function blockForSection(sec){
       if (sec.kind === 'cover') return buildCover();
+      if (sec.kind === 'econ-cult-unit-cost') return buildEconCultUnitCostBlock();
       if (sec.georgyOnly && !document.documentElement.classList.contains('georgy-active')) return null;
       var el = sec.selector ? document.querySelector(sec.selector) : null;
       if (!el) return null;
@@ -657,15 +719,6 @@
       return lines.length ? lines : [''];
     }
 
-    function loadQrDataUrl(url){
-      return new Promise(function(resolve){
-        if (!global.QRCode || typeof global.QRCode.toDataURL !== 'function') return resolve(null);
-        global.QRCode.toDataURL(url, { width: 220, margin: 1, errorCorrectionLevel: 'M' }, function(err, data){
-          resolve(err ? null : data);
-        });
-      });
-    }
-
     function insertPdfPageAt(pdf, beforePage){
       var target = Math.max(1, Math.min(beforePage, pdf.internal.getNumberOfPages() + 1));
       pdf.addPage();
@@ -820,15 +873,12 @@
 
       if (global.DG_drawPdfClosingPage){
         try {
-          var qrUrl = exportMeta.calculatorUrl || (typeof location !== 'undefined' ? location.href.split('#')[0] : '');
-          var qrDataUrl = qrUrl ? await loadQrDataUrl(qrUrl) : null;
           pdf.addPage();
           DG_drawPdfClosingPage(pdf, margin, {
             logoDataUrl: logoDataUrl,
             tagline: pdfBrandTagline(),
             site: pdfT('pdf.closing.site') !== 'pdf.closing.site' ? pdfT('pdf.closing.site') : PDF_SITE_LABEL,
-            date: exportMeta.date || '',
-            qrDataUrl: qrDataUrl
+            date: exportMeta.date || ''
           });
         } catch (err){
           console.warn('PDF closing page skipped:', err);
