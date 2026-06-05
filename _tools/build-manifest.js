@@ -92,6 +92,7 @@ module.exports = {
   cssFiles: [
     'css/daogreen-unify.css',
     'css/econ-unify.css',
+    'css/visual-polish.css',
     'css/mobile.css',
     'css/app-auth.css'
   ],

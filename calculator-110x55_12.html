@@ -46,7 +46,6 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; }
 :root {
-  --page-bg: #ECEBBD;
   --paper: #FAF6EC; --paper-deep: #F2EDDF; --card: #FFFCF5;
   --ink: #1F1D17; --ink-soft: #4A4738; --ink-faint: #847D69;
   --rule: #E2DBC5; --rule-strong: #C7BFA5;
@@ -76,15 +75,21 @@
   --brick-pale: rgba(155,56,38,0.18); --brick-text: #E89A87;
   --sky-pale: rgba(63,104,150,0.18); --sky-text: #9BB8D9;
 }
-html, body { margin: 0; padding: 0; background: var(--page-bg); color: var(--ink);
+html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink);
   font-family: var(--font-body); font-size: 15px; line-height: 1.55;
   -webkit-font-smoothing: antialiased; }
 body {
   min-height: 100vh; padding: 28px 18px 56px;
-  background: var(--page-bg);
+  background:
+    radial-gradient(ellipse 110% 70% at 100% -15%, rgba(39, 109, 92, 0.09), transparent 52%),
+    radial-gradient(ellipse 70% 50% at 0% 100%, rgba(176, 122, 28, 0.06), transparent 48%),
+    var(--paper);
 }
 [data-theme="dark"] body {
-  background: var(--paper);
+  background:
+    radial-gradient(ellipse 90% 60% at 100% 0%, rgba(39, 109, 92, 0.14), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(176, 122, 28, 0.08), transparent 50%),
+    var(--paper);
 }
 .page { max-width: 860px; margin: 0 auto; }
 
@@ -2609,8 +2614,9 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 .adv-infl-form label { display: flex; flex-direction: column; gap: 4px; color: var(--ink-faint); }
 .adv-infl-form input { width: 72px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: var(--radius); }
 </style>
-<link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-27-page-bg">
-<link rel="stylesheet" href="css/econ-unify.css?v=2026-05-27-page-bg">
+<link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-27-visual">
+<link rel="stylesheet" href="css/econ-unify.css?v=2026-05-27-visual">
+<link rel="stylesheet" href="css/visual-polish.css?v=2026-05-27-visual">
 <link rel="stylesheet" href="css/mobile.css?v=2026-05-19-desktop-page-width">
 <link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-preview-mode">
 </head>

@@ -95,6 +95,7 @@ var PRECACHE = [
   "./js/vendor/qrcode.min.js",
   "./css/daogreen-unify.css?v=2026-05-20-p109-pdf-sections",
   "./css/econ-unify.css?v=2026-05-20-p109-pdf-sections",
+  "./css/visual-polish.css?v=2026-05-20-p109-pdf-sections",
   "./css/mobile.css?v=2026-05-20-p109-pdf-sections",
   "./css/app-auth.css?v=2026-05-20-p109-pdf-sections",
   "./js/vendor/DejaVuSans.ttf",
