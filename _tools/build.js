@@ -100,6 +100,9 @@ function syncServiceWorker(build){
   manifest.staticScripts.forEach(function(rel){
     precache.push('./' + rel);
   });
+  (manifest.cssFiles || []).forEach(function(rel){
+    precache.push('./' + rel + '?v=' + build);
+  });
   precache.push('./js/vendor/DejaVuSans.ttf');
   precache.push('./js/pwa-register.js?v=' + build);
 

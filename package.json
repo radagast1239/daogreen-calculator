@@ -4,15 +4,15 @@
   "description": "Калькулятор посадки и экономики Daogreen",
   "scripts": {
     "build": "node _tools/build.js",
-    "check": "node _tools/smoke-check.js && node _tools/planting-modules-audit.js && node _tools/bootstrap-runtime-smoke.js && node _tools/verify-pallet-life.js && node _tools/golden-scenarios.js",
-    "check:golden": "node _tools/golden-scenarios.js",
+    "check": "node _tools/smoke-check.js && node _tools/planting-modules-audit.js && node _tools/bootstrap-runtime-smoke.js && node _tools/verify-pallet-life.js && node _tools/verify-vf-sheet-mass.js && node _tools/verify-audit-drift.js && node _tools/golden-scenarios.js && node _tools/golden-planting.js",
+    "check:golden": "node _tools/golden-scenarios.js && node _tools/golden-planting.js",
     "serve": "npx --yes serve -p 8080",
     "serve:auth": "node _tools/serve-auth.js",
     "auth:config": "node _tools/write-auth-client-config.js",
     "preview:from-project": "node _tools/project-to-preview-config.js",
     "share:install-demo": "node _tools/install-share-demo.js",
     "gen:gh-user": "node _tools/gen-gh-user-from-xlsx.js",
-    "sync:audit": "node _tools/sync-vf-audit-xlsx.js"
+    "sync:audit": "node _tools/sync-vf-audit-xlsx.js && node _tools/verify-vf-sheet-mass.js && node _tools/verify-pallet-life.js && node _tools/verify-audit-drift.js --update"
   },
   "optionalDependencies": {
     "dejavu-fonts-ttf": "^2.37.3"

@@ -16,8 +16,11 @@
       'mass.sheetHintPal': 'свернуть → стандарт поддонов',
       'germination': 'Время прорастания',
       'nursery': 'Рассада',
+      'grow.nurseryYieldHint': 'В общий урожай с м² / с площади участка не входит — рассада в отдельном отделении. Влияет на модель массы и шапки (общий возраст с посева).',
+      'grow.channelYieldHint': 'В урожай с полезной площади входят только эти дни (основное отделение / канал). Проращивание и рассада — отдельно.',
       'vegDays': 'Дней роста до среза/готовности',
       'autoDay': '→ К рекомендуемому дню съёма',
+      'grow.autoDayHint': 'Ставит ползунок «дней в канале» на рекомендуемый срок съёма по модели роста (масса и шапка). Не меняет проращивание, рассаду, плотность и урожай с площади.',
       'mass.title': 'Масса урожая',
       'mass.titlePcs': 'Количество урожая',
       'mass.manual': 'Задать массу урожая вручную',
@@ -82,6 +85,40 @@
       'sysmet.titlePal': 'Стеллаж и зона целиком',
       'scen.title': 'Сравнение сценариев и экономика',
       'scen.compare': 'Сравнить текущий сценарий A с альтернативой B',
+      'planting.activeCv': 'Настройка культуры',
+      'planting.activeCvMode': 'Режим',
+      'farmCal.title': 'Калибровка по замерам',
+      'farmCal.intro': 'Замеры с объекта подгоняют модель под вашу ферму. Сохраняются в проект JSON.',
+      'farmCal.measuredMass': 'Факт. масса срезки',
+      'farmCal.measuredYield': 'Факт. урожай',
+      'farmCal.date': 'Дата замера',
+      'farmCal.comment': 'Комментарий',
+      'farmCal.modelNow': 'Сейчас модель: {mass} {massUnit}, урожай {yield} {yieldUnit}',
+      'farmCal.applied': 'Применено: {fields}',
+      'farmCal.save': 'Применить калибровку',
+      'farmCal.clear': 'Сбросить замеры',
+      'farmCal.noCv': 'Выберите сорт в списке культур.',
+      'farmCal.unitYieldKg': 'кг/м²·мес',
+      'farmCal.unitYieldPcs': 'шт/м²·мес',
+      'farmCal.unitMassPcs': 'шт',
+      'trace.summary': 'Откуда эти числа',
+      'trace.mass': 'Масса срезки',
+      'trace.canopy': 'Диаметр шапки',
+      'trace.rhoA': 'Плотность стояния',
+      'trace.leafGap': 'Зазор шапок',
+      'trace.yieldSqm': 'Урожай / м²·мес',
+      'trace.cyclesMo': 'Срезок / мес',
+      'trace.farmCal': 'Калибровка фермы',
+      'trace.src.manual': 'ручной ввод',
+      'trace.src.modelEst': 'модель (оценка)',
+      'trace.src.model': 'модель роста',
+      'trace.src.fromMass': 'из массы',
+      'trace.src.geom': 'геометрия',
+      'trace.src.multicut': 'мультисрезка',
+      'trace.src.cycle': 'цикл',
+      'trace.src.intervalCalc': '30,5 сут / интервал',
+      'trace.src.farm': 'замеры на объекте',
+      'trace.unit.pcsSqm': 'шт/м²',
       'scen.hint': 'Сценарий A = текущие настройки выше. В сценарии B меняете только то, что хотите сравнить:',
       'scen.cvB': 'Сорт B',
       'scen.monthB': 'Месяц B',
@@ -120,6 +157,7 @@
       'unit.kg': 'кг',
       'unit.g': 'г',
       'unit.mm': 'мм',
+      'unit.cm': 'см',
       'unit.pct': '%',
       'unit.mol': 'моль',
       'unit.hDay': 'ч/сут',
@@ -183,6 +221,7 @@
       'm.massGain': 'Прирост массы',
       'm.canopyGain': 'Прирост шапки',
       'm.totalAge': 'Общий возраст',
+      'm.totalAgeBreakdown': 'проращ. {germ} + рассада {nursery} + канал {channel}',
       'm.harvestRec': 'Рекомендуемый съём',
       'm.cutsMonth': 'Срезок в месяц',
       'm.cutsCycle': 'Срезов за срок жизни',
@@ -262,8 +301,11 @@
       'mass.sheetHintPal': 'collapse → pallet standard',
       'germination': 'Germination time',
       'nursery': 'Nursery',
+      'grow.nurseryYieldHint': 'Excluded from useful-area yield (kg/m²) — nursery is a separate zone. Affects mass/canopy model (total age from sowing).',
+      'grow.channelYieldHint': 'Only these days count toward useful-area yield (main hall / channel). Germination and nursery are separate.',
       'vegDays': 'Days to harvest / ready',
       'autoDay': '→ Recommended harvest day',
+      'grow.autoDayHint': 'Sets the channel-day slider to the model harvest day (mass and canopy). Does not change germination, nursery, density, or area yield.',
       'mass.title': 'Harvest mass',
       'mass.titlePcs': 'Harvest count',
       'mass.manual': 'Set harvest mass manually',
@@ -328,6 +370,40 @@
       'sysmet.titlePal': 'Rack & zone',
       'scen.title': 'Scenario comparison & economics',
       'scen.compare': 'Compare scenario A vs B',
+      'planting.activeCv': 'Configuring cultivar',
+      'planting.activeCvMode': 'Mode',
+      'farmCal.title': 'Field calibration',
+      'farmCal.intro': 'On-site measurements tune the model to your farm. Saved in project JSON.',
+      'farmCal.measuredMass': 'Actual cut mass',
+      'farmCal.measuredYield': 'Actual yield',
+      'farmCal.date': 'Measurement date',
+      'farmCal.comment': 'Comment',
+      'farmCal.modelNow': 'Model now: {mass} {massUnit}, yield {yield} {yieldUnit}',
+      'farmCal.applied': 'Applied: {fields}',
+      'farmCal.save': 'Apply calibration',
+      'farmCal.clear': 'Clear measurements',
+      'farmCal.noCv': 'Select a cultivar in the list.',
+      'farmCal.unitYieldKg': 'kg/m²·mo',
+      'farmCal.unitYieldPcs': 'pcs/m²·mo',
+      'farmCal.unitMassPcs': 'pcs',
+      'trace.summary': 'Where these numbers come from',
+      'trace.mass': 'Cut mass',
+      'trace.canopy': 'Canopy diameter',
+      'trace.rhoA': 'Stand density',
+      'trace.leafGap': 'Canopy gap',
+      'trace.yieldSqm': 'Yield / m²·mo',
+      'trace.cyclesMo': 'Cuts / mo',
+      'trace.farmCal': 'Farm calibration',
+      'trace.src.manual': 'manual input',
+      'trace.src.modelEst': 'model (estimate)',
+      'trace.src.model': 'growth model',
+      'trace.src.fromMass': 'from mass',
+      'trace.src.geom': 'geometry',
+      'trace.src.multicut': 'multi-harvest',
+      'trace.src.cycle': 'cycle',
+      'trace.src.intervalCalc': '30.5 d / interval',
+      'trace.src.farm': 'field measurements',
+      'trace.unit.pcsSqm': 'pcs/m²',
       'scen.hint': 'Scenario A = settings above. In B change only what you compare:',
       'scen.cvB': 'Cultivar B',
       'scen.monthB': 'Month B',
@@ -366,6 +442,7 @@
       'unit.kg': 'kg',
       'unit.g': 'g',
       'unit.mm': 'mm',
+      'unit.cm': 'cm',
       'unit.pct': '%',
       'unit.mol': 'mol',
       'unit.hDay': 'h/d',
@@ -429,6 +506,7 @@
       'm.massGain': 'Mass gain rate',
       'm.canopyGain': 'Canopy gain rate',
       'm.totalAge': 'Total age',
+      'm.totalAgeBreakdown': 'germ. {germ} + nursery {nursery} + channel {channel}',
       'm.harvestRec': 'Recommended harvest',
       'm.cutsMonth': 'Cuts per month',
       'm.cutsCycle': 'Cuts per cycle',
@@ -558,6 +636,11 @@
     setText('#ctrl-nursery .ctrl-label', 'nursery');
     setLabel('#ctrl-day .ctrl-label', 'vegDays', '.vf-sheet-badge');
     setText('#auto-day', 'autoDay');
+    setText('#auto-day-hint', 'grow.autoDayHint');
+    setText('#nursery-yield-hint', 'grow.nurseryYieldHint');
+    setText('#channel-day-yield-hint', 'grow.channelYieldHint');
+    setText('#vf-growth-slider-hint', 'vf.growthSliderHint');
+    setText('#multicut-yield-only-hint', 'multicut.yieldOnlyHint');
 
     setText('#block-mass .collapse-head > span:first-child', 'mass.title');
     setText('#block-mass .toggle-label', 'mass.manual');
@@ -628,6 +711,12 @@
 
     setText('#panel-scenarios > .section-h', 'scen.title');
     setText('#panel-scenarios .toggle-label', 'scen.compare');
+    setText('#block-panel-farm-calibration .collapse-head > span:first-child', 'farmCal.title');
+    setText('#farm-cal-no-cv', 'farmCal.noCv');
+    setText('#farm-cal-save', 'farmCal.save');
+    setText('#farm-cal-clear', 'farmCal.clear');
+    setText('#planting-active-cv-bar .planting-active-cv-label', 'planting.activeCv');
+    setText('#planting-active-cv-bar .planting-active-cv-mode-lbl', 'planting.activeCvMode');
     var sh = document.querySelector('#scenario-config > div');
     if (sh) sh.textContent = plantT('scen.hint');
     setText('#scenario-config .ctrl:nth-child(1) .ctrl-label', 'scen.cvB');

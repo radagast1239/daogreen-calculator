@@ -60,13 +60,18 @@
       var state = st();
       cv = cv || deps.getCv();
       var day = Math.max(1, Math.round(deps.harvestChannel(cv)));
+      var density = state.density;
+      if (cv.id === 'spinach') {
+        day = 7;
+        density = 220;
+      }
       var masses = defaultGhCutMasses(cv);
       var m0 = masses[0];
       return {
         germination: state.germination,
         nursery: state.nursery,
         day: day,
-        density: state.density,
+        density: density,
         cutInterval: deps.cutIntervalRange(cv).mid,
         canopyPct: 100,
         manualCanopy: Math.round(deps.modelCanopyFromMass(cv, m0)),
@@ -134,6 +139,36 @@
       );
     }
 
+    function syncGhCultivarFromCv(cv) {
+      cv = cv || deps.getCv();
+      if (!cv) return;
+      var state = st();
+      state.multicut = !!cv.multicut;
+      var mc = deps.$('multicut');
+      if (mc) mc.checked = state.multicut;
+      if (cv.id === 'spinach' && (state.temp == null || state.temp === 22)) state.temp = 17;
+      applyGhProfileToStateOnly(getGhCvStandards(cv), cv);
+      var $ = deps.$;
+      function setPair(id, val) {
+        var el = $(id);
+        var lab = $(id + '-v');
+        if (el) el.value = val;
+        if (lab) lab.textContent = val;
+      }
+      setPair('germination', state.germination);
+      setPair('nursery', state.nursery);
+      setPair('day', state.day);
+      setPair('density', state.density);
+      setPair('cutInterval', state.cutInterval);
+      var tempEl = $('temp');
+      var tempV = $('temp-v');
+      if (tempEl) tempEl.value = state.temp;
+      if (tempV) tempV.textContent = deps.r2 ? deps.r2(state.temp) : String(state.temp);
+      deps.syncCanopyUI();
+      syncGhCutsUI();
+      deps.syncVegPeriodTotal();
+    }
+
     function applyGhStandardsToState(s) {
       var $ = deps.$;
       applyGhProfileToStateOnly(s);
@@ -198,12 +233,15 @@
       var state = st();
       var gm = georgyModeRef();
       var isBaby = gm && gm.isGeorgyProfiled(cv);
+      var isGhChannels =
+        state.facility === 'greenhouse' && !deps.isVF() && !deps.isPalletView();
+      var channelBaby =
+        isBaby && isGhChannels && !(gm && gm.isGeorgyGh()) && gm && gm.isGeorgyProfiled(cv);
       var hideBaby =
-        !isBaby ||
+        !channelBaby ||
         !state.multicut ||
-        deps.isVF() ||
         deps.isPalletView() ||
-        (gm && gm.isGeorgyGh());
+        (isBaby && deps.isVF());
       document.querySelectorAll('.multicut-baby-only').forEach(function (el) {
         el.classList.toggle('env-block-hidden', hideBaby);
       });
@@ -367,6 +405,7 @@
       rebuildGhCutCountRow: rebuildGhCutCountRow,
       syncMulticutBabyUi: syncMulticutBabyUi,
       syncGhCutsUI: syncGhCutsUI,
+      syncGhCultivarFromCv: syncGhCultivarFromCv,
       syncGhFacilityPanels: syncGhFacilityPanels,
       renderGhStandardsPanel: renderGhStandardsPanel
     };

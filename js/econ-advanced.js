@@ -9,9 +9,39 @@
 
   function cloneEcon(e){ return JSON.parse(JSON.stringify(e)); }
 
+  function scaleEconCosts(c, factor){
+    if (global.DG_scaleEconCostFields) return global.DG_scaleEconCostFields(c, factor);
+    if (!(factor > 0) || factor === 1) return c;
+    c.rentMonth = (parseFloat(c.rentMonth) || 0) * factor;
+    c.priceKwh = (parseFloat(c.priceKwh) || 0) * factor;
+    c.otherMonth = (parseFloat(c.otherMonth) || 0) * factor;
+    c.logisticsMonth = (parseFloat(c.logisticsMonth) || 0) * factor;
+    c.consumablesPerKg = (parseFloat(c.consumablesPerKg) || 0) * factor;
+    c.consumablesPerPcs = (parseFloat(c.consumablesPerPcs) || 0) * factor;
+    c.accountingMonth = (parseFloat(c.accountingMonth) || 0) * factor;
+    c.staffLines = (c.staffLines || []).map(function(row){
+      return Object.assign({}, row, { salary: (parseFloat(row.salary) || 0) * factor });
+    });
+    c.payrollCustom = (c.payrollCustom || []).map(function(row){
+      return Object.assign({}, row, { amount: (parseFloat(row.amount) || 0) * factor });
+    });
+    c.cultures = (c.cultures || []).map(function(row){
+      var r = Object.assign({}, row);
+      var cp = parseFloat(r.consumablesPerPot);
+      if (cp > 0) r.consumablesPerPot = cp * factor;
+      return r;
+    });
+    c._costScale = (parseFloat(c._costScale) || 1) * factor;
+    return c;
+  }
+
   function ensureExtensions(state, defaults){
     if (!state.econChannels || !state.econChannels.length){
-      var sp = (state.econ && parseFloat(state.econ.salePrice)) || 800;
+      var sp = 850;
+      if (state.econ && state.econ.cultures && state.econ.cultures.length){
+        var priced = state.econ.cultures.map(function(r){ return parseFloat(r.salePrice) || 0; }).filter(function(v){ return v > 0; });
+        if (priced.length) sp = priced.reduce(function(s, v){ return s + v; }, 0) / priced.length;
+      }
       state.econChannels = [
         { id: 'retail', name: T('adv.retail'), price: sp, sharePct: 60 },
         { id: 'horeca', name: 'HoReCa', price: Math.round(sp * 1.15), sharePct: 40 }
@@ -22,26 +52,28 @@
       state.econSeasonality = { priceIdx: MONTH_IDS.map(function(){ return 1; }), yieldIdx: MONTH_IDS.map(function(){ return 1; }), costIdx: MONTH_IDS.map(function(){ return 1; }) };
     }
     if (!state.econInflation){
-      state.econInflation = { years: 5, rentPctY: 5, kwhPctY: 3, otherPctY: 4 };
+      state.econInflation = { years: 5, rentPctY: 5, kwhPctY: 3, otherPctY: 4, pricePctY: 4, payrollPctY: 5, logisticsPctY: 4 };
     }
+    if (state.econInflation.payrollPctY == null) state.econInflation.payrollPctY = 5;
+    if (state.econInflation.logisticsPctY == null) state.econInflation.logisticsPctY = 4;
+    if (state.econInflation.pricePctY == null) state.econInflation.pricePctY = 4;
   }
 
   function blendedPrice(e, channels){
-    var base = parseFloat(e.salePrice) || 0;
     var sum = 0, w = 0;
     (channels || []).forEach(function(ch){
-      var p = parseFloat(ch.price) || base;
+      var p = parseFloat(ch.price) || 0;
       var s = parseFloat(ch.sharePct) || 0;
-      if (s > 0){ sum += p * s; w += s; }
+      if (p > 0 && s > 0){ sum += p * s; w += s; }
     });
-    if (w <= 0) return base;
+    if (w <= 0) return 0;
     return sum / w;
   }
 
   function applyChannels(e, channels){
     var c = cloneEcon(e);
     var bp = blendedPrice(e, channels);
-    c.salePrice = bp;
+    if (!(bp > 0)) return c;
     c.cultures = (c.cultures || []).map(function(row){
       var r = Object.assign({}, row);
       if (!(parseFloat(r.salePrice) > 0)) r.salePrice = bp;
@@ -55,15 +87,12 @@
     var pi = sens.priceIdx[mi] != null ? sens.priceIdx[mi] : 1;
     var yi = sens.yieldIdx[mi] != null ? sens.yieldIdx[mi] : 1;
     var ci = sens.costIdx[mi] != null ? sens.costIdx[mi] : 1;
-    c.salePrice = (parseFloat(c.salePrice) || 0) * pi;
-    c.rentMonth = (parseFloat(c.rentMonth) || 0) * ci;
-    c.priceKwh = (parseFloat(c.priceKwh) || 0) * ci;
-    c.otherMonth = (parseFloat(c.otherMonth) || 0) * ci;
+    scaleEconCosts(c, ci);
     c.cultures = (c.cultures || []).map(function(row){
       var r = Object.assign({}, row);
       r.yieldPerCut = (parseFloat(r.yieldPerCut) || 0) * yi;
       var sp = parseFloat(r.salePrice);
-      r.salePrice = sp > 0 ? sp * pi : c.salePrice;
+      if (sp > 0) r.salePrice = sp * pi;
       return r;
     });
     return c;
@@ -71,12 +100,35 @@
 
   function inflateEcon(e, inf, year){
     var c = cloneEcon(e);
+    if (year <= 0) return c;
     var fRent = Math.pow(1 + (inf.rentPctY || 0) / 100, year);
     var fKwh = Math.pow(1 + (inf.kwhPctY || 0) / 100, year);
     var fOther = Math.pow(1 + (inf.otherPctY || 0) / 100, year);
+    var fPayroll = Math.pow(1 + (inf.payrollPctY || 0) / 100, year);
+    var fLog = Math.pow(1 + (inf.logisticsPctY || 0) / 100, year);
+    var fPrice = Math.pow(1 + (inf.pricePctY || 0) / 100, year);
     c.rentMonth = (parseFloat(c.rentMonth) || 0) * fRent;
     c.priceKwh = (parseFloat(c.priceKwh) || 0) * fKwh;
     c.otherMonth = (parseFloat(c.otherMonth) || 0) * fOther;
+    c.logisticsMonth = (parseFloat(c.logisticsMonth) || 0) * fLog;
+    c.consumablesPerKg = (parseFloat(c.consumablesPerKg) || 0) * fOther;
+    c.consumablesPerPcs = (parseFloat(c.consumablesPerPcs) || 0) * fOther;
+    c.accountingMonth = (parseFloat(c.accountingMonth) || 0) * fPayroll;
+    c.staffLines = (c.staffLines || []).map(function(row){
+      return Object.assign({}, row, { salary: (parseFloat(row.salary) || 0) * fPayroll });
+    });
+    c.payrollCustom = (c.payrollCustom || []).map(function(row){
+      return Object.assign({}, row, { amount: (parseFloat(row.amount) || 0) * fPayroll });
+    });
+    c.cultures = (c.cultures || []).map(function(row){
+      var r = Object.assign({}, row);
+      var cp = parseFloat(r.consumablesPerPot);
+      if (cp > 0) r.consumablesPerPot = cp * fOther;
+      var sp = parseFloat(r.salePrice);
+      if (sp > 0) r.salePrice = sp * fPrice;
+      return r;
+    });
+    c._costScale = fOther;
     return c;
   }
 
@@ -143,11 +195,15 @@
 
     var inf = state.econInflation;
     html += '<div class="adv-block"><h4 class="adv-h">' + T('adv.infTitle') + '</h4>' +
+      '<p class="adv-lead">' + T('adv.infHint') + '</p>' +
       '<div class="adv-infl-form">' +
       '<label>' + T('adv.infYears') + ' <input type="number" id="adv-inf-years" min="1" max="20" value="' + inf.years + '"></label>' +
       '<label>' + T('adv.infRent') + ' <input type="number" id="adv-inf-rent" step="0.5" value="' + inf.rentPctY + '"></label>' +
       '<label>' + T('adv.infKwh') + ' <input type="number" id="adv-inf-kwh" step="0.5" value="' + inf.kwhPctY + '"></label>' +
       '<label>' + T('adv.infOther') + ' <input type="number" id="adv-inf-other" step="0.5" value="' + inf.otherPctY + '"></label>' +
+      '<label>' + T('adv.infPayroll') + ' <input type="number" id="adv-inf-payroll" step="0.5" value="' + inf.payrollPctY + '"></label>' +
+      '<label>' + T('adv.infLogistics') + ' <input type="number" id="adv-inf-logistics" step="0.5" value="' + inf.logisticsPctY + '"></label>' +
+      '<label>' + T('adv.infPrice') + ' <input type="number" id="adv-inf-price" step="0.5" value="' + inf.pricePctY + '"></label>' +
       '</div><table class="econ-breakdown adv-table"><thead><tr><th>' + T('adv.year') + '</th><th>' + (deps.t ? deps.t('sum.opex') : T('econ.metrics.opex')) + ' ' + sym(deps) + '</th><th>' + (deps.t ? deps.t('sum.margin') : T('econ.bd.margin')) + ' ' + sym(deps) + '</th></tr></thead><tbody>';
     var baseF = deps.calcFarmEconomics(applyChannels(e, state.econChannels));
     for (var y = 0; y <= (inf.years || 5); y++){
@@ -205,19 +261,25 @@
         renderAdvancedPanel(deps);
       });
     });
-    ['adv-inf-years','adv-inf-rent','adv-inf-kwh','adv-inf-other'].forEach(function(id){
+    ['adv-inf-years','adv-inf-rent','adv-inf-kwh','adv-inf-other','adv-inf-payroll','adv-inf-logistics','adv-inf-price'].forEach(function(id){
       var el = document.getElementById(id);
       if (!el) return;
-      el.addEventListener('change', function(){
+      function onInfInput(){
         state.econInflation.years = Math.max(1, parseInt(document.getElementById('adv-inf-years').value, 10) || 5);
         state.econInflation.rentPctY = parseFloat(document.getElementById('adv-inf-rent').value) || 0;
         state.econInflation.kwhPctY = parseFloat(document.getElementById('adv-inf-kwh').value) || 0;
         state.econInflation.otherPctY = parseFloat(document.getElementById('adv-inf-other').value) || 0;
+        state.econInflation.payrollPctY = parseFloat(document.getElementById('adv-inf-payroll').value) || 0;
+        state.econInflation.logisticsPctY = parseFloat(document.getElementById('adv-inf-logistics').value) || 0;
+        state.econInflation.pricePctY = parseFloat(document.getElementById('adv-inf-price').value) || 0;
         renderAdvancedPanel(deps);
-      });
+      }
+      el.addEventListener('change', onInfInput);
+      el.addEventListener('input', onInfInput);
     });
   }
 
   global.DG_ensureEconExtensions = ensureExtensions;
   global.DG_renderEconAdvanced = renderAdvancedPanel;
+  global.DG_scaleEconCostFields = scaleEconCosts;
 })(typeof window !== 'undefined' ? window : this);

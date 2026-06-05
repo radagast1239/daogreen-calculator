@@ -160,6 +160,15 @@
       return true;
     }
 
+    /** Кочанный салат в канале (не беби, не многосрезка) — подбор по шапке, один срез. */
+    function isHeadLettuceChannel(cv){
+      cv = cv || deps.getCv();
+      if (!canUseCanopyDensityPick(cv)) return false;
+      if (getGeorgyProfile(cv)) return false;
+      if (cv.multicut || cv.babyGreen) return false;
+      return true;
+    }
+
     function getGeorgyProfile(cv){
       cv = cv || deps.getCv();
       return cv && PROFILES[cv.id] ? PROFILES[cv.id] : null;
@@ -365,6 +374,45 @@
       var tTotal = totalDaysFromSowGeorgy(cv);
       if (!(tTotal > 0)) tTotal = preChannelDaysGeorgy() + Math.round(st().day);
       return deps.massAtTotal(cv, tTotal);
+    }
+
+    /** Подпись «созрел» — только отображение, пороги не меняют calc(). */
+    function headMassPlateauForHint(cv, harvest, r){
+      if (!cv || !(cv.M_max > 0)) return false;
+      var cap = cv.M_max;
+      var mAuto = harvest && harvest.massAuto > 0 ? harvest.massAuto : 0;
+      var mShow = harvest && harvest.mass > 0 ? harvest.mass : (r && r.mass > 0 ? r.mass : 0);
+      if (mAuto >= cap * 0.92 || mShow >= cap * 0.92) return true;
+      if (r && r.massRaw > 0 && r.massRaw >= cap * 0.92) return true;
+      if (r && r.rgrMass != null && r.rgrMass < 1.2 && mShow >= cap * 0.88) return true;
+      if (r && r.st === 'bolt') return true;
+      if (r && r.st === 'full' && mShow >= cap * 0.85) return true;
+      return false;
+    }
+
+    function syncGeorgyHeadReadyHint(cv, r, harvest){
+      var el = document.getElementById('georgy-head-ready-hint');
+      if (!el) return;
+      if (!isGeorgyGh() || getGeorgyProfile(cv)){
+        el.classList.add('env-block-hidden');
+        el.textContent = '';
+        return;
+      }
+      cv = cv || deps.getCv();
+      var show = headMassPlateauForHint(cv, harvest, r);
+      el.classList.toggle('env-block-hidden', !show);
+      if (!show){
+        el.textContent = '';
+        return;
+      }
+      var mass = Math.round((harvest && harvest.mass) || (r && r.mass) || 0);
+      var maxM = Math.round(cv.M_max || 0);
+      var boltCh = deps.boltChannel ? Math.round(deps.boltChannel(cv)) : 0;
+      var dayCh = Math.round(st().day);
+      var key = (boltCh > 0 && dayCh >= boltCh - 5)
+        ? 'georgy.headReadyHintNearBolt'
+        : 'georgy.headReadyHint';
+      el.textContent = T(key, { mass: mass, max: maxM, day: dayCh, bolt: boltCh }, '');
     }
 
     /** Плотность для превью массы/кроны: подобранная или авто, иначе заглушка. */
@@ -633,9 +681,11 @@
       return isGeorgyGh() ? GEORGY_FIT_MIN_GAP_MM : MAX_LEAF_OVERLAP_MM;
     }
 
-    function densityFromCanopy(cv){
+    function densityFromCanopyWithOverlap(cv, maxOverlapMm){
+      cv = cv || deps.getCv();
       var profile = getGeorgyProfile(cv);
-      var minGap = -leafOverlapMaxMm();
+      var overlap = maxOverlapMm != null ? maxOverlapMm : leafOverlapMaxMm();
+      var minGap = -Math.max(0, overlap);
       var bounds = profile
         ? { lo: profile.densityMin, hi: profile.densityMax }
         : headDensityBounds(cv);
@@ -658,6 +708,10 @@
       while (best > lo && leafGapForDensity(cv, best) < minGap) best--;
       while (best < hi && leafGapForDensity(cv, best + 1) >= minGap) best++;
       return best;
+    }
+
+    function densityFromCanopy(cv){
+      return densityFromCanopyWithOverlap(cv, leafOverlapMaxMm());
     }
 
     function extraBFromCanopy(cv, canopy){
@@ -696,10 +750,12 @@
       try { localStorage.setItem(GEORGY_DENSITY_KEY, String(st().georgyTargetDensity)); } catch(_){}
     }
 
-    function applyGeorgyDensityAuto(cv){
+    /** Подбор плотности по шапке (теплица · каналы и режим Георгия). maxOverlapMm: 0 — без касания, 20 — до 20 мм. */
+    function applyCanopyDensityFit(cv, maxOverlapMm){
       cv = cv || deps.getCv();
+      if (!canUseCanopyDensityPick(cv)) return;
       var profile = getGeorgyProfile(cv);
-      var rho = densityFromCanopy(cv);
+      var rho = densityFromCanopyWithOverlap(cv, maxOverlapMm);
       if (profile) rho = clampProfiledDensity(profile, rho);
       else rho = clamp(Math.round(rho), 15, headDensityMaxForCv(cv));
       var lay = layoutAtDensity(cv, rho);
@@ -709,6 +765,10 @@
       st().georgyDensityFitted = true;
       st().extraB = lay.extraB;
       st().density = rho;
+    }
+
+    function applyGeorgyDensityAuto(cv){
+      applyCanopyDensityFit(cv, leafOverlapMaxMm());
     }
 
     function applyGeorgyProfileStandard(profile){
@@ -1026,6 +1086,11 @@
     function syncGeorgyControls(r){
       if (!isGeorgyGh()){
         setGeorgyDom(false);
+        var readyHintOff = document.getElementById('georgy-head-ready-hint');
+        if (readyHintOff){
+          readyHintOff.classList.add('env-block-hidden');
+          readyHintOff.textContent = '';
+        }
         return;
       }
       setGeorgyDom(true);
@@ -1088,6 +1153,7 @@
       } else if (canopyEl) {
         canopyEl.textContent = harvest.canopy + ' ' + (pm('unit.mm') || 'мм');
       }
+      syncGeorgyHeadReadyHint(cv, r, harvest);
       var fitted = !!st().georgyDensityFitted;
       var densBlock = document.getElementById('georgy-density-block');
       if (densBlock) densBlock.classList.toggle('is-locked', !fitted);
@@ -1474,6 +1540,7 @@
       isGeorgyGh: isGeorgyGh,
       isChannelGreenhouse: isChannelGreenhouse,
       canUseCanopyDensityPick: canUseCanopyDensityPick,
+      isHeadLettuceChannel: isHeadLettuceChannel,
       isGeorgyRucola: isGeorgyRucola,
       isGeorgyLettuce: isGeorgyLettuce,
       isGeorgyProfiled: isGeorgyProfiled,
@@ -1512,10 +1579,14 @@
       refreshGeorgyCutMasses: refreshGeorgyCutMasses,
       resetGeorgyBabyCutMassesNorm: resetGeorgyBabyCutMassesNorm,
       applyGeorgyDensityAuto: applyGeorgyDensityAuto,
+      applyCanopyDensityFit: applyCanopyDensityFit,
+      densityFromCanopyWithOverlap: densityFromCanopyWithOverlap,
+      headDensityBounds: headDensityBounds,
       setGeorgyTargetDensity: setGeorgyTargetDensity,
       densityFromCanopy: densityFromCanopy,
       layoutAtDensity: layoutAtDensity,
       estimateGeorgyHarvest: estimateGeorgyHarvest,
+      headMassPlateauForHint: headMassPlateauForHint,
       headHarvestGeorgy: headHarvestGeorgy,
       headDensityMaxForCv: headDensityMaxForCv,
       headMainChannelDays: headMainChannelDays,

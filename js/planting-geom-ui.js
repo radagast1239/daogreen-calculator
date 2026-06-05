@@ -13,8 +13,18 @@
     function stageOf(t_channel, mass, tBoltCh, cv) {
       cv = cv || deps.getCv();
       if (t_channel >= tBoltCh) return 'bolt';
-      var mFull = cv.babyGreen ? cv.M_max * 0.85 : 150;
-      var mMature = cv.babyGreen ? cv.M_max * 0.65 : 100;
+      var mFull;
+      var mMature;
+      if (cv.babyGreen) {
+        mFull = cv.M_max * 0.85;
+        mMature = cv.M_max * 0.65;
+      } else if (cv.M_max > 0) {
+        mFull = cv.M_max * 0.88;
+        mMature = cv.M_max * 0.65;
+      } else {
+        mFull = 150;
+        mMature = 100;
+      }
       if (mass >= mFull) return 'full';
       if (mass >= mMature) return 'mature';
       return 'young';
@@ -61,6 +71,8 @@
         /* Поддоны/VF: дни с листа — бейдж «стандарт»; кнопка дублировала и на поддонах брала чужой сорт (модель GH) */
         autoDayRow.classList.toggle('env-block-hidden', pallet || deps.isVF());
       }
+      var vfGrowthHint = document.getElementById('vf-growth-slider-hint');
+      if (vfGrowthHint) vfGrowthHint.classList.toggle('env-block-hidden', pallet || !deps.isVF());
       if (pallet) {
         deps.syncPalletZoneLength();
         deps.syncPalletMountButtons();

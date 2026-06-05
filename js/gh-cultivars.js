@@ -18,7 +18,7 @@
     { id:'mizuna',      name:'Мизуна',             sub:'беби-зелень',            M_max:75,  k:0.46, t50:16, ca:9.5,  bolt:42, multicut:true,  heatSigma:70,  heatBolt:1.2, t_opt:20, babyGreen:true },
     { id:'kale',        name:'Кейл (кале)',        sub:'молодые листья',         M_max:95,  k:0.40, t50:19, ca:10.5, bolt:48, multicut:true,  heatSigma:75,  heatBolt:1.1, t_opt:20, babyGreen:true },
     { id:'chard',       name:'Мангольд',           sub:'листовой срез',          M_max:90,  k:0.36, t50:21, ca:11.0, bolt:50, multicut:true,  heatSigma:80,  heatBolt:1.0, t_opt:21, babyGreen:true },
-    { id:'spinach',     name:'Шпинат',             sub:'быстрый лист',           M_max:45,  k:0.44, t50:15, ca:8.5,  bolt:36, multicut:true,  heatSigma:55,  heatBolt:1.4, t_opt:18, babyGreen:true },
+    { id:'spinach',     name:'Шпинат',             sub:'быстрый лист · беби',    M_max:45,  k:0.44, t50:15, ca:8.5,  bolt:36, multicut:true,  heatSigma:55,  heatBolt:1.4, t_opt:17, babyGreen:true },
     { id:'pakchoi',     name:'Пак-чой',            sub:'беби, компактный',        M_max:100, k:0.38, t50:20, ca:10.0, bolt:45, multicut:false, heatSigma:100, heatBolt:1.2, t_opt:21, babyGreen:true }
   ];
 })(typeof window !== 'undefined' ? window : globalThis);

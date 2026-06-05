@@ -78,6 +78,9 @@ const dlg = $('cv-add-dialog');
     var _lightEnergy = deps.lightEnergy;
     var georgyMode = typeof deps.getGeorgyMode === "function" ? deps.getGeorgyMode() : deps.georgyMode;
     var canopyDensityUi = deps.canopyDensityUi;
+    function ghChannelUi() {
+      return typeof deps.getGhChannelSimple === "function" ? deps.getGhChannelSimple() : null;
+    }
     function clamp(v, lo, hi) { return deps.clamp(v, lo, hi); }
     function parseNumInput(s) { return deps.parseNumInput(s); }
     function DG_applyEconPreset() { return deps.DG_applyEconPreset.apply(deps, arguments); }
@@ -155,6 +158,7 @@ const dlg = $('cv-add-dialog');
     function syncCutMassUI() { return deps.syncCutMassUI.apply(deps, arguments); }
     function syncEconInputsFromState() { return deps.syncEconInputsFromState.apply(deps, arguments); }
     function syncGhCutsUI() { return deps.syncGhCutsUI.apply(deps, arguments); }
+    function syncGhCultivarFromCv(cv) { return deps.syncGhCultivarFromCv && deps.syncGhCultivarFromCv(cv); }
     function syncGhYieldMarginSliders() { return deps.syncGhYieldMarginSliders.apply(deps, arguments); }
     function syncHarvestBlockUI() { return deps.syncHarvestBlockUI.apply(deps, arguments); }
     function syncManualMassUI() { return deps.syncManualMassUI.apply(deps, arguments); }
@@ -201,7 +205,15 @@ const dlg = $('cv-add-dialog');
       if (id === 'errorPct') state.errorPct = clamp(Math.round(Number(state.errorPct)), 0, 20);
       if (id === 'day'){
         if (georgyMode && georgyMode.onGeorgyDayChanged) georgyMode.onGeorgyDayChanged();
-        else if (canopyDensityUi && canopyDensityUi.onDayChanged) canopyDensityUi.onDayChanged();
+        else {
+          if (canopyDensityUi && canopyDensityUi.onDayChanged) canopyDensityUi.onDayChanged();
+          var ghCh = ghChannelUi();
+          if (ghCh && ghCh.onDayChanged) ghCh.onDayChanged();
+        }
+      }
+      if (id === 'germination' || id === 'nursery'){
+        var ghChCycle = ghChannelUi();
+        if (ghChCycle && ghChCycle.onDayChanged) ghChCycle.onDayChanged();
       }
       if (georgyMode && georgyMode.isGeorgyGh && georgyMode.isGeorgyGh() &&
           georgyMode.isGeorgyHeadSalad && georgyMode.isGeorgyHeadSalad(getCv()) &&
@@ -222,6 +234,7 @@ const dlg = $('cv-add-dialog');
         if (id === 'nursery') unlockPlantingStdForControl('day');
       } else if (isVF()){
         unlockPlantingStdForControl(id);
+        if (id === 'day' || id === 'density') unlockPlantingStdForControl('mass');
       }
       if ((isVF() || isPalletView()) && !lightSync){
         if (id === 'ppfd'){
@@ -720,15 +733,23 @@ const dlg = $('cv-add-dialog');
   document.querySelectorAll('.econ-preset-btn').forEach(function(btn){
     btn.addEventListener('click', function(){
       if (!window.DG_applyEconPreset || !state.econ) return;
-      if (DG_applyEconPreset(state, btn.dataset.econPreset)){
-        saveEconStore();
-        renderEconomics();
-        var presetId = btn.dataset.econPreset;
-        var presetName = (typeof DG_econPresetLabel === 'function' && presetId)
-          ? DG_econPresetLabel(presetId, btn.textContent.trim())
-          : btn.textContent.trim();
-        showToast(ui('ui.toast.preset', { name: presetName }));
-      }
+      var presetId = btn.dataset.econPreset;
+      var helpers = {
+        defaultEconCultureRow: defaultEconCultureRow,
+        defaultEconEquipment: deps.defaultEconEquipment ? function(){ return deps.defaultEconEquipment(); } : null,
+        migrateEconCultureRows: deps.migrateEconCultureRows ? function(){ return deps.migrateEconCultureRows(); } : null,
+        dedupeEconCultures: deps.dedupeEconCultures ? function(){ return deps.dedupeEconCultures(); } : null
+      };
+      var res = DG_applyEconPreset(state, presetId, helpers);
+      var ok = res && (res.ok || res === true);
+      if (!ok) return;
+      saveEconStore();
+      if (state.appView !== 'economics' && typeof setAppView === 'function') setAppView('economics');
+      renderEconomics();
+      var presetName = (typeof DG_econPresetLabel === 'function' && presetId)
+        ? DG_econPresetLabel(presetId, btn.textContent.trim())
+        : btn.textContent.trim();
+      showToast(ui('ui.toast.preset', { name: presetName }));
     });
   });
 
@@ -752,18 +773,8 @@ const dlg = $('cv-add-dialog');
     });
   }
 
-  const econAddSaladMixBtn = $('econ-add-salad-mix');
-  if (econAddSaladMixBtn){
-    econAddSaladMixBtn.addEventListener('click', () => {
-      ensureEconCultures();
-      if (!canAddEconCulture()) return;
-      if (!state.econ.cultures.some(c => c.cvId === ECON_SALAD_MIX_ID)){
-        state.econ.cultures.push(econApplyCultureSelect(defaultEconCultureRow('', { isNew: true, pct: 0 }), ECON_SALAD_MIX_ID, 0, 0));
-      }
-      saveEconStore();
-      renderEconomics();
-    });
-  }
+  // Кнопка «+ Микс салатов» больше не используется:
+  // микс формируется из обычных культур через чекбокс «В микс».
 
   var cultivarsEl = $('cultivars');
   if (cultivarsEl && !cultivarsEl.dataset.cvDelegated) {
@@ -778,6 +789,12 @@ const dlg = $('cv-add-dialog');
       var calOnlyInp = e.target.closest('.cv-catalog-calibrated-only');
       if (calOnlyInp) {
         if (global.DG_setGhCvCalibratedOnly) global.DG_setGhCvCalibratedOnly(calOnlyInp.checked);
+        renderCultivars();
+        return;
+      }
+      var farmCalInp = e.target.closest('.cv-catalog-farm-cal-only');
+      if (farmCalInp) {
+        if (global.DG_setGhCvFarmCalOnly) global.DG_setGhCvFarmCalOnly(farmCalInp.checked);
         renderCultivars();
         return;
       }
@@ -848,7 +865,14 @@ const dlg = $('cv-add-dialog');
       } else if (ghId && state.appView !== 'pallets') {
         state.cv = ghId;
         if (georgyMode && georgyMode.isGeorgyGh && georgyMode.isGeorgyGh()) state.georgyDensityFitted = false;
-        if (!state.ghStandards[state.cv]) state.ghStandards[state.cv] = buildDefaultGhStandards(getCv());
+        var ghCv = getCv();
+        if (!state.ghStandards[state.cv]) state.ghStandards[state.cv] = buildDefaultGhStandards(ghCv);
+        else if (ghCv && ghCv.id === 'spinach') {
+          var spStd = buildDefaultGhStandards(ghCv);
+          state.ghStandards[state.cv].day = spStd.day;
+          state.ghStandards[state.cv].density = spStd.density;
+        }
+        syncGhCultivarFromCv(ghCv);
       } else {
         return;
       }

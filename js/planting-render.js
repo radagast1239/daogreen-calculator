@@ -385,7 +385,9 @@
     try {
       if (isPalletView()) st().palletCv = cv.id;
       else st().cv = cv.id;
-      if (georgyModeRef() && georgyModeRef().canUseCanopyDensityPick(cv)){
+      var ghCh = deps.getGhChannelSimple ? deps.getGhChannelSimple() : null;
+      if (ghCh && ghCh.isEnabled && ghCh.isEnabled()) ghCh.applyDensityFitForCompare(cv);
+      else if (georgyModeRef() && georgyModeRef().canUseCanopyDensityPick(cv)){
         st().georgyTargetDensity = georgyModeRef().densityFromCanopy(cv);
         st().georgyDensityFitted = true;
       }
@@ -907,6 +909,7 @@
     function renderGhCatalogGrouped(ghList){
       var q = global.DG_getGhCvSearch ? global.DG_getGhCvSearch() : '';
       var calOnly = global.DG_getGhCvCalibratedOnly && global.DG_getGhCvCalibratedOnly();
+      var farmOnly = global.DG_getGhCvFarmCalOnly && global.DG_getGhCvFarmCalOnly();
       if (global.DG_filterGhCatalogList) {
         ghList = global.DG_filterGhCatalogList(ghList, q, st().cv);
       } else if (global.DG_filterGhCultivars) {
@@ -921,10 +924,12 @@
         htmlEsc(ui('ui.cv.searchPh')) + '" autocomplete="off" spellcheck="false"></label>';
       html += '<label class="cv-catalog-filter-label"><input type="checkbox" class="cv-catalog-calibrated-only"' +
         (calOnly ? ' checked' : '') + '> ' + ui('ui.cv.calibratedOnly') + '</label>';
+      html += '<label class="cv-catalog-filter-label"><input type="checkbox" class="cv-catalog-farm-cal-only"' +
+        (farmOnly ? ' checked' : '') + '> ' + ui('ui.cv.farmCalOnly') + '</label>';
       html += '</div></div>';
       html += '<p class="cv-catalog-hint">' + ui('ui.cv.catalogHint') + '</p>';
       if (!ghList.length) {
-        html += '<p class="cv-catalog-empty">' + (calOnly ? ui('ui.cv.calibratedEmpty') : ui('ui.cv.searchEmpty')) + '</p>';
+        html += '<p class="cv-catalog-empty">' + (calOnly || farmOnly ? ui('ui.cv.calibratedEmpty') : ui('ui.cv.searchEmpty')) + '</p>';
       } else {
         html += '<div class="cv-catalog-grouped">';
         groups.forEach(function (grp) {
@@ -1209,7 +1214,26 @@
       { l: pm('m.canopyDiam'), vHtml: withRange(r.canopy, canopyRange, pm('unit.mm')) },
       { l: pm('m.massGain'), v: r1(r.rgrMass), u: pm('u.pctDay'), cls: rateClass },
       { l: pm('m.canopyGain'), v: r1(r.rgrCanopy), u: pm('u.pctDay') },
-      { l: pm('m.totalAge'), v: round(r.t_total), u: pm('unit.days') },
+      (function(){
+        var ghCh = deps.getGhChannelSimple && deps.getGhChannelSimple();
+        var showBreakdown = ghCh && ghCh.isEnabled && ghCh.isEnabled() &&
+          ghCh.isHeadSalad && ghCh.isHeadSalad(r.cv);
+        if (!showBreakdown) {
+          return { l: pm('m.totalAge'), v: round(r.t_total), u: pm('unit.days') };
+        }
+        var germ = Math.round(st().germination);
+        var nursery = Math.round(st().nursery);
+        var channel = Math.round(r.t_ch);
+        var sub = tr('m.totalAgeBreakdown', { germ: germ, nursery: nursery, channel: channel });
+        if (!sub || sub === 'm.totalAgeBreakdown') {
+          sub = germ + '+' + nursery + '+' + channel;
+        }
+        return {
+          l: pm('m.totalAge'),
+          vHtml: round(r.t_total) + '<span class="m-unit">' + pm('unit.days') + '</span>' +
+            '<span class="m-range">' + sub + '</span>'
+        };
+      })(),
       { l: pm('m.harvestRec'), vHtml: withRange(r.tHarvestCh, dayRange, vegU) },
       ...((function(){
         if (!supportsMulticut(r.cv) || !st().multicut) return [];
@@ -1257,8 +1281,13 @@
     let leafCls = 'hl';
     var georgyHeadGap = georgyModeRef() && georgyModeRef().isGeorgyGh() &&
       georgyModeRef().isGeorgyHeadSalad && georgyModeRef().isGeorgyHeadSalad(r.cv);
-    if (georgyHeadGap) {
-      if (r.leafGap < -20) leafCls = 'bad-tint';
+    var ghChOn = deps.getGhChannelSimple && deps.getGhChannelSimple() && deps.getGhChannelSimple().isEnabled();
+    var canopyPickGap = !pallet && !isVF() && st().facility === 'greenhouse' &&
+      georgyModeRef() && georgyModeRef().canUseCanopyDensityPick(r.cv) &&
+      (ghChOn || st().georgyMode);
+    var overlapMax = (georgyModeRef() && georgyModeRef().MAX_LEAF_OVERLAP_MM) || 20;
+    if (georgyHeadGap || canopyPickGap) {
+      if (r.leafGap < -overlapMax) leafCls = 'bad-tint';
       else if (r.leafGap < 0) leafCls = 'warn-tint';
     } else if (r.leafGap < -25) leafCls = 'bad-tint';
     else if (r.leafGap < 0) leafCls = 'warn-tint';
@@ -1292,10 +1321,14 @@
       { l: (function(){
           if (st().multicut && supportsMulticut(r.cv)) return pm('m.firstCut');
           if (georgyModeRef() && georgyModeRef().isGeorgyGh() && georgyModeRef().isGeorgyHeadSalad(r.cv)) return ui('georgy.totalDaysFromSow');
+          if (!pallet && !isVF() && r.usefulAreaBasis === 'main_hall' && r.mainHallIntervalDays > 0) {
+            return (ghChOn && !st().georgyMode) ? ui('ghCh.mainHallTurnover') : ui('georgy.mainHallTurnover');
+          }
           return pm('m.cycle');
         })(),
         v: (function(){
           if (georgyModeRef() && georgyModeRef().isGeorgyGh() && georgyModeRef().isGeorgyHeadSalad(r.cv) && r.totalDaysFromSow != null) return r.totalDaysFromSow;
+          if (!pallet && !isVF() && r.usefulAreaBasis === 'main_hall' && r.mainHallIntervalDays > 0) return r.mainHallIntervalDays;
           return r.totalCycleDays != null ? r.totalCycleDays : '—';
         })(), u: pm('unit.days') },
       ...((function(){
@@ -1370,6 +1403,10 @@
       const hyMcHint = plantingHarvestYieldParams ? plantingHarvestYieldParams(r.cv, r) : null;
       const showYearHint = !(hyMcHint && hyMcHint.multicutHarvest) && (r.cyclesPerYear > 0 || r.yieldPerSqmYear > 0);
       if (showYearHint) sysEl.insertAdjacentHTML('beforeend', '<p class="planting-year-month-hint">' + pm('m.yearMonthHint') + '</p>');
+      if (global.DG_buildCalcTrace && global.DG_calcTraceHtml) {
+        var traceRows = global.DG_buildCalcTrace(r, r.cv, st(), deps);
+        sysEl.insertAdjacentHTML('beforeend', global.DG_calcTraceHtml(traceRows, htmlEsc));
+      }
     }
     syncHarvestBlockUI(r);
     updateMassModelHint(r.massAuto, r.mass, modelCanopyFromMass(r.cv, r.massAuto), r.canopy);
@@ -1560,11 +1597,15 @@
     panel.classList.remove('env-block-hidden');
     syncMulticutDetailUI();
 
+    var mcYieldHint = $('multicut-yield-only-hint');
+    if (mcYieldHint) {
+      mcYieldHint.classList.toggle('env-block-hidden', !st().multicut || !supportsMulticut(cv));
+    }
     if (!st().multicut){
       if (cutEl) cutEl.innerHTML = '';
       setCutScheduleVisible(false);
       if (mcHint){
-        mcHint.textContent = ui('ui.cut.enableHint');
+        mcHint.textContent = ui('multicut.enableHintOff');
         mcHint.classList.remove('env-block-hidden');
       }
       return;
@@ -2345,6 +2386,34 @@
     el.innerHTML = isVF() ? ui('ui.colophon.lightVf') : ui('ui.colophon.lightGh');
   }
 
+  function renderActiveCvBar(r){
+    var bar = $('planting-active-cv-bar');
+    if (!bar) return;
+    if (!isPlantingView()){
+      bar.classList.add('env-block-hidden');
+      return;
+    }
+    bar.classList.remove('env-block-hidden');
+    var cv = r && r.cv;
+    var nameEl = $('planting-active-cv-name');
+    var subEl = $('planting-active-cv-sub');
+    var modeEl = $('planting-active-cv-mode');
+    if (nameEl) nameEl.textContent = cv ? cv.name : '—';
+    if (subEl){
+      if (cv && cv.sub){
+        subEl.textContent = catalogPhrase(cv.sub);
+        subEl.classList.remove('env-block-hidden');
+      } else {
+        subEl.textContent = '';
+        subEl.classList.add('env-block-hidden');
+      }
+    }
+    if (modeEl){
+      var modeKey = isPalletView() ? 'tab.pallets' : (isVF() ? 'facility.vertical' : 'facility.greenhouse');
+      modeEl.textContent = ui(modeKey);
+    }
+  }
+
   function renderAll(){
     let r;
     try {
@@ -2359,6 +2428,7 @@
     updateCalcBuildBadge(r);
     updatePlantingGeomUI();
     syncGhFacilityPanels();
+    renderActiveCvBar(r);
     syncGhCutsUI();
     if (st().multicut && supportsMulticut(r.cv)) syncCutIntervalSlider(r.cv);
     syncCanopyUI();
@@ -2372,11 +2442,14 @@
       georgyModeRef().renderGeorgyWarnings(r);
     }
     if (canopyDensityUi) canopyDensityUi.syncCanopyDensityUi(r);
+    var ghChUi = deps.getGhChannelSimple ? deps.getGhChannelSimple() : null;
+    if (ghChUi && ghChUi.syncPanel) ghChUi.syncPanel(r);
     if (plantingGuides) plantingGuides.sync();
     if (simpleUiMode) simpleUiMode.sync();
     renderStage(r);
     renderEnvSummary(r);
     renderMetrics(r);
+    if (deps.getFarmCalibration) deps.getFarmCalibration().renderPanel(r);
     renderChart(r);
     renderMulticut(r);
     renderSchema(r);

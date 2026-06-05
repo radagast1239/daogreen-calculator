@@ -53,7 +53,8 @@
     'block-stage': false,
     'panel-georgy-guide': true,
     'panel-channel-guide': true,
-    'panel-pallet-guide': true
+    'panel-pallet-guide': true,
+    'block-panel-farm-calibration': false
   };
 
   /** Цветы и др. — урожай за срез в штуках, не в граммах */

@@ -264,6 +264,7 @@
     vfCutIntervalFromCv: function(cv){ return vfCutIntervalFromCv(cv); },
     syncPalletCellButtons: syncPalletCellButtons,
     syncCutIntervalSlider: syncCutIntervalSlider,
+    syncYieldTurnoverHint: syncYieldTurnoverHint,
     syncManualMassUI: syncManualMassUI,
     modelCanopyFromMass: modelCanopyFromMass,
     renderAll: function(){
@@ -413,6 +414,7 @@
   function syncBioMarginVisibility(){ return _ghYield.syncBioMarginVisibility(); }
   function updateGhYieldPanelCopy(r){ return _ghYield.updateGhYieldPanelCopy(r); }
   function syncGhYieldControls(r){ return _ghYield.syncGhYieldControls(r); }
+  function syncYieldTurnoverHint(r){ return _ghYield.syncYieldTurnoverHint(r); }
 
 
   var _dliLight;
@@ -478,6 +480,9 @@
     isVF: isVF, isPalletView: isPalletView,
     isGreenhousePlanting: isGreenhousePlanting, isChannelGreenhouse: isChannelGreenhouse,
     supportsMulticut: supportsMulticut,
+    getGeorgyMode: function(){ return deps.getGeorgyMode(); },
+    georgyMode: deps.getGeorgyMode(),
+    HARVEST_MONTH_DAYS: HARVEST_MONTH_DAYS,
     plantingHarvestYieldParams: function(cv, r){ return typeof plantingHarvestYieldParams === "function" ? plantingHarvestYieldParams(cv, r) : null; }
   });
 
@@ -500,6 +505,7 @@
   function rebuildGhCutCountRow(cv){ return _ghStandards.rebuildGhCutCountRow(cv); }
   function syncMulticutBabyUi(cv){ return _ghStandards.syncMulticutBabyUi(cv); }
   function syncGhCutsUI(){ return _ghStandards.syncGhCutsUI(); }
+  function syncGhCultivarFromCv(cv){ return _ghStandards.syncGhCultivarFromCv(cv); }
   function syncGhFacilityPanels(){ return _ghStandards.syncGhFacilityPanels(); }
   function applyGhProfileToStateOnly(s, cv){ return _ghStandards.applyGhProfileToStateOnly(s, cv); }
   function renderGhStandardsPanel(){ return _ghStandards.renderGhStandardsPanel(); }
@@ -641,6 +647,8 @@
   });
 
   function georgyChannelTwoRows(){
+    var ghCh = deps.getGhChannelSimple ? deps.getGhChannelSimple() : null;
+    if (ghCh && ghCh.usesChannel2Rows && ghCh.usesChannel2Rows(getCv())) return true;
     return deps.getGeorgyMode() && deps.getGeorgyMode().isGeorgyGh() && deps.getGeorgyMode().usesGeorgyChannel2Rows && deps.getGeorgyMode().usesGeorgyChannel2Rows(getCv());
   }
 
@@ -674,6 +682,7 @@
   _calcCore = global.DG_createPlantingCalcCore({
     getState: deps.getState,
     getGeorgyMode: function(){ return deps.getGeorgyMode(); }, georgyMode: deps.getGeorgyMode(),
+    getGhChannelSimple: function(){ return deps.getGhChannelSimple ? deps.getGhChannelSimple() : null; },
     findCvById: findCvById, getCv: getCv, getVfCv: getVfCv, getPalletCv: getPalletCv,
     isPalletView: isPalletView, isVF: isVF, allPalletCultivars: allPalletCultivars, allVfCultivars: allVfCultivars,
     harvestChannel: harvestChannel, totalAge: totalAge, massAtTotal: massAtTotal, plantLayout: plantLayout,
@@ -796,6 +805,7 @@
       syncBioMarginVisibility: syncBioMarginVisibility,
       updateGhYieldPanelCopy: updateGhYieldPanelCopy,
       syncGhYieldControls: syncGhYieldControls,
+      syncYieldTurnoverHint: syncYieldTurnoverHint,
       naturalDLI: naturalDLI,
       photoperiod: photoperiod,
       eveningHours: eveningHours,
@@ -840,6 +850,7 @@
       rebuildGhCutCountRow: rebuildGhCutCountRow,
       syncMulticutBabyUi: syncMulticutBabyUi,
       syncGhCutsUI: syncGhCutsUI,
+      syncGhCultivarFromCv: syncGhCultivarFromCv,
       syncGhFacilityPanels: syncGhFacilityPanels,
       applyGhProfileToStateOnly: applyGhProfileToStateOnly,
       renderGhStandardsPanel: renderGhStandardsPanel,

@@ -25,6 +25,22 @@
       return s.facility === 'greenhouse';
     }
 
+    /** Теплица · каналы (не VF, не поддоны). */
+    function isGreenhouseChannels() {
+      if (deps.isPalletView && deps.isPalletView()) return false;
+      if (deps.isVF && deps.isVF()) return false;
+      return st().facility === 'greenhouse';
+    }
+
+    /** Кочанный салат: один срез, оборот по дням в канале (многосрезка не переключает учёт). */
+    function isHeadHallSingleCut(cv, state, gm) {
+      if (!gm || !cv || gm.getGeorgyProfile(cv)) return false;
+      if (gm.isHeadLettuceChannel) return gm.isHeadLettuceChannel(cv);
+      if (cv.multicut || cv.babyGreen) return false;
+      if (!gm.canUseCanopyDensityPick || !gm.canUseCanopyDensityPick(cv)) return false;
+      return !!state.georgyMode;
+    }
+
     function resolveMeta(cv, r) {
       cv = cv || (deps.getCv ? deps.getCv() : null);
       r = r || {};
@@ -38,8 +54,8 @@
       var gm = georgyModeRef();
       var headHallYield = gm && cv && state.georgyDensityFitted && state.georgyTargetDensity > 0 &&
         (
-          (state.georgyMode && !gm.getGeorgyProfile(cv)) ||
-          (gm.canUseCanopyDensityPick && gm.canUseCanopyDensityPick(cv))
+          (state.georgyMode && gm.isHeadLettuceChannel && gm.isHeadLettuceChannel(cv)) ||
+          (!state.georgyMode && isGreenhouseChannels() && gm.isHeadLettuceChannel && gm.isHeadLettuceChannel(cv))
         );
       if (headHallYield) {
         meta.mainHallIntervalDays = gm.headMainChannelDays
@@ -69,7 +85,10 @@
         }
         return meta;
       }
-      if (state.multicut && deps.supportsMulticut && deps.supportsMulticut(cv)) {
+      if (
+        state.multicut && deps.supportsMulticut && deps.supportsMulticut(cv) &&
+        !(gm && isHeadHallSingleCut(cv, state, gm))
+      ) {
         meta.multicutMode = true;
         var iv = deps.effectiveCutInterval
           ? deps.effectiveCutInterval()
@@ -78,6 +97,39 @@
         meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
         meta.usefulAreaBasis = 'main_hall';
         return meta;
+      }
+      if (gm && isHeadHallSingleCut(cv, state, gm)) {
+        meta.mainHallIntervalDays = Math.max(1, Math.round(state.day));
+        meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
+        meta.usefulAreaBasis = 'main_hall';
+        return meta;
+      }
+      /* Теплица · каналы: головной салат — оборот по каналу только после подбора плотности; беби — по интервалу срезок. */
+      if (isGreenhouseChannels() && !state.georgyMode && gm) {
+        var chProf = gm.getGeorgyProfile(cv);
+        if (state.multicut && chProf && deps.supportsMulticut && deps.supportsMulticut(cv)) {
+          var ivCh = deps.effectiveCutInterval ? deps.effectiveCutInterval() : state.cutInterval;
+          meta.mainHallIntervalDays = Math.max(1, Math.round(ivCh || cv.cutInterval || 12));
+          meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
+          meta.usefulAreaBasis = 'main_hall';
+          meta.multicutMode = true;
+          return meta;
+        }
+        if (gm.isHeadLettuceChannel && gm.isHeadLettuceChannel(cv)) {
+          if (state.georgyDensityFitted && state.georgyTargetDensity > 0) {
+            meta.mainHallIntervalDays = Math.max(1, Math.round(state.day));
+            meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
+            meta.usefulAreaBasis = 'main_hall';
+            return meta;
+          }
+          return meta;
+        }
+        if (!chProf) {
+          meta.mainHallIntervalDays = Math.max(1, Math.round(state.day));
+          meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
+          meta.usefulAreaBasis = 'main_hall';
+          return meta;
+        }
       }
       var pre = deps.preChannelDays ? deps.preChannelDays() : 0;
       if (isUsefulAreaFacility() && pre > 0) {
@@ -158,6 +210,7 @@
     return {
       HARVEST_MONTH_DAYS: HMD,
       isUsefulAreaFacility: isUsefulAreaFacility,
+      isHeadHallSingleCut: isHeadHallSingleCut,
       resolveMeta: resolveMeta,
       applyToCalcResult: applyToCalcResult
     };

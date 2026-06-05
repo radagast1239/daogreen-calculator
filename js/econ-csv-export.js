@@ -19,6 +19,7 @@
     if (!farm || !farm.parts) throw new Error(T('csv.noData'));
 
     var sym = (global.DG_getCurrency && global.DG_getCurrency() === 'USD') ? '$' : '₽';
+    var wasteFactor = 1 - Math.min(50, Math.max(0, parseFloat(farm.wastePct) || 0)) / 100;
     var lines = [];
     lines.push(rowCsv([T('csv.title')]));
     lines.push(rowCsv([T('csv.date'), meta.date || new Date().toLocaleDateString(global.DG_getLocale ? global.DG_getLocale() : 'ru')]));
@@ -35,6 +36,7 @@
     farm.parts.forEach(function(p){
       var u = p.slice.outputUnit;
       var out = p.slice.monthlyOutput;
+      var revNet = (p.slice.revenue || 0) * wasteFactor;
       lines.push(rowCsv([
         p.name,
         p.pct,
@@ -42,7 +44,7 @@
         (u === 'кг' || u === T('econ.unit.kg')) ? out.toFixed(1) : out,
         u,
         p.slice.unitCostFull > 0 ? p.slice.unitCostFull.toFixed(2) : '',
-        p.slice.revenue > 0 ? Math.round(p.slice.revenue) : '',
+        revNet > 0 ? Math.round(revNet) : '',
         Math.round(p.slice.margin || 0)
       ]));
     });
@@ -53,21 +55,12 @@
     lines.push(rowCsv([T('csv.opex') + ' ' + sym, Math.round(farm.monthlyOpex || 0)]));
     lines.push(rowCsv([T('csv.margin') + ' ' + sym, Math.round(farm.margin || 0)]));
     lines.push(rowCsv([T('csv.marginPct'), farm.marginPct != null ? farm.marginPct.toFixed(1) : '']));
-    lines.push(rowCsv([T('csv.usn') + ' ' + sym, Math.round(farm.usnTaxAmt || 0)]));
+    if (farm.breakEvenRevenue > 0){
+      lines.push(rowCsv([T('econ.metrics.breakEvenRevenue') + ' ' + sym, Math.round(farm.breakEvenRevenue)]));
+    }
     if (farm.vatTaxAmt > 0) lines.push(rowCsv([T('econ.bd.vat').replace('{pct}', farm.vatPct) + ' ' + sym, Math.round(farm.vatTaxAmt)]));
-    if (farm.profitTaxAmt > 0) lines.push(rowCsv([T('econ.bd.profitTax').replace('{pct}', farm.profitTaxPct) + ' ' + sym, Math.round(farm.profitTaxAmt)]));
-    lines.push(rowCsv([T('csv.light') + ' ' + sym, Math.round(farm.lightCost || 0)]));
-    lines.push(rowCsv([T('csv.cons') + ' ' + sym, Math.round(farm.consumablesCost || 0)]));
-    lines.push(rowCsv([T('csv.rent') + ' ' + sym, Math.round(farm.rent || 0)]));
-    lines.push(rowCsv([T('csv.payroll') + ' ' + sym, Math.round(farm.staffTotal || 0)]));
 
-    var bom = '\uFEFF';
-    var blob = new Blob([bom + lines.join('')], { type: 'text/csv;charset=utf-8' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = (meta.filename || 'daogreen-economics') + '.csv';
-    a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 500);
+    return lines.join('');
   }
 
   global.DG_exportEconCsv = exportEconCsv;

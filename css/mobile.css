@@ -46,7 +46,7 @@ body {
   .cv-add-dialog input,
   .cv-add-dialog select,
   .econ-field input,
-  .econ-culture-card input,
+  .econ-culture-card input:not([type="checkbox"]),
   .econ-culture-card select,
   .pwa-qr-lan input {
     font-size: 16px;

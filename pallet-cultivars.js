@@ -61,7 +61,7 @@
     const potHarvestMonths = replaceMonthsFromNote(replaceNote, cutNote) || 0;
     const multicut = opts.multicut !== false && (cutInterval > 0 || opts.partialCut);
     const subMap = { baby: 'беби D6 · поддон', flowers: 'цветы · поддон', adult: 'взрослые D6 · поддон' };
-    return {
+    const out = {
       id, name, section, palletSheet: true,
       sub: opts.sub || subMap[section] || 'поддон',
       germination, germinationStd: String(germ),
@@ -80,8 +80,16 @@
       k: 0.38, t50: germination + 14 + channelDays * 0.55,
       ca: 10, bolt: 90, t_opt: 22,
       babyGreen: section === 'baby',
-      heatSigma: 70, heatBolt: 1.1
+      heatSigma: 70, heatBolt: 1.1,
+      econLotSale: !!opts.lotSale,
+      econLotSalePot: !!(opts.lotSale && (opts.salePot || opts.lotSalePot))
     };
+    if (opts.lotSale){
+      out.yieldPerCutG = 1;
+      out.multicut = false;
+      out.partialCut = false;
+    }
+    return out;
   }
 
   const PALLET_SECTIONS = [
@@ -91,6 +99,14 @@
   ];
 
   const PALLET_CULTIVARS = [
+    plC('pl-microgreens', 'Микрозелень', 'baby', '2-3', '10-12', '200-300', '54', '12', '12', '1', { unit: 'шт', lotSale: true, replaceNote: '3-6 недель', sub: 'микрозелень · 1 лоток = 1 шт' }),
+    plC('pl-salad', 'Салат', 'adult', '2-3', '25-35', '50-80', '9-14', '-', '-', '1', { unit: 'шт', lotSale: true, salePot: true, cutNote: '1 горшок = 1 шт', replaceNote: '2-3 месяца', sub: 'салат · 1 горшок = 1 шт', multicut: false }),
+    plC('pl-baby-living', 'Беби-зелень (растущая)', 'baby', '5-7', '25-30', '50-80', '14-24', '28', '28', '1', { unit: 'шт', lotSale: true, cutNote: '1 горшок = 1 шт', replaceNote: '2-3 месяца', sub: 'беби D6 · горшок в продаже' }),
+    plC('pl-wheatgrass', 'Витграсс', 'baby', '2-3', '10-14', '150-200', '54', '12', '12', '1', { unit: 'шт', lotSale: true, cutNote: '1 лоток = 1 шт', replaceNote: '3-4 недели', sub: 'витграсс · лоток' }),
+    plC('pl-edible-flowers', 'Пищевые цветы', 'flowers', '3-5', '35', '60', '14', '7', '7', '21', { partialCut: true, unit: 'шт', replaceNote: '5 месяца', sub: 'цветы · ~5400 шт/м²·мес' }),
+    plC('pl-cabbage-avg', 'Капуста (общая)', 'baby', '3-4', '28', '100-140', '14-24', '16', '16', '18', { replaceNote: '3-4 месяца', sub: 'беби · капустные (среднее)' }),
+    plC('pl-adult-lettuce', 'Салат взрослый', 'adult', '2-3', '40', '42', '9-14', '-', '-', '125', { multicut: false, cutNote: 'Однократная срезка · 45 сут', replaceNote: 'Однократная срезка.', sub: 'взрослые D6 · поддон' }),
+    plC('pl-baby-cut-lettuce', 'Салат беби (срез)', 'baby', '3-4', '22', '65', '14-24', '22', '22', '35', { replaceNote: '2-3 месяца', sub: 'беби D6 · срез' }),
     plC('pl-shiso', 'Шисо', 'baby', '5-7', '30', '60-80', '9', 'Срезается частично', '7', '10', { partialCut: true, replaceNote: 'До года' , sub: 'беби D6 · поддон' }),
     plC('pl-sorrel', 'Щавель красножильный', 'baby', '5-7', '35', '100-220', '24', '20', '20', '10-15', { replaceNote: '2-3 месяца' , sub: 'беби D6 · поддон' }),
     plC('pl-kale-baby', 'Капуста Кейл', 'baby', '3-5', '30', '80-150', '14-24', '15', '15', '15-25', { replaceNote: 'До года' , sub: 'беби D6 · поддон' }),

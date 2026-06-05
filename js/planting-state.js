@@ -101,7 +101,9 @@
       georgyDensityFitted: false,
       georgyChannel2Rows: false,
       /** В режиме Георгия: не перезатирать ghCutMasses нормативом при каждой перерасчёте (правки по срезкам у беби). */
-      georgyManualCutMasses: false
+      georgyManualCutMasses: false,
+      /** Замеры с фермы: cvId → { measuredMass, measuredYieldSqm, measuredAt, comment, patch } */
+      farmCalibrations: {}
     };
   }
 

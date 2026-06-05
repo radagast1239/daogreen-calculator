@@ -146,8 +146,18 @@
     return false;
   }
 
+  function cvPassesFarmCalFilter(cv, activeId) {
+    if (!cv) return false;
+    if (!getGhCvFarmCalOnly()) return true;
+    if (cv.id === activeId) return true;
+    if (cv.custom) return true;
+    if (global.DG_farmCalibrationRef && global.DG_farmCalibrationRef.cvHasFarmCalibration(cv.id)) return true;
+    return false;
+  }
+
   function filterGhCatalogList(list, query, activeId) {
     list = (list || []).filter(function (cv) { return cvPassesCalibratedFilter(cv, activeId); });
+    list = list.filter(function (cv) { return cvPassesFarmCalFilter(cv, activeId); });
     return filterGhCultivars(list, query);
   }
 
@@ -163,14 +173,30 @@
     } catch (_) {}
   }
 
+  function getGhCvFarmCalOnly() {
+    return global._dgGhCvFarmCalOnly === true;
+  }
+
+  function setGhCvFarmCalOnly(v) {
+    global._dgGhCvFarmCalOnly = !!v;
+    try {
+      if (v) sessionStorage.setItem('dg-gh-cv-farm-cal-only', '1');
+      else sessionStorage.removeItem('dg-gh-cv-farm-cal-only');
+    } catch (_) {}
+  }
+
   try {
-    if (sessionStorage.getItem('dg-gh-cv-calibrated-only') === '1') {
-      global._dgGhCvCalibratedOnly = true;
+    if (sessionStorage.getItem('dg-gh-cv-farm-cal-only') === '1') {
+      global._dgGhCvFarmCalOnly = true;
     }
   } catch (_) {}
 
   function cvCalibratedBadgeHtml(cv, tFn) {
     var t = tFn || t;
+    if (cv && global.DG_farmCalibrationRef && global.DG_farmCalibrationRef.cvHasFarmCalibration(cv.id)) {
+      return '<span class="cv-badge cv-badge--farm" title="' + t('ui.cv.farmCal', 'Замеры с вашей фермы') + '">' +
+        t('ui.cv.badgeFarmCal', 'замер') + '</span>';
+    }
     if (cv && cv.calibrated === true) {
       return '<span class="cv-badge cv-badge--cal">' + t('ui.cv.badgeCalibrated', 'калибр.') + '</span>';
     }
@@ -199,4 +225,6 @@
   global.DG_setGhCvSearch = setGhCvSearch;
   global.DG_getGhCvCalibratedOnly = getGhCvCalibratedOnly;
   global.DG_setGhCvCalibratedOnly = setGhCvCalibratedOnly;
+  global.DG_getGhCvFarmCalOnly = getGhCvFarmCalOnly;
+  global.DG_setGhCvFarmCalOnly = setGhCvFarmCalOnly;
 })(typeof window !== 'undefined' ? window : globalThis);

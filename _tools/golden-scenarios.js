@@ -46,6 +46,7 @@ state.econ.plantingArea = 150;
 state.econ.rentMonth = 50000;
 state.econ.salePrice = 900;
 state.econ.cultures[0].pct = 100;
+state.econ.cultures[0].cvId = 'golden-test';
 state.econ.cultures[0].yieldPerCut = 20;
 state.econ.cultures[0].salePrice = 900;
 state.econ.cultures[0].density = 80;

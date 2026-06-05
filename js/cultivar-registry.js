@@ -23,17 +23,28 @@
     function allPalletCultivars(){ return deps.PALLET_CULTIVARS; }
     function isPalletSheetCv(cv){ return !!(cv && cv.palletSheet); }
 
+    function withFarmPatch(cv){
+      if (!cv) return cv;
+      if (deps.applyFarmCvPatch) return deps.applyFarmCvPatch(cv);
+      if (global.DG_farmCalibrationRef && global.DG_farmCalibrationRef.applyFarmCvPatch){
+        return global.DG_farmCalibrationRef.applyFarmCvPatch(cv);
+      }
+      return cv;
+    }
     function getCv(){
       var id = resolveCvId(st().cv);
-      return allGhCultivars().find(c => c.id === id) || allGhCultivars()[0];
+      var cv = allGhCultivars().find(c => c.id === id) || allGhCultivars()[0];
+      return withFarmPatch(cv);
     }
     function getPalletCv(){
       const list = allPalletCultivars();
-      return list.find(c => c.id === st().palletCv) || list[0];
+      var cv = list.find(c => c.id === st().palletCv) || list[0];
+      return withFarmPatch(cv);
     }
     function getVfCv(){
       const list = allVfCultivars();
-      return list.find(c => c.id === st().vfCv) || list[0];
+      var cv = list.find(c => c.id === st().vfCv) || list[0];
+      return withFarmPatch(cv);
     }
     function getActiveCv(){
       if (isPalletView()) return getPalletCv() || allPalletCultivars()[0] || getCv();
@@ -51,11 +62,14 @@
     function findCvById(id){
       if (!id) return null;
       id = resolveCvId(id);
-      if (isPalletCvId(id)) return allPalletCultivars().find(c => c.id === id) || null;
-      if (isVfCvId(id)) return allVfCultivars().find(c => c.id === id) || null;
-      const gh = allGhCultivars().find(c => c.id === id);
-      if (gh) return gh;
-      return allVfCultivars().find(c => c.id === id) || allPalletCultivars().find(c => c.id === id) || null;
+      var cv = null;
+      if (isPalletCvId(id)) cv = allPalletCultivars().find(c => c.id === id) || null;
+      else if (isVfCvId(id)) cv = allVfCultivars().find(c => c.id === id) || null;
+      else {
+        cv = allGhCultivars().find(c => c.id === id);
+        if (!cv) cv = allVfCultivars().find(c => c.id === id) || allPalletCultivars().find(c => c.id === id) || null;
+      }
+      return cv ? withFarmPatch(cv) : null;
     }
 
     return {

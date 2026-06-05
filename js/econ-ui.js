@@ -25,6 +25,18 @@
     }
     function moneySym(){ return deps.currencySym ? deps.currencySym() : '₽'; }
     function moneyFmt(n, o){ return deps.fmtMoney ? deps.fmtMoney(n, o) : deps.fmtNum(n, o); }
+    function moneyPer(n, perKey, o){
+      if (deps.fmtMoneyPer) return deps.fmtMoneyPer(n, perKey, o);
+      return moneyFmt(n, o) + L(perKey);
+    }
+    function fmtUnitCost(val, u){
+      if (!(val > 0)) return '—';
+      return u === 'шт' ? moneyPer(val, 'econ.perPcs', { decimals: 2 }) : moneyPer(val, 'econ.perKg');
+    }
+    function unitCostBreakdownLine(label, val, u){
+      if (!(val > 0)) return '';
+      return '<div class="line line--sub"><span>' + label + '</span><strong>' + fmtUnitCost(val, u) + '</strong></div>';
+    }
     function parseMoney(v){ return deps.parseMoneyInput ? deps.parseMoneyInput(v) : deps.parseNumInput(v); }
     function fmtMoneyInp(rub, d){ return deps.formatMoneyInput ? deps.formatMoneyInput(rub, d) : deps.formatInputValue(rub, d); }
     function formToken(){ return deps.localeToken ? deps.localeToken() : 'ru'; }
@@ -56,7 +68,6 @@
       return '<option value="' + val + '"' + sel + dis + '>' + label + '</option>';
     };
     let html = opt('', L('econ.opt.empty'));
-    html += opt(ECON_SALAD_MIX_ID, L('econ.opt.mix'));
     const customVf = st().customVfCultivars || [];
     const customGh = st().customGhCultivars || [];
     if (VF_CULTIVARS.length || customVf.length){
@@ -78,7 +89,7 @@
   }
 
   function isEconCvIdTaken(cvId, exceptIdx){
-    if (!cvId || cvId === ECON_SALAD_MIX_ID) return false;
+    if (!cvId) return false;
     deps.ensureEconCultures();
     return st().econ.cultures.some((row, j) => j !== exceptIdx && row.cvId === cvId);
   }
@@ -182,14 +193,14 @@
     const valEl = deps.$('econ-equipment-total-val');
     const hintEl = deps.$('econ-equipment-total-hint');
     if (valEl){
-      valEl.innerHTML = moneyFmt(raw) + '<span class="econ-equip-total-unit">' + moneySym() + '</span>';
+      valEl.innerHTML = moneyFmt(raw);
     }
     if (hintEl){
       const months = Math.max(1, parseFloat(st().econ.amortMonths) || 60);
       const amort = inCalc && raw > 0 ? raw / months : 0;
       let txt = L('econ.equip.totalTxt');
       if (raw > 0 && inCalc){
-        txt += ' · ≈ ' + moneyFmt(amort) + ' ' + moneySym() + L('econ.perMonth') + ' · ' + deps.fmtNum(months) + ' mo';
+        txt += ' · ≈ ' + moneyPer(amort, 'econ.perMonth') + ' · ' + deps.fmtNum(months) + ' mo';
       } else if (raw > 0 && !inCalc){
         txt += L('econ.equip.notInCost');
       }
@@ -217,6 +228,30 @@
     return '<div class="toggle-wrap econ-toggle-field"><span class="toggle-label">' + label + '</span>' +
       '<label class="toggle"><input type="checkbox" id="' + id + '" ' + (checked ? 'checked' : '') + '>' +
       '<span class="toggle-switch"></span></label></div>';
+  }
+
+  function econToggleRowHtml(id, label, checked){
+    return '<label class="toggle econ-toggle-row" for="' + id + '">' +
+      '<input type="checkbox" id="' + id + '" ' + (checked ? 'checked' : '') + '>' +
+      '<span class="toggle-switch" aria-hidden="true"></span>' +
+      '<span class="toggle-label">' + label + '</span></label>';
+  }
+
+  function econTaxBlockHtml(){
+    const e = st().econ;
+    return '<div class="econ-tax-block">' +
+      '<p class="econ-tax-block-title">' + L('econ.taxBlock.title') + '</p>' +
+      econToggleRowHtml('econ-usn-tax', L('econ.usnTax'), e.usnTax) +
+      '<div class="econ-tax-group">' +
+        econToggleRowHtml('econ-vat-tax', L('econ.vatTax'), e.vatTax) +
+        econToggleRowHtml('econ-vat-inclusive', L('econ.vatInclusive'), e.vatInclusive) +
+        '<div class="econ-tax-nested">' + econNumInput('vatPct', L('econ.vatPct'), { step: 0.5 }) + '</div>' +
+        '<p class="econ-hint econ-tax-hint">' + L('econ.vatInclusive.hint') + '</p>' +
+      '</div>' +
+      '<div class="econ-tax-group">' +
+        econToggleRowHtml('econ-profit-tax', L('econ.profitTax'), e.profitTax) +
+        '<div class="econ-tax-nested">' + econNumInput('profitTaxPct', L('econ.profitTaxPct'), { step: 0.5 }) + '</div>' +
+      '</div></div>';
   }
 
   function renderEconCustomEquipRow(it){
@@ -343,6 +378,13 @@
         if (k === 'payrollTax') return;
         const v = isMoneyKey(k) ? parseMoney(inp.value) : deps.parseNumInput(inp.value);
         st().econ[k] = isNaN(v) ? 0 : v;
+        if (k === 'kwhPerM2Hour' || k === 'lightHoursDay'){
+          deps.ensureEconCultures();
+          (st().econ.cultures || []).forEach(function(row){
+            if (k === 'kwhPerM2Hour') row.kwhPerM2Hour = st().econ[k];
+            else row.lightHoursDay = st().econ[k];
+          });
+        }
         deps.saveEconStore();
         renderEconomics();
         return;
@@ -552,22 +594,19 @@
       econNumInput('floorArea', L('econ.floorArea'), { step: 1 }) +
       econNumInput('plantingArea', L('econ.plantingArea'), { step: 1 }) +
       econNumInput('wastePct', L('econ.wastePct'), { step: 1, hint: L('econ.wastePct.hint') }) +
-      econNumInput('salePrice', L('econ.salePrice'), { step: 10, hint: L('econ.salePrice.hint') }) +
       econNumInput('kwhPerM2Hour', L('econ.kwhPerM2Hour'), { step: 0.001, hint: L('econ.kwhPerM2Hour.hint') }) +
       econNumInput('lightHoursDay', L('econ.lightHoursDay'), { step: 0.5, hint: L('econ.lightHoursDay.hint') }) +
       econNumInput('amortMonths', L('econ.amortMonths'), { step: 1 });
 
     const costs = deps.$('econ-inputs-costs');
-    if (costs && costs.dataset.built !== ft){
-      costs.dataset.built = ft;
+    const costsToken = ft + '-tax-v3';
+    if (costs && costs.dataset.built !== costsToken){
+      costs.dataset.built = costsToken;
       costs.innerHTML =
       econNumInput('otherMonth', moneyLabel('econ.otherMonth', 'econ.perMonth'), { step: 1000, hint: L('econ.otherMonth.hint') }) +
       econNumInput('consumablesPerKg', L('econ.consumablesPerKg'), { step: 0.1, hint: L('econ.consumablesPerKg.hint') }) +
-      econToggleHtml('econ-usn-tax', L('econ.usnTax'), st().econ.usnTax) +
-      econToggleHtml('econ-vat-tax', L('econ.vatTax'), st().econ.vatTax) +
-      econNumInput('vatPct', L('econ.vatPct'), { step: 0.5 }) +
-      econToggleHtml('econ-profit-tax', L('econ.profitTax'), st().econ.profitTax) +
-      econNumInput('profitTaxPct', L('econ.profitTaxPct'), { step: 0.5 });
+      econNumInput('consumablesPerPcs', L('econ.consumablesPerPcs'), { step: 0.1, hint: L('econ.consumablesPerPcs.hint') }) +
+      econTaxBlockHtml();
     }
 
     ensureEconSubPanels(ft);
@@ -592,6 +631,14 @@
     if (vat){
       vat.addEventListener('change', () => {
         st().econ.vatTax = vat.checked;
+        deps.saveEconStore();
+        renderEconomics();
+      });
+    }
+    const vatInc = deps.$('econ-vat-inclusive');
+    if (vatInc){
+      vatInc.addEventListener('change', () => {
+        st().econ.vatInclusive = vatInc.checked;
         deps.saveEconStore();
         renderEconomics();
       });
@@ -640,7 +687,18 @@
       const pct = norm.pct != null ? norm.pct : 0;
       const sp = norm.salePrice > 0 ? norm.salePrice : '';
       const bio = deps.econCultureBio(norm);
+      const cv = typeof deps.findCvById === 'function' ? deps.findCvById(norm.cvId) : null;
+      const isLot = !!(cv && cv.econLotSale);
+      const lotPot = !!(cv && cv.econLotSalePot);
+      const yieldLbl = isLot ? L('econ.cult.yieldCycle') : (norm.unitIsPieces ? L('econ.cult.yieldPcs') : L('econ.cult.yield'));
+      const yieldHint = isLot ? L('econ.cult.yieldCycleHint') : L('econ.cult.yieldHint');
+      const consLbl = isLot ? (lotPot ? L('econ.cult.consPot') : L('econ.cult.consTray')) : L('econ.cult.consPot');
+      const consPh = isLot ? '10' : String(ECON_CONSUMABLES_PER_POT_HINT);
       const ySqm = bio.unitIsPieces ? deps.r1(bio.yieldPerSqmMonthPcs) + ' ' + L('econ.yield.pcsSqm') : deps.r2(bio.yieldPerSqmMonthKg) + ' ' + L('econ.yield.kgSqm');
+      const mixToggle = '<div class="econ-mix-inline">' +
+        '<label class="econ-mix-check"><input type="checkbox" data-econ-mix-incl="' + i + '"' + (norm.mixInMix ? ' checked' : '') + '> ' + L('econ.mix.use') + '</label>' +
+        (norm.mixInMix ? ('<label class="econ-mix-pct-lbl">' + L('econ.mix.pct') + ' <input type="text" inputmode="decimal" class="econ-mix-pct" data-econ-mix-pct-row="' + i + '" value="' + deps.formatInputValue(norm.mixPct || 0, 1) + '"></label>') : '') +
+        '</div>';
       html += '<div class="econ-culture-card" data-econ-culture-idx="' + i + '">' +
         '<div class="econ-culture-head">' +
         '<div><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i) + '</select></div>' +
@@ -648,17 +706,18 @@
         '<div><label>' + L('econ.cult.price') + ', ' + moneySym() + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" placeholder="—" data-econ-culture-price="' + i + '" value="' + (sp ? fmtMoneyInp(sp, 0) : '') + '"></div>' +
         '<button type="button" class="econ-rm" data-econ-culture-rm="' + i + '" title="' + L('econ.btn.remove') + '" aria-label="' + L('econ.btn.remove') + '">×</button>' +
         '</div>' +
+        mixToggle +
         '<div class="econ-culture-params">' +
         econCultParamInput(i, 'density', L('econ.cult.density'), { step: 1 }) +
-        econCultParamInput(i, 'yieldPerCut', L('econ.cult.yield'), { step: 0.1, title: L('econ.cult.yieldHint') }) +
+        econCultParamInput(i, 'yieldPerCut', yieldLbl, { step: isLot ? 1 : 0.1, decimals: isLot ? 0 : null, title: yieldHint }) +
         econCultParamInput(i, 'cutIntervalDays', L('econ.cult.interval'), { step: 1, min: 1 }) +
         econCultParamInput(i, 'kwhPerM2Hour', L('econ.cult.lightKwh'), { step: 0.001 }) +
         econCultParamInput(i, 'lightHoursDay', L('econ.cult.lightH'), { step: 0.5 }) +
-        econCultParamInput(i, 'consumablesPerPot', L('econ.cult.consPot') + ', ' + moneySym(), {
-          step: 0.5, decimals: 1, placeholder: String(ECON_CONSUMABLES_PER_POT_HINT),
-          title: L('econ.cult.consPot')
+        econCultParamInput(i, 'consumablesPerPot', consLbl + ', ' + moneySym(), {
+          step: 0.5, decimals: 1, placeholder: consPh,
+          title: (isLot && lotPot) ? L('econ.cult.consPot.lotHint') : consLbl
         }) +
-        econCultParamInput(i, 'potHarvestMonths', L('econ.cult.potLife'), { step: 0.5, decimals: 1 }) +
+        (isLot ? '' : econCultParamInput(i, 'potHarvestMonths', L('econ.cult.potLife'), { step: 0.5, decimals: 1 })) +
         '</div>' +
         '<p class="econ-culture-hint">' + deps.formatEconCultureHint(norm) + '</p>' +
         '</div>';
@@ -675,19 +734,9 @@
       totalEl.innerHTML = msg + tFmt('econ.rows', { n: st().econ.cultures.length, max: ECON_MAX_CULTURES });
     }
     const addBtn = deps.$('econ-add-culture');
-    const mixBtn = deps.$('econ-add-salad-mix');
     if (addBtn){
       addBtn.disabled = !deps.canAddEconCulture();
       addBtn.title = addBtn.disabled ? tFmt('econ.add.max', { max: ECON_MAX_CULTURES }) : L('econ.add.row');
-    }
-    if (mixBtn){
-      const mixOverlap = st().econ.cultures.some(c =>
-        c.cvId && c.cvId !== ECON_SALAD_MIX_ID && ECON_SALAD_MIX_CV_IDS.indexOf(c.cvId) >= 0
-      );
-      mixBtn.disabled = !deps.canAddEconCulture()
-        || st().econ.cultures.some(c => c.cvId === ECON_SALAD_MIX_ID)
-        || mixOverlap;
-      if (mixOverlap) mixBtn.title = L('econ.mix.overlap');
     }
   }
 
@@ -700,6 +749,8 @@
       const cvSel = e.target.dataset.econCultureCv;
       const pctInp = e.target.dataset.econCulturePct;
       const priceInp = e.target.dataset.econCulturePrice;
+      const mixIncl = e.target.dataset.econMixIncl;
+      const mixPctRow = e.target.dataset.econMixPctRow;
       if (cvSel != null){
         const i = parseInt(cvSel, 10);
         deps.ensureEconCultures();
@@ -712,6 +763,25 @@
         const keptPct = st().econ.cultures[i].pct;
         const keptPrice = st().econ.cultures[i].salePrice;
         st().econ.cultures[i] = deps.econApplyCultureSelect(st().econ.cultures[i], newId, keptPct, keptPrice);
+        deps.saveEconStore();
+        renderEconomics();
+        return;
+      }
+      if (mixIncl != null){
+        const i = parseInt(mixIncl, 10);
+        deps.ensureEconCultures();
+        if (!st().econ.cultures[i]) return;
+        st().econ.cultures[i].mixInMix = !!e.target.checked;
+        if (!st().econ.cultures[i].mixInMix) st().econ.cultures[i].mixPct = 0;
+        deps.saveEconStore();
+        renderEconomics();
+        return;
+      }
+      if (mixPctRow != null){
+        const i2 = parseInt(mixPctRow, 10);
+        deps.ensureEconCultures();
+        if (!st().econ.cultures[i2]) return;
+        st().econ.cultures[i2].mixPct = deps.clamp(deps.parseNumInput(e.target.value) || 0, 0, 100);
         deps.saveEconStore();
         renderEconomics();
         return;
@@ -751,12 +821,23 @@
         const v = isMoneyCult(cultField) ? parseMoney(e.target.value) : deps.parseNumInput(e.target.value);
         st().econ.cultures[i][cultField] = isNaN(v) ? 0 : v;
         deps.saveEconStore();
+        renderEconDerivedPanel();
         const hint = e.target.closest('.econ-culture-card')?.querySelector('.econ-culture-hint');
         if (hint){
           const bio = deps.econCultureBio(st().econ.cultures[i]);
       const ySqm = bio.unitIsPieces ? deps.r1(bio.yieldPerSqmMonthPcs) + ' ' + L('econ.yield.pcsSqm') : deps.r2(bio.yieldPerSqmMonthKg) + ' ' + L('econ.yield.kgSqm');
       hint.innerHTML = deps.formatEconCultureHint(st().econ.cultures[i]);
         }
+        return;
+      }
+      if (e.target.dataset.econMixPctRow != null){
+        const i3 = parseInt(e.target.dataset.econMixPctRow, 10);
+        if (!isFinite(i3)) return;
+        deps.ensureEconCultures();
+        if (!st().econ.cultures[i3]) return;
+        st().econ.cultures[i3].mixPct = deps.parseNumInput(e.target.value);
+        deps.saveEconStore();
+        renderEconomics();
         return;
       }
       if (e.target.dataset.econCulturePct == null && e.target.dataset.econCulturePrice == null) return;
@@ -817,8 +898,86 @@
       '<dt>' + perPotLbl + '</dt><dd>' + deps.r1(snap.yieldPerPotCycle) + ' ' + snap.yieldUnit + '</dd>' +
       '<dt>' + L('econ.snap.yieldPotMo') + '</dt><dd>' + deps.r1(snap.yieldPerPotMonth) + ' ' + snap.yieldUnit + '</dd>' +
       '<dt>' + L('econ.snap.yield') + '</dt><dd>' + yVal + ' ' + yLabel + '</dd>' +
-      '<dt>' + L('econ.snap.light') + '</dt><dd>' + deps.r3(snap.kwhPerM2Hour) + ' кВт·ч/м²·ч · ' + deps.r1(snap.lightHoursDay) + ' ч/сут</dd>' +
+      '<dt>' + L('econ.snap.light') + '</dt><dd>' + deps.r3(snap.kwhPerM2Hour) + ' ' + L('econ.cult.lightKwh') + ' · ' + deps.r1(snap.lightHoursDay) + ' ' + L('econ.unit.hPerDay') + '</dd>' +
       '</dl>';
+  }
+
+  function econCultureRowName(cvId){
+    if (!cvId) return '—';
+    if (typeof deps.econCvDisplayName === 'function') return deps.econCvDisplayName(cvId);
+    const customVf = st().customVfCultivars || [];
+    const customGh = st().customGhCultivars || [];
+    const all = VF_CULTIVARS.concat(customVf, CULTIVARS, customGh, PALLET_CULTIVARS);
+    const cv = all.find(function(c){ return c.id === cvId; });
+    return cv ? cv.name : cvId;
+  }
+
+  function buildEconDerivedRows(){
+    deps.ensureEconCultures();
+    const rows = [];
+    st().econ.cultures.forEach(function(row){
+      const norm = deps.normalizeEconCultureRow(row);
+      if (!norm.cvId) return;
+      rows.push({
+        name: econCultureRowName(norm.cvId),
+        bio: deps.econCultureBio(norm)
+      });
+    });
+    return rows;
+  }
+
+  function renderEconDerivedPanel(){
+    const derived = deps.$('econ-derived-panel');
+    if (!derived) return;
+    const parts = buildEconDerivedRows();
+    if (parts.length){
+      let tbl = '<table class="econ-breakdown"><tr><th>' + L('econ.derived.th') + '</th><th>' + L('econ.derived.rho') + '</th><th>' + L('econ.derived.cut') + '</th><th>' + L('econ.derived.interval') + '</th><th>' + L('econ.derived.cutsMo') + '</th><th>' + L('econ.derived.yield') + '</th><th>' + L('econ.derived.kwh') + '</th><th>' + L('econ.derived.lightH') + '</th></tr>';
+      parts.forEach(function(p){
+        const b = p.bio || {};
+        const y = b.unitIsPieces ? deps.r1(b.yieldPerSqmMonthPcs) + ' ' + uPcs() : deps.r2(b.yieldPerSqmMonthKg) + ' ' + uKg();
+        const yc = b.unitIsPieces ? uPcs() : uG();
+        tbl += '<tr><td>' + p.name + '</td><td>' + (b.density != null ? deps.round(b.density) : '—') + '</td><td>' + (b.yieldPerCut != null ? (deps.r1(b.yieldPerCut) + ' ' + yc) : '—') + '</td><td>' + (b.cutIntervalDays != null ? deps.r1(b.cutIntervalDays) : '—') + '</td><td>' + (b.cutsPerMonth != null ? deps.r1(b.cutsPerMonth) : '—') + '</td><td>' + y + '</td><td>' + (b.kwhPerM2Hour != null ? deps.r3(b.kwhPerM2Hour) : '—') + '</td><td>' + (b.lightHoursDay != null ? deps.r1(b.lightHoursDay) : '—') + '</td></tr>';
+      });
+      derived.innerHTML = '<div class="econ-table-scroll">' + tbl + '</table></div>';
+    } else {
+      derived.innerHTML = '<p style="color:var(--ink-faint);font-size:13px">' + L('econ.derived.empty') + '</p>';
+    }
+  }
+
+  function renderEconPlantingSync(){
+    const el = deps.$('econ-planting-sync');
+    if (!el) return;
+    const fresh = global.DG_checkPlantingImportFreshness
+      ? global.DG_checkPlantingImportFreshness(st(), deps)
+      : { status: 'none' };
+    if (fresh.status === 'none'){
+      el.hidden = true;
+      el.innerHTML = '';
+      return;
+    }
+    el.hidden = false;
+    const meta = fresh.meta || {};
+    const timeStr = global.DG_formatPlantingImportTime
+      ? global.DG_formatPlantingImportTime(meta.at)
+      : meta.at;
+    let html = '<div class="econ-planting-sync-inner">';
+    html += tFmt('econ.sync.meta', {
+      time: timeStr,
+      name: meta.cvName || '—',
+      facility: meta.facilityLabel || '—'
+    }, 'Данные посадки от {time}: <strong>{name}</strong>, {facility}.');
+    if (fresh.showRefresh){
+      const ch = global.DG_plantingImportChangedLabels
+        ? global.DG_plantingImportChangedLabels(fresh.changedFields)
+        : fresh.changedFields.join(', ');
+      html += ' <span class="econ-planting-sync-stale">' +
+        tFmt('econ.sync.stale', { fields: ch },
+          'Изменено: {fields}. Нажмите «Импорт из посадки».') + '</span>';
+    } else {
+      html += ' <span class="econ-planting-sync-ok">' + L('econ.sync.fresh') + '</span>';
+    }
+    html += '</div>';
+    el.innerHTML = html;
   }
 
   function renderEconomics(){
@@ -832,16 +991,6 @@
     const parts = farm.parts;
     const e = st().econ;
 
-    const saleInp = document.querySelector('[data-econ-key="salePrice"]');
-    if (saleInp){
-      const saleLbl = saleInp.closest('.econ-field')?.querySelector('label');
-      if (saleLbl){
-        var u = farm.outputUnit;
-        var per = (u === L('econ.unit.pcs') || u === 'шт') ? L('econ.perPcs').replace('/', '') : ((u === L('econ.unit.mixed') || u === 'смеш.') ? 'kg|pc' : 'kg');
-        saleLbl.textContent = L('econ.salePrice') + ', ' + moneySym() + '/' + per;
-      }
-    }
-
     const intro = deps.$('econ-intro');
     if (intro){
       intro.innerHTML = tFmt('econ.intro.html', {
@@ -850,23 +999,27 @@
       });
     }
 
-    renderEconWarnings(farm.warnings || []);
+    renderEconPlantingSync();
 
-    const derived = deps.$('econ-derived-panel');
-    if (derived){
-      if (parts.length){
-        let tbl = '<table class="econ-breakdown"><tr><th>' + L('econ.derived.th') + '</th><th>' + L('econ.derived.rho') + '</th><th>' + L('econ.derived.cut') + '</th><th>' + L('econ.derived.interval') + '</th><th>' + L('econ.derived.cutsMo') + '</th><th>' + L('econ.derived.yield') + '</th><th>' + L('econ.derived.kwh') + '</th><th>' + L('econ.derived.lightH') + '</th></tr>';
-        parts.forEach(p => {
-          const b = p.bio;
-          const y = b.unitIsPieces ? deps.r1(b.yieldPerSqmMonthPcs) + ' ' + uPcs() : deps.r2(b.yieldPerSqmMonthKg) + ' ' + uKg();
-          const yc = b.unitIsPieces ? uPcs() : uG();
-          tbl += '<tr><td>' + p.name + '</td><td>' + deps.round(b.density) + '</td><td>' + deps.r1(b.yieldPerCut) + ' ' + yc + '</td><td>' + deps.r1(b.cutIntervalDays) + '</td><td>' + deps.r1(b.cutsPerMonth) + '</td><td>' + y + '</td><td>' + deps.r3(b.kwhPerM2Hour) + '</td><td>' + deps.r1(b.lightHoursDay) + '</td></tr>';
-        });
-        derived.innerHTML = '<div class="econ-table-scroll">' + tbl + '</table></div>';
-      } else {
-        derived.innerHTML = '<p style="color:var(--ink-faint);font-size:13px">' + L('econ.derived.empty') + '</p>';
-      }
+    var allIssues = global.DG_collectCalcIssues ? global.DG_collectCalcIssues({
+      state: st(),
+      farm: farm,
+      parts: parts,
+      econWarnings: farm.warnings || [],
+      calcResult: deps.calc ? deps.calc() : null,
+      deps: deps,
+      cvName: econCultureRowName
+    }) : [];
+    var warnItems = (farm.warnings || []).slice();
+    if (global.DG_mergeIssueTexts){
+      global.DG_mergeIssueTexts(allIssues, ['critical', 'warn']).forEach(function(txt){
+        if (!warnItems.some(function(w){ return (w.text || w) === txt; })){
+          warnItems.push({ level: 'normal', text: txt });
+        }
+      });
     }
+    renderEconWarnings(warnItems);
+    renderEconDerivedPanel();
 
     const res = farm;
     const wasteFactor = 1 - deps.clamp(res.wastePct || 0, 0, 50) / 100;
@@ -877,21 +1030,22 @@
     const cultTbl = deps.$('econ-cultures-breakdown');
     if (cultTbl){
       if (parts.length){
-        let ch = '<tr><th>' + L('econ.cult.culture') + '</th><th>%</th><th>' + L('econ.unit.sqm') + '</th><th>' + L('econ.tbl.out') + '</th><th>' + L('econ.tbl.cost') + '</th><th>' + moneySym() + L('econ.perSqm') + '</th><th>' + L('econ.tbl.rev') + '</th><th>' + L('econ.tbl.margin') + '</th></tr>';
+        const revHdr = res.wastePct > 0 ? L('econ.tbl.revNet') : L('econ.tbl.rev');
+        let ch = '<tr><th>' + L('econ.cult.culture') + '</th><th>%</th><th>' + L('econ.unit.sqm') + '</th><th>' + L('econ.tbl.out') + '</th><th>' + L('econ.tbl.cost') + '</th><th>' + moneySym() + L('econ.perSqm') + '</th><th>' + revHdr + '</th><th>' + L('econ.tbl.margin') + '</th></tr>';
         parts.forEach(p => {
           const u = p.slice.outputUnit;
           const gross = p.slice.monthlyOutput;
           const sell = gross * wasteFactor;
+          const revNet = p.slice.revenue * wasteFactor;
           let out = '—';
           if (gross > 0){
             const gStr = u === 'кг' ? deps.r1(gross) : deps.fmtNum(gross);
             const sStr = u === 'кг' ? deps.r1(sell) : deps.fmtNum(sell);
             out = res.wastePct > 0 ? gStr + ' → ' + sStr + ' ' + uOut(u) : gStr + ' ' + uOut(u);
           }
-          const uc = p.slice.unitCostFull > 0 ? deps.fmtNum(p.slice.unitCostFull) : '—';
-          const consSqm = p.slice.consumablesPerSqm > 0 ? deps.fmtNum(p.slice.consumablesPerSqm) : '—';
-          const uLbl = u === 'шт' ? moneySym() + L('econ.perPcs') : moneySym() + L('econ.perKg');
-          ch += '<tr><td>' + p.name + '</td><td>' + deps.r1(p.pct) + '</td><td>' + deps.r1(p.slice.area) + '</td><td>' + out + '</td><td>' + uc + ' ' + uLbl + '</td><td>' + consSqm + '</td><td>' + moneyFmt(p.slice.revenue * wasteFactor) + '</td><td>' + moneyFmt(p.slice.margin) + '</td></tr>';
+          const uc = p.slice.unitCostFull > 0 ? fmtUnitCost(p.slice.unitCostFull, u) : '—';
+          const consSqm = p.slice.consumablesPerSqm > 0 ? moneyPer(p.slice.consumablesPerSqm, 'econ.perSqm') : '—';
+          ch += '<tr><td>' + p.name + '</td><td>' + deps.r1(p.pct) + '</td><td>' + deps.r1(p.slice.area) + '</td><td>' + out + '</td><td>' + uc + '</td><td>' + consSqm + '</td><td>' + moneyFmt(revNet) + '</td><td>' + moneyFmt(p.slice.margin) + '</td></tr>';
         });
         const pctShow = deps.r1(farm.totalPct > 100 ? 100 : farm.totalPct);
         if (hasKg){
@@ -902,7 +1056,7 @@
         if (hasPcs){
           ch += '<tr class="econ-total-row"><td><strong>' + L('econ.tbl.totalPcs') + '</strong></td><td>' + (mixed ? '—' : pctShow) + '</td><td>' + (mixed ? '—' : deps.r1(farm.areaUsed)) + '</td><td>' +
             (res.sellPcs > 0 ? deps.fmtNum(res.sellPcs) + ' ' + uPcs() + (res.wastePct > 0 && !mixed ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '') : '—') +
-            '</td><td><strong>' + (res.unitCostPcs > 0 ? moneyFmt(res.unitCostPcs) : '—') + '</strong></td><td>—</td><td><strong>' + moneyFmt(res.revPcs) + '</strong></td><td><strong>' + moneyFmt(res.marginPcs) + '</strong></td></tr>';
+            '</td><td><strong>' + (res.unitCostPcs > 0 ? fmtUnitCost(res.unitCostPcs, 'шт') : '—') + '</strong></td><td>—</td><td><strong>' + moneyFmt(res.revPcs) + '</strong></td><td><strong>' + moneyFmt(res.marginPcs) + '</strong></td></tr>';
         }
         if (!hasKg && !hasPcs){
           ch += '<tr><td><strong>' + L('econ.tbl.total') + '</strong></td><td colspan="7">—</td></tr>';
@@ -918,30 +1072,67 @@
         const u = p.slice.outputUnit;
         const sell = p.slice.monthlyOutput * wasteFactor;
         const uc = p.slice.unitCostFull;
-        const unitLbl = u === 'шт' ? moneySym() + L('econ.perPcs') : moneySym() + L('econ.perKg');
         const outLbl = u === 'шт' ? L('econ.out.pcsMo') : L('econ.out.kgMo');
         const outVal = u === 'кг' ? (sell > 0 ? deps.fmtNum(sell, {decimals: 1}) : '—') : (sell > 0 ? deps.fmtNum(sell) : '—');
-        const consSqm = p.slice.consumablesPerSqm > 0 ? moneyFmt(p.slice.consumablesPerSqm) : '—';
-        const consMo = p.slice.consumablesCost > 0 ? moneyFmt(p.slice.consumablesCost) : '—';
-        const hm = p.slice.potHarvestMonths || 3;
-        const consOnceSqm = p.slice.consumablesPerSqmOnce > 0 ? moneyFmt(p.slice.consumablesPerSqmOnce) : '—';
+        const consSqm = p.slice.consumablesPerSqm > 0 ? moneyPer(p.slice.consumablesPerSqm, 'econ.perSqmMonth') : '—';
+        const consMo = p.slice.consumablesCost > 0 ? moneyPer(p.slice.consumablesCost, 'econ.perMonth') : '—';
+        const consOnceSqm = p.slice.consumablesPerSqmOnce > 0 ? moneyPer(p.slice.consumablesPerSqmOnce, 'econ.perSqm') : '—';
         const consOnceArea = p.slice.consumablesOnce > 0 ? moneyFmt(p.slice.consumablesOnce) : '—';
-        const consPerKg = (sell > 0 && p.slice.consumablesCost > 0 && u === 'кг') ? (p.slice.consumablesCost / sell) : 0;
-        const consShare = (uc > 0 && consPerKg > 0) ? deps.r1((consPerKg / uc) * 100) : null;
+        const ucFmt = fmtUnitCost(uc, u);
+        const sl = p.slice;
+        let breakdown = unitCostBreakdownLine(L('econ.metrics.unitCostElecLight'), sl.unitCostLight, u) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostElecInfra'), sl.unitCostElecOther, u);
+        if (!breakdown && sl.unitCostElec > 0){
+          breakdown = unitCostBreakdownLine(L('econ.metrics.unitCostElec'), sl.unitCostElec, u);
+        }
+        breakdown += unitCostBreakdownLine(L('econ.metrics.unitCostFot'), sl.unitCostStaff, u) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostRent'), sl.unitCostRent, u) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostLog'), sl.unitCostLogistics, u) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostOther'), sl.unitCostOther, u) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostAmort'), sl.unitCostAmort, u);
+        if (sl.unitCostPackaging > 0){
+          breakdown += unitCostBreakdownLine(L('econ.metrics.unitCostCons'), sl.unitCostConsPot, u) +
+            unitCostBreakdownLine(L('econ.metrics.unitCostPackaging'), sl.unitCostPackaging, u);
+        } else {
+          breakdown += unitCostBreakdownLine(L('econ.metrics.unitCostCons'), sl.unitCostConsumables, u);
+        }
         metrics += '<div class="econ-culture-metric"><div class="name">' + p.name + '</div>' +
-          '<div class="line"><span>' + L('econ.metrics.unitCost') + '</span><strong>' + (uc > 0 ? moneyFmt(uc) : '—') + ' ' + unitLbl + '</strong></div>' +
-          (consShare ? '<div class="line"><span>' + L('econ.metrics.consShare') + '</span><strong>~' + moneyFmt(consPerKg) + ' ' + unitLbl + ' (' + consShare + '%)</strong></div>' : '') +
-          '<div class="line"><span>' + L('econ.metrics.sowOnce') + '</span><strong>' + consOnceSqm + ' ' + moneySym() + L('econ.perSqm') + '</strong> · ' + consOnceArea + ' ' + moneySym() + '</div>' +
-          '<div class="line"><span>' + L('econ.metrics.sowMo') + '</span><strong>' + consSqm + ' ' + moneySym() + L('econ.perSqmMonth') + '</strong></div>' +
-          '<div class="line"><span>' + L('econ.metrics.consArea') + '</span><strong>' + consMo + ' ' + moneySym() + L('econ.perMonth') + '</strong></div>' +
+          '<div class="line line--total"><span>' + L('econ.metrics.unitCost') + '</span><strong>' + ucFmt + '</strong></div>' +
+          (breakdown ? '<div class="econ-uc-breakdown"><div class="econ-uc-breakdown-title">' + L('econ.metrics.unitCostBreakdown') + '</div>' + breakdown + '</div>' : '') +
+          '<div class="econ-uc-extra">' +
+          '<div class="line"><span>' + L('econ.metrics.sowOnce') + '</span><strong>' + consOnceSqm + '</strong> · ' + consOnceArea + '</div>' +
+          '<div class="line"><span>' + L('econ.metrics.sowMo') + '</span><strong>' + consSqm + '</strong></div>' +
+          '<div class="line"><span>' + L('econ.metrics.consArea') + '</span><strong>' + consMo + '</strong></div>' +
           '<div class="line"><span>' + L('econ.metrics.out') + '</span><strong>' + outVal + ' ' + outLbl + '</strong></div>' +
-          '<div class="line"><span>' + L('econ.metrics.share') + '</span><strong>' + deps.r1(p.pct) + '% · ' + deps.r1(p.slice.area) + ' ' + L('econ.unit.sqm') + '</strong></div></div>';
+          '<div class="line econ-metric-line--share"><span>' + L('econ.metrics.share') + '</span><strong>' + deps.r1(p.pct) + '% · ' + deps.r1(p.slice.area) + ' ' + L('econ.unit.sqm') + '</strong></div></div></div>';
 
       });
       metrics += '</div></div>';
     } else {
       metrics += '<div class="econ-results-section"><p style="color:var(--ink-faint);font-size:13px;margin:0">' + L('econ.metrics.empty') + '</p></div>';
     }
+
+    const mixReport = res.mixReport;
+    if (mixReport && (mixReport.rows || []).length){
+      let t = '<div class="econ-results-section"><p class="econ-results-sub">' + L('econ.mix.breakdownTitle') + '</p>';
+      t += '<div class="econ-table-scroll"><table class="econ-breakdown" id="econ-mix-breakdown-table"><tr>' +
+        '<th>' + L('econ.mix.comp') + '</th><th>%</th><th>' + L('econ.unit.sqm') + '</th><th>' + L('econ.out.kgMo') + '</th><th>' + L('econ.mix.sellKgMo') + '</th><th>' + L('econ.mix.varCost') + '</th><th>' + L('econ.mix.fixedCost') + '</th><th>' + L('econ.mix.fullCost') + '</th></tr>';
+      (mixReport.rows || []).forEach(function(r){
+        t += '<tr><td>' + (r.name || '—') + '</td><td>' + deps.r1(r.pct || 0) + '</td><td>' + deps.r1(r.area || 0) + '</td>' +
+          '<td>' + (r.gross > 0 ? deps.r1(r.gross) : '—') + '</td><td>' + (r.sell > 0 ? deps.r1(r.sell) : '—') + '</td>' +
+          '<td>' + (r.unitVar > 0 ? moneyPer(r.unitVar, 'econ.perKg') : '—') + '</td>' +
+          '<td>' + (r.unitFixed > 0 ? moneyPer(r.unitFixed, 'econ.perKg') : '—') + '</td>' +
+          '<td><strong>' + (r.unitFull > 0 ? moneyPer(r.unitFull, 'econ.perKg') : '—') + '</strong></td></tr>';
+      });
+      t += '<tr class="econ-row-total"><td><strong>' + L('econ.mix.total') + '</strong></td><td>' + (mixReport.sumPct > 0 ? deps.r1(mixReport.sumPct) : '—') + '</td><td>—</td><td>—</td><td>—</td>' +
+        '<td>' + (mixReport.recipeOk && mixReport.unitVar > 0 ? '<strong>' + moneyPer(mixReport.unitVar, 'econ.perKg') + '</strong>' : '—') + '</td>' +
+        '<td>' + (mixReport.recipeOk && mixReport.unitFixed > 0 ? '<strong>' + moneyPer(mixReport.unitFixed, 'econ.perKg') + '</strong>' : '—') + '</td>' +
+        '<td><strong>' + (mixReport.recipeOk && mixReport.unitFull > 0 ? moneyPer(mixReport.unitFull, 'econ.perKg') : '—') + '</strong></td></tr>';
+      t += '</table></div>';
+      t += '<p class="econ-hint econ-mix-bd-hint">' + L('econ.mix.breakdownHint') + '</p></div>';
+      metrics += t;
+    }
+
     metrics += '<div class="econ-results-farm"><div id="econ-elec-charts" class="econ-elec-charts-wrap"></div>' +
       '<p class="econ-results-sub">' + L('econ.metrics.elecMo') + '</p>' +
       '<div class="econ-table-scroll"><table class="econ-breakdown econ-elec-total"><tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwh') + '</th><th>' + moneySym() + '</th></tr>';
@@ -951,11 +1142,20 @@
       metrics += '<tr><td>' + lbl + sub + '</td><td>' + deps.fmtNum(row.kwh || 0) + '</td><td>' + moneyFmt(row.cost) + '</td></tr>';
     });
     metrics += '<tr class="econ-row-total"><td><strong>' + L('econ.elec.total') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr></table></div></div>';
-    metrics += '<div class="econ-results-farm"><p class="econ-results-sub">' + L('econ.metrics.farm') + '</p><div class="econ-results" style="margin-top:0">' +
-      '<div class="m"><div class="m-label">' + L('econ.metrics.opex') + '</div><div class="m-val">' + moneyFmt(res.monthlyOpex) + '<span class="m-unit">' + moneySym() + '</span></div></div>' +
-      '<div class="m ' + (res.margin >= 0 ? 'hl' : 'bad-tint') + '"><div class="m-label">' + L('econ.metrics.marginAll') + '</div><div class="m-val">' + moneyFmt(res.margin) + '<span class="m-unit">' + moneySym() + '</span></div></div>' +
-      '</div></div>';
     deps.$('econ-results-metrics').innerHTML = metrics;
+
+    let farmCards = '<div class="econ-results" style="margin-top:0">' +
+      '<div class="m"><div class="m-label">' + L('econ.metrics.opex') + '</div><div class="m-val">' + moneyFmt(res.monthlyOpex) + '</div></div>' +
+      '<div class="m"><div class="m-label">' + L('econ.bd.revenue') + '</div><div class="m-val">' + moneyFmt(res.revenue) + '</div></div>' +
+      '<div class="m ' + (res.margin >= 0 ? 'hl' : 'bad-tint') + '"><div class="m-label">' + L('econ.metrics.marginAll') + '</div><div class="m-val">' + moneyFmt(res.margin) + '</div></div>';
+    if (res.breakEvenRevenue > 0){
+      farmCards += '<div class="m"><div class="m-label">' + L('econ.metrics.breakEvenRevenue') + '</div><div class="m-val">' + moneyFmt(res.breakEvenRevenue) + '</div>' +
+        (res.breakEvenRevenuePct > 0 ? '<div class="m-sub">' + tFmt('econ.metrics.breakEvenRevenuePct', { pct: deps.r1(res.breakEvenRevenuePct) }) + '</div>' : '') +
+        '</div>';
+    }
+    farmCards += '</div>';
+    const farmCardsEl = deps.$('econ-results-final-cards');
+    if (farmCardsEl) farmCardsEl.innerHTML = farmCards;
     renderElecCharts(res);
 
     const wasteRow = res.wastePct > 0

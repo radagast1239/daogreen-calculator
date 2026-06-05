@@ -3,15 +3,26 @@
   'use strict';
 
   const ECON_DEFAULT_CONSUMABLES_PER_POT = 4;
+  const ECON_DEFAULT_CONSUMABLES_PER_TRAY = 10;
+  const ECON_DEFAULT_LOT_DENSITY = 45;
+  const ECON_DEFAULT_KWH_M2H = 0.12;
   const ECON_CONSUMABLES_PER_POT_HINT = '3–6';
-  const ECON_SALAD_MIX_ID = '__salad_mix__';
+  const ECON_CV_OVERRIDES = {
+    'pl-microgreens': { density: 45, consumablesPerPot: 10 },
+    'pl-salad': { density: 45, consumablesPerPot: 10 },
+    'pl-baby-living': { density: 45, consumablesPerPot: 10 },
+    'pl-wheatgrass': { consumablesPerPot: 10 },
+    'pl-spinach-baby': { density: 220, yieldPerCut: 3, cutIntervalDays: 7, consumablesPerPot: 4 },
+    'pl-edible-flowers': { yieldPerCut: 30, cutIntervalDays: 7, consumablesPerPot: 4, potHarvestMonths: 5 }
+  };
+  const ECON_SALAD_MIX_ID = '__salad_mix__'; // legacy id (kept for compatibility)
   const ECON_SALAD_MIX_CV_IDS = [
     'vf-kale-baby', 'vf-mizuna-baby', 'vf-mustard-baby', 'vf-chard-baby',
     'vf-romano-baby', 'vf-corn',
     'vf-pakchoi-baby', 'vf-tatsoi-baby', 'vf-komatsuna-baby'
   ];
   var ECON_MONTH_DAYS = (global.DG_CUT && global.DG_CUT.HARVEST_MONTH_DAYS) || 30.5;
-  const ECON_MAX_CULTURES = 6;
+  const ECON_MAX_CULTURES = 12;
   const ECON_ELEC_CAT_IDS = ['pumps', 'fans', 'heating', 'equipment', 'misc'];
 
   const ECON_EQUIPMENT_GROUPS_RAW = [
@@ -44,6 +55,9 @@
 
   global.DG_ECON = {
     ECON_DEFAULT_CONSUMABLES_PER_POT: ECON_DEFAULT_CONSUMABLES_PER_POT,
+    ECON_DEFAULT_CONSUMABLES_PER_TRAY: ECON_DEFAULT_CONSUMABLES_PER_TRAY,
+    ECON_DEFAULT_LOT_DENSITY: ECON_DEFAULT_LOT_DENSITY,
+    ECON_DEFAULT_KWH_M2H: ECON_DEFAULT_KWH_M2H,
     ECON_CONSUMABLES_PER_POT_HINT: ECON_CONSUMABLES_PER_POT_HINT,
     ECON_SALAD_MIX_ID: ECON_SALAD_MIX_ID,
     ECON_SALAD_MIX_CV_IDS: ECON_SALAD_MIX_CV_IDS,
@@ -126,7 +140,7 @@
       density: 80,
       yieldPerCut: 15,
       cutIntervalDays: 15,
-      kwhPerM2Hour: 0.08,
+      kwhPerM2Hour: ECON_DEFAULT_KWH_M2H,
       lightHoursDay: 16,
       consumablesPerPot: ECON_DEFAULT_CONSUMABLES_PER_POT,
       potHarvestMonths: 3,
@@ -157,15 +171,17 @@
       floorArea: 200,
       plantingArea: 150,
       cultures: defaultEconCultures(),
-      salePrice: 800,
-      kwhPerM2Hour: 0.08,
+      salePrice: 0,
+      kwhPerM2Hour: ECON_DEFAULT_KWH_M2H,
       lightHoursDay: 16,
       elecCats: defaultElecCats(),
       otherMonth: 15000,
       consumablesPerKg: 0,
+      consumablesPerPcs: 0,
       wastePct: 0,
       usnTax: false,
       vatTax: false,
+      vatInclusive: false,
       vatPct: 12,
       profitTax: false,
       profitTaxPct: 15,
@@ -178,7 +194,6 @@
 
   function econCvDisplayName(cvId){
     if (!cvId) return T('econ.cv.noSort', 'Культура (без сорта)');
-    if (cvId === ECON_SALAD_MIX_ID) return T('econ.opt.mix', 'Микс салатов');
     const cv = deps.findCvById(cvId);
     return cv ? cv.name : cvId;
   }
@@ -216,6 +231,73 @@
   function snapDensity(snap, fallback){
     var d = snap && snap.rhoA;
     return Math.round((d > 0 ? d : fallback) || 80);
+  }
+
+  /** Плотность посадных единиц для экономики: для лотков — лотки/м², не ячейки кассеты. */
+  function econLotStandDensity(cv){
+    if (!cv || !cv.econLotSale) return Math.round((cv && cv.density) || 0);
+    if (cv.id === 'pl-microgreens' || cv.id === 'pl-baby-living' || cv.id === 'pl-salad') return ECON_DEFAULT_LOT_DENSITY;
+    const cellD = Math.round(cv.density || 0);
+    const cells = cv.palletCells || 0;
+    if (cells > 1 && cellD > cells * 3) return Math.max(1, Math.round(cellD / cells));
+    return cellD;
+  }
+
+  function econConsumablesDefaultForCv(cv){
+    if (!cv) return ECON_DEFAULT_CONSUMABLES_PER_POT;
+    if (cv.econLotSale) return econLotSaleAsPot(cv) ? ECON_DEFAULT_CONSUMABLES_PER_POT : ECON_DEFAULT_CONSUMABLES_PER_TRAY;
+    return ECON_DEFAULT_CONSUMABLES_PER_POT;
+  }
+
+  function applyEconCvOverrides(cvId, row){
+    const o = ECON_CV_OVERRIDES[cvId];
+    if (o) Object.assign(row, o);
+    return row;
+  }
+
+  /** Плотность для экономики поддona: шт/м² из справочника, не геометрия layout snap. */
+  function econPalletDensity(cv, snap){
+    if (cv && cv.palletSheet){
+      if (cv.econLotSale) return econLotStandDensity(cv);
+      if (cv.density > 0) return Math.round(cv.density);
+    }
+    return snapDensity(snap, (cv && cv.density) || 80);
+  }
+
+  function econLotSaleAsPot(cv){
+    return !!(cv && cv.econLotSale && cv.econLotSalePot);
+  }
+
+  /** Полный цикл для продажи лотком/горшком: 1 шт = 1 лоток или 1 горшок, выход = (мес / цикл) × шт/м² */
+  function econPalletLotCycleDays(cv){
+    if (!cv) return 15;
+    var total = (cv.germination || 0) + (cv.channelDays || 0);
+    if (total > 0) return Math.max(1, total);
+    if (cv.cutInterval > 0) return Math.max(1, cv.cutInterval);
+    return 15;
+  }
+
+  function econPalletCatalogYield(cv, snap){
+    if (cv && cv.econLotSale){
+      return {
+        yieldPerCut: 1,
+        cutIntervalDays: econPalletLotCycleDays(cv),
+        unitIsPieces: true
+      };
+    }
+    if (cv && cv.countUnit === 'шт'){
+      return {
+        yieldPerCut: Math.max(0, cv.yieldPerCutG || 0),
+        cutIntervalDays: Math.max(1, cv.cutInterval || econSheetCutIntervalDays(cv, snap)),
+        unitIsPieces: true
+      };
+    }
+    var yp = econYieldParamsForCvId(cv.id, snap);
+    return {
+      yieldPerCut: yp.yieldPerCut,
+      cutIntervalDays: yp.cutIntervalDays,
+      unitIsPieces: !!(snap && snap.unitIsPieces)
+    };
   }
 
   function econSheetYieldPerCut(cv, snap){
@@ -266,33 +348,23 @@
   function econCatalogDefaultsForCvId(cvId){
     const e = st().econ;
     const light = {
-      kwhPerM2Hour: parseFloat(e && e.kwhPerM2Hour) || 0.08,
+      kwhPerM2Hour: parseFloat(e && e.kwhPerM2Hour) || ECON_DEFAULT_KWH_M2H,
       lightHoursDay: parseFloat(e && e.lightHoursDay) || 16
     };
     if (!cvId) return light;
-    if (cvId === ECON_SALAD_MIX_ID){
-      const rows = ECON_SALAD_MIX_CV_IDS.map(id => econCatalogDefaultsForCvId(id));
-      const avg = key => rows.reduce((s, r) => s + (r[key] || 0), 0) / rows.length;
-      return Object.assign({
-        density: Math.round(avg('density')),
-        yieldPerCut: Math.round(avg('yieldPerCut') * 10) / 10,
-        cutIntervalDays: Math.max(1, Math.round(avg('cutIntervalDays'))),
-        unitIsPieces: rows.some(r => r.unitIsPieces)
-      }, light);
-    }
     if (deps.isPalletCvId(cvId) && deps.allPalletCultivars().length){
       const cv = deps.allPalletCultivars().find(c => c.id === cvId);
       if (!cv) return light;
       const snap = deps.getPlantingSnapshotForCvId(cvId);
-      const yp = econYieldParamsForCvId(cvId, snap);
-      return Object.assign({
-        density: snapDensity(snap, cv.density),
-        yieldPerCut: yp.yieldPerCut,
-        cutIntervalDays: yp.cutIntervalDays,
-        unitIsPieces: !!(snap && snap.unitIsPieces),
+      const py = econPalletCatalogYield(cv, snap);
+      return applyEconCvOverrides(cvId, Object.assign({
+        density: econPalletDensity(cv, snap),
+        yieldPerCut: py.yieldPerCut,
+        cutIntervalDays: py.cutIntervalDays,
+        unitIsPieces: py.unitIsPieces,
         potHarvestMonths: parsePotHarvestMonthsFromCv(cv, snap),
-        consumablesPerPot: ECON_DEFAULT_CONSUMABLES_PER_POT
-      }, light);
+        consumablesPerPot: econConsumablesDefaultForCv(cv)
+      }, light));
     }
     if (deps.isVfCvId(cvId) && deps.allVfCultivars().length){
       const cv = deps.allVfCultivars().find(c => c.id === cvId);
@@ -300,28 +372,28 @@
       const snap = deps.getPlantingSnapshotForCvId(cvId);
       const yp = econYieldParamsForCvId(cvId, snap);
       const std = deps.buildDefaultVfStandards(cv);
-      return Object.assign({
+      return applyEconCvOverrides(cvId, Object.assign({
         density: snapDensity(snap, std.density),
         yieldPerCut: yp.yieldPerCut,
         cutIntervalDays: yp.cutIntervalDays,
         unitIsPieces: cv.countUnit === 'шт',
         potHarvestMonths: parsePotHarvestMonthsFromCv(cv, snap),
-        consumablesPerPot: ECON_DEFAULT_CONSUMABLES_PER_POT
-      }, light);
+        consumablesPerPot: econConsumablesDefaultForCv(cv)
+      }, light));
     }
     const cv = deps.allGhCultivars().find(c => c.id === cvId);
     if (!cv || deps.isVfCvId(cvId)) return light;
     const snap = deps.getPlantingSnapshotForCvId(cvId);
     const yp = econYieldParamsForCvId(cvId, snap);
     const std = deps.getGhCvStandards(cv);
-    return Object.assign({
+    return applyEconCvOverrides(cvId, Object.assign({
       density: snapDensity(snap, std.density),
       yieldPerCut: yp.yieldPerCut,
       cutIntervalDays: yp.cutIntervalDays,
       unitIsPieces: !!(snap && snap.unitIsPieces),
       potHarvestMonths: parsePotHarvestMonthsFromCv(cv, snap),
-      consumablesPerPot: ECON_DEFAULT_CONSUMABLES_PER_POT
-    }, light);
+      consumablesPerPot: econConsumablesDefaultForCv(cv)
+    }, light));
   }
 
   function normalizeEconCultureRow(row){
@@ -331,9 +403,24 @@
     out.pct = row && row.pct != null ? row.pct : base.pct;
     out.salePrice = row && row.salePrice != null ? row.salePrice : 0;
     out.unitIsPieces = !!(row && row.unitIsPieces);
+    out.mixInMix = !!(row && row.mixInMix);
+    out.mixPct = row && row.mixPct != null ? (parseFloat(row.mixPct) || 0) : 0;
+    if (out.cvId){
+      const cv = deps.findCvById(out.cvId);
+      if (cv && (cv.econLotSale || cv.countUnit === 'шт')) out.unitIsPieces = true;
+      else if (cv && cv.countUnit && cv.countUnit !== 'шт') out.unitIsPieces = false;
+    }
     const consRaw = row && row.consumablesPerPot != null ? parseFloat(row.consumablesPerPot) : NaN;
-    out.consumablesPerPot = Number.isFinite(consRaw) && consRaw > 0 ? consRaw : ECON_DEFAULT_CONSUMABLES_PER_POT;
+    const cv = out.cvId ? deps.findCvById(out.cvId) : null;
+    const consDefault = econConsumablesDefaultForCv(cv);
+    out.consumablesPerPot = Number.isFinite(consRaw) && consRaw > 0 ? consRaw : consDefault;
+    if (cv && cv.id === 'pl-edible-flowers' && out.consumablesPerPot < 1){
+      out.consumablesPerPot = ECON_DEFAULT_CONSUMABLES_PER_POT;
+    }
     out.potHarvestMonths = row && row.potHarvestMonths != null ? Math.max(0.25, parseFloat(row.potHarvestMonths) || 3) : 3;
+    if (cv && cv.econLotSale){
+      out.potHarvestMonths = parsePotHarvestMonthsFromCv(cv, deps.getPlantingSnapshotForCvId(out.cvId));
+    }
     return out;
   }
 
@@ -342,6 +429,10 @@
     if (!cv) return 3;
     const note = String(cv.replaceNote || cv.cutNote || '').toLowerCase();
     const cycleDays = econCvTotalCycleDays(cv, snap);
+    if (cv.econLotSale){
+      const cycleDays = econPalletLotCycleDays(cv);
+      if (cycleDays > 0) return Math.max(0.25, cycleDays / ECON_MONTH_DAYS);
+    }
     if (cv.multicut === false || (!cv.multicut && !deps.supportsMulticut(cv))){
       if (cycleDays > 0) return Math.max(0.25, cycleDays / ECON_MONTH_DAYS);
       if (/45\s*сут/.test(note)) return Math.max(0.25, 45 / ECON_MONTH_DAYS);
@@ -378,6 +469,9 @@
 
   function migrateEconCultureRows(){
     ensureEconCultures();
+    st().econ.cultures = st().econ.cultures.filter(function(row){
+      return (row && row.cvId) !== ECON_SALAD_MIX_ID;
+    });
     st().econ.cultures = st().econ.cultures.map(row => {
       if (row.density != null && row.yieldPerCut != null && row.cutIntervalDays != null) {
         return normalizeEconCultureRow(row);
@@ -438,68 +532,109 @@
   function formatEconCultureHint(row){
     const norm = normalizeEconCultureRow(row);
     const bio = econCultureBio(norm);
+    const cv = norm.cvId ? deps.findCvById(norm.cvId) : null;
+    const isLot = !!(cv && cv.econLotSale);
+    const lotPot = econLotSaleAsPot(cv);
     const dUnit = T('econ.unit.days', 'сут');
     const ySqm = bio.unitIsPieces
       ? deps.r1(bio.yieldPerSqmMonthPcs) + ' ' + T('econ.yield.pcsSqm', 'шт/м²·мес')
       : deps.r2(bio.yieldPerSqmMonthKg) + ' ' + T('econ.yield.kgSqm', 'кг/м²·мес');
-    const intervalLbl = bio.cutsPerMonth > 1.05
-      ? TF('econ.hint.interval', { days: deps.r1(bio.cutIntervalDays), dUnit: dUnit }, 'интервал {days} {dUnit}')
-      : TF('econ.hint.fullCycle', { days: deps.r1(bio.cutIntervalDays), dUnit: dUnit }, 'полный цикл {days} {dUnit}');
-    let h = TF('econ.hint.cutsMo', {
+    const intervalLbl = isLot
+      ? TF('econ.hint.fullCycle', { days: deps.r1(bio.cutIntervalDays), dUnit: dUnit }, 'полный цикл {days} {dUnit}')
+      : (bio.cutsPerMonth > 1.05
+        ? TF('econ.hint.interval', { days: deps.r1(bio.cutIntervalDays), dUnit: dUnit }, 'интервал {days} {dUnit}')
+        : TF('econ.hint.fullCycle', { days: deps.r1(bio.cutIntervalDays), dUnit: dUnit }, 'полный цикл {days} {dUnit}'));
+    const fromLbl = isLot
+      ? (lotPot ? T('econ.hint.fromPot', 'с 1 горшка') : T('econ.hint.fromTray', 'с 1 лотка'))
+      : T('econ.hint.fromPot', 'с 1 горшка');
+    let h = TF(isLot ? 'econ.hint.cutsMoLot' : 'econ.hint.cutsMo', {
       cuts: deps.r1(bio.cutsPerMonth),
       intervalLbl: intervalLbl,
       yieldPot: deps.r1(bio.yieldPerPotMonth),
       unit: bio.yieldUnit,
       ySqm: ySqm,
+      fromLbl: fromLbl,
       kwh: deps.r3(bio.kwhPerM2Hour),
       lightH: deps.r1(bio.lightHoursDay)
-    }, 'Срезок в месяц: <strong>{cuts}</strong> ({intervalLbl}) · с 1 горшка: <strong>{yieldPot} {unit}</strong> · <strong>{ySqm}</strong> · свет {kwh} кВт·ч/м²·ч × {lightH} ч');
+    }, isLot
+      ? 'Оборот в месяц: <strong>{cuts}</strong> ({intervalLbl}) · {fromLbl}: <strong>{yieldPot} {unit}</strong> · <strong>{ySqm}</strong> · свет {kwh} кВт·ч/м² × {lightH} ч'
+      : 'Срезок в месяц: <strong>{cuts}</strong> ({intervalLbl}) · {fromLbl}: <strong>{yieldPot} {unit}</strong> · <strong>{ySqm}</strong> · свет {kwh} кВт·ч/м² × {lightH} ч');
     if (norm.consumablesPerPot > 0){
-      const consSqm = bio.density > 0 && bio.potHarvestMonths > 0
-        ? (bio.density * norm.consumablesPerPot) / bio.potHarvestMonths : 0;
-      const consOnce = bio.density * norm.consumablesPerPot;
-      var fm = deps.fmtMoney || deps.fmtNum;
-      var sym = deps.currencySym ? deps.currencySym() : '₽';
-      var perPot = sym + T('econ.perPot', '/горшок');
-      var perSqm = sym + T('econ.perSqm', '/м²');
-      var perSqmMo = sym + T('econ.perSqmMonth', '/м²·мес');
-      h += TF('econ.hint.cons', {
-        perPot: fm(norm.consumablesPerPot) + perPot,
-        dens: deps.round(bio.density),
-        pcsSqm: T('econ.unit.pcsSqm', 'шт/м²'),
-        consOnce: fm(consOnce) + perSqm,
-        months: deps.r1(bio.potHarvestMonths),
-        consMo: fm(consSqm) + perSqmMo
-      }, ' · посев <strong>{perPot}</strong> × <strong>{dens} {pcsSqm}</strong> = <strong>{consOnce}</strong>, ÷ <strong>{months}</strong> → <strong>{consMo}</strong>');
+      function fmtMoneyUnit(amount, unitKey, unitFallback){
+        var unit = T(unitKey, unitFallback);
+        if (deps.fmtMoney) return deps.fmtMoney(amount) + unit;
+        var sym = deps.currencySym ? deps.currencySym() : '₽';
+        return (deps.fmtNum ? deps.fmtNum(amount) : String(amount)) + sym + unit;
+      }
+      if (isLot){
+        const consSqm = bio.yieldPerSqmMonthPcs * norm.consumablesPerPot;
+        h += TF(lotPot ? 'econ.hint.consLotSalePot' : 'econ.hint.consLotSale', {
+          perUnit: fmtMoneyUnit(norm.consumablesPerPot, lotPot ? 'econ.perPot' : 'econ.perTray', lotPot ? '/горшок' : '/лоток'),
+          consMo: fmtMoneyUnit(consSqm, 'econ.perSqmMonth', '/м²·мес')
+        }, lotPot
+          ? ' · <strong>{perUnit}</strong> на каждую проданную шт → <strong>{consMo}</strong>'
+          : ' · <strong>{perUnit}</strong> на каждую проданную шт → <strong>{consMo}</strong>');
+      } else {
+        const consSqm = bio.density > 0 && bio.potHarvestMonths > 0
+          ? (bio.density * norm.consumablesPerPot) / bio.potHarvestMonths : 0;
+        const consOnce = bio.density * norm.consumablesPerPot;
+        h += TF('econ.hint.cons', {
+          perPot: fmtMoneyUnit(norm.consumablesPerPot, 'econ.perPot', '/горшок'),
+          dens: deps.round(bio.density),
+          pcsSqm: T('econ.unit.pcsSqm', 'шт/м²'),
+          consOnce: fmtMoneyUnit(consOnce, 'econ.perSqm', '/м²'),
+          months: deps.r1(bio.potHarvestMonths),
+          consMo: fmtMoneyUnit(consSqm, 'econ.perSqmMonth', '/м²·мес')
+        }, ' · посев <strong>{perPot}</strong> × <strong>{dens} {pcsSqm}</strong> = <strong>{consOnce}</strong>, ÷ <strong>{months}</strong> → <strong>{consMo}</strong>');
+      }
     }
     return h;
   }
 
-  /** Расходники на посев: плотность (шт/м²) × площадь × ₽/горшок (семена, горшок, субстрат) ÷ мес урожая с одного посева */
+  /** Расходники: срез — горшок ÷ срок на стеллаже; продажа 1 шт = 1 лоток/горшок — ₽/шт × выпуск */
   function calcCultureConsumables(row, area, monthlyOutput, e){
     const bio = econCultureBio(row);
+    const cv = row.cvId ? deps.findCvById(row.cvId) : null;
+    const lotSale = !!(cv && cv.econLotSale);
     const potsPerSqm = bio.density;
     const perPot = bio.consumablesPerPot;
+    const wasteFactor = e ? (1 - deps.clamp(parseFloat(e.wastePct) || 0, 0, 50) / 100) : 1;
+    const sellableOutput = monthlyOutput * wasteFactor;
     const harvestMonths = bio.potHarvestMonths;
     const pots = potsPerSqm * Math.max(0, area);
     const potCostOnce = pots * perPot;
-    let potCostMonth = harvestMonths > 0 ? potCostOnce / harvestMonths : 0;
-    let costPerSqm = harvestMonths > 0 && perPot > 0 ? (potsPerSqm * perPot) / harvestMonths : 0;
+    let potCostMonth;
+    let costPerSqm;
+    if (lotSale && perPot > 0){
+      potCostMonth = sellableOutput * perPot;
+      costPerSqm = area > 0 ? potCostMonth / area : 0;
+    } else {
+      potCostMonth = harvestMonths > 0 ? potCostOnce / harvestMonths : 0;
+      costPerSqm = harvestMonths > 0 && perPot > 0 ? (potsPerSqm * perPot) / harvestMonths : 0;
+    }
     const costPerSqmOnce = potsPerSqm * perPot;
     let cost = potCostMonth;
     const perKgExtra = parseFloat(e && e.consumablesPerKg) || 0;
-    const wasteFactor = e ? (1 - deps.clamp(parseFloat(e.wastePct) || 0, 0, 50) / 100) : 1;
-    const sellableOutput = monthlyOutput * wasteFactor;
+    const perPcsExtra = parseFloat(e && e.consumablesPerPcs) || 0;
+    let packagingCost = 0;
     let extraPerSqm = 0;
-    if (perKgExtra > 0 && sellableOutput > 0 && area > 0){
-      const extra = sellableOutput * perKgExtra;
-      cost += extra;
-      extraPerSqm = extra / area;
+    if (sellableOutput > 0 && area > 0){
+      if (!bio.unitIsPieces && perKgExtra > 0){
+        packagingCost = sellableOutput * perKgExtra;
+      } else if (bio.unitIsPieces && perPcsExtra > 0){
+        packagingCost = sellableOutput * perPcsExtra;
+      }
+    }
+    if (packagingCost > 0){
+      cost += packagingCost;
+      extraPerSqm = packagingCost / area;
       costPerSqm += extraPerSqm;
     }
     const unitCost = sellableOutput > 0 ? cost / sellableOutput : 0;
     return {
       cost: cost,
+      potCostMonth: potCostMonth,
+      packagingCost: packagingCost,
       costPerSqm: costPerSqm,
       costPerSqmOnce: costPerSqmOnce,
       potCostOnce: potCostOnce,
@@ -527,7 +662,6 @@
     }
     const defs = econCatalogDefaultsForCvId(cvId);
     Object.assign(out, defs, { cvId: cvId, pct: pct, salePrice: salePrice });
-    if (cvId === ECON_SALAD_MIX_ID) out.unitIsPieces = false;
     return normalizeEconCultureRow(out);
   }
 
@@ -536,14 +670,24 @@
     if (!cvId) return row;
     const cv = deps.findCvById(cvId);
     const snap = deps.getPlantingSnapshotForCvId(cvId);
-    const yp = econYieldParamsForCvId(cvId, snap);
-    row.yieldPerCut = yp.yieldPerCut;
-    row.cutIntervalDays = yp.cutIntervalDays;
+    if (cv && cv.econLotSale){
+      row.yieldPerCut = 1;
+      row.cutIntervalDays = econPalletLotCycleDays(cv);
+      row.unitIsPieces = true;
+    } else {
+      const yp = econYieldParamsForCvId(cvId, snap);
+      row.yieldPerCut = yp.yieldPerCut;
+      row.cutIntervalDays = yp.cutIntervalDays;
+      if (snap && snap.unitIsPieces != null) row.unitIsPieces = !!snap.unitIsPieces;
+      else if (cv && cv.countUnit === 'шт') row.unitIsPieces = true;
+    }
     if (snap){
-      row.density = snapDensity(snap, row.density);
+      row.density = (cv && deps.isPalletCvId(cvId)) ? econPalletDensity(cv, snap) : snapDensity(snap, row.density);
       row.kwhPerM2Hour = Math.round(snap.kwhPerM2Hour * 1000) / 1000;
       row.lightHoursDay = Math.round(snap.lightHoursDay * 10) / 10;
-      row.unitIsPieces = !!snap.unitIsPieces;
+      if (cv && cv.econLotSale) row.unitIsPieces = true;
+      else if (cv && cv.countUnit === 'шт') row.unitIsPieces = true;
+      else row.unitIsPieces = !!snap.unitIsPieces;
       if (cv) row.potHarvestMonths = parsePotHarvestMonthsFromCv(cv, snap);
     }
     if (!(parseFloat(row.consumablesPerPot) > 0)) row.consumablesPerPot = ECON_DEFAULT_CONSUMABLES_PER_POT;
@@ -590,6 +734,10 @@
     dedupeEconCultures();
     const filled = st().econ.cultures.filter(function(r){ return r.cvId; });
     if (filled.length === 1) filled[0].pct = 100;
+
+    if (global.DG_recordPlantingImportMeta){
+      global.DG_recordPlantingImportMeta(st(), liveSnap, { activeId: activeId });
+    }
 
     deps.saveEconStore();
     return { activeId: activeId, snap: liveSnap, cvName: liveSnap && liveSnap.cvName ? liveSnap.cvName : '' };
@@ -658,7 +806,40 @@
     if (e.vatPct == null || isNaN(parseFloat(e.vatPct))) e.vatPct = 12;
     if (e.profitTaxPct == null || isNaN(parseFloat(e.profitTaxPct))) e.profitTaxPct = 15;
     if (e.vatTax == null) e.vatTax = false;
+    if (e.vatInclusive == null) e.vatInclusive = false;
     if (e.profitTax == null) e.profitTax = false;
+  }
+
+  function calcVatTaxAmt(revenue, e){
+    if (!e || !e.vatTax || !(revenue > 0)) return 0;
+    const vatPct = deps.clamp(parseFloat(e.vatPct) || 12, 0, 30);
+    if (e.vatInclusive) return revenue * vatPct / (100 + vatPct);
+    return revenue * (vatPct / 100);
+  }
+
+  function scaleEconCostFields(c, factor){
+    if (!(factor > 0) || factor === 1) return c;
+    c.rentMonth = (parseFloat(c.rentMonth) || 0) * factor;
+    c.priceKwh = (parseFloat(c.priceKwh) || 0) * factor;
+    c.otherMonth = (parseFloat(c.otherMonth) || 0) * factor;
+    c.logisticsMonth = (parseFloat(c.logisticsMonth) || 0) * factor;
+    c.consumablesPerKg = (parseFloat(c.consumablesPerKg) || 0) * factor;
+    c.consumablesPerPcs = (parseFloat(c.consumablesPerPcs) || 0) * factor;
+    c.accountingMonth = (parseFloat(c.accountingMonth) || 0) * factor;
+    c.staffLines = (c.staffLines || []).map(function(row){
+      return Object.assign({}, row, { salary: (parseFloat(row.salary) || 0) * factor });
+    });
+    c.payrollCustom = (c.payrollCustom || []).map(function(row){
+      return Object.assign({}, row, { amount: (parseFloat(row.amount) || 0) * factor });
+    });
+    c.cultures = (c.cultures || []).map(function(row){
+      var r = Object.assign({}, row);
+      var cp = parseFloat(r.consumablesPerPot);
+      if (cp > 0) r.consumablesPerPot = cp * factor;
+      return r;
+    });
+    c._costScale = (parseFloat(c._costScale) || 1) * factor;
+    return c;
   }
 
   function migrateEconOtherElectricity(e){
@@ -728,6 +909,55 @@
     return st().econ.cultures.reduce((s, row) => s + (parseFloat(row.pct) || 0), 0);
   }
 
+  function calcMixReport(e, parts, farm){
+    const wf = farm ? (1 - deps.clamp(parseFloat(farm.wastePct) || 0, 0, 50) / 100) : 1;
+    const picked = (parts || []).filter(function(p){
+      return p && p.row && p.row.mixInMix && p.cvId && p.slice && p.slice.outputUnit !== 'шт';
+    });
+    if (picked.length < 2) return null;
+    const sumPct = picked.reduce(function(s, p){ return s + Math.max(0, parseFloat(p.row.mixPct) || 0); }, 0);
+    const rows = picked.map(function(p){
+      const pct = Math.max(0, parseFloat(p.row.mixPct) || 0);
+      const gross = p.slice.monthlyOutput || 0;
+      const sell = gross * wf;
+      const varOpex = (p.slice.lightCost || 0) + (p.slice.consumablesCost || 0);
+      const fixed = p.slice.allocatedFixed || 0;
+      return {
+        cvId: p.cvId,
+        name: p.name,
+        pct: pct,
+        area: p.slice.area || 0,
+        gross: gross,
+        sell: sell,
+        varOpex: varOpex,
+        fixed: fixed,
+        unitVar: sell > 0 ? varOpex / sell : 0,
+        unitFixed: sell > 0 ? fixed / sell : 0,
+        unitFull: sell > 0 ? (varOpex + fixed) / sell : 0
+      };
+    });
+    // Итог микса — себестоимость 1 кг готового микса по рецепту (% в миксе),
+    // а не среднее по фактическому объёму выращивания (доля на ферме может быть больше).
+    const recipeOk = sumPct > 0 && Math.abs(sumPct - 100) <= 0.05;
+    let unitVar = 0, unitFixed = 0, unitFull = 0;
+    rows.forEach(function(r){
+      r.weight = recipeOk ? (r.pct / 100) : 0;
+      if (recipeOk){
+        unitVar += r.weight * r.unitVar;
+        unitFixed += r.weight * r.unitFixed;
+        unitFull += r.weight * r.unitFull;
+      }
+    });
+    return {
+      sumPct: sumPct,
+      recipeOk: recipeOk,
+      rows: rows,
+      unitVar: unitVar,
+      unitFixed: unitFixed,
+      unitFull: unitFull
+    };
+  }
+
   function calcCultureSliceFromRow(row, e, area, salePrice){
     const bio = econCultureBio(row);
     const monthlyOutput = bio.unitIsPieces
@@ -747,6 +977,8 @@
       lightCost: lightCost,
       lightKwhMonth: lightKwhMonth,
       consumablesCost: cons.cost,
+      consumablesPotCost: cons.potCostMonth,
+      consumablesPackagingCost: cons.packagingCost,
       consumablesPerSqm: cons.costPerSqm,
       consumablesPerSqmOnce: cons.costPerSqmOnce,
       consumablesOnce: cons.potCostOnce,
@@ -777,7 +1009,7 @@
         out.push(row);
         return;
       }
-      if (id !== ECON_SALAD_MIX_ID && seen.has(id)){
+      if (seen.has(id)){
         removed.push(id);
         return;
       }
@@ -799,7 +1031,7 @@
     ensureEconCultures();
     st().econ.cultures.forEach(row => {
       const id = row.cvId || '';
-      if (!id || id === ECON_SALAD_MIX_ID) return;
+      if (!id) return;
       if (seen.has(id)) { if (dups.indexOf(id) < 0) dups.push(id); }
       else seen.add(id);
     });
@@ -816,11 +1048,13 @@
       });
       w.push({ level: 'normal', text: TF('econ.warn.dupCv', { names: names.join(', ') }, 'Один сорт нельзя добавить дважды: {names} — оставьте одну строку.') });
     }
-    const hasMix = parts.some(p => p.cvId === ECON_SALAD_MIX_ID);
-    if (hasMix){
-      const overlap = parts.filter(p => p.cvId && p.cvId !== ECON_SALAD_MIX_ID && ECON_SALAD_MIX_CV_IDS.indexOf(p.cvId) >= 0);
-      if (overlap.length){
-        w.push({ level: 'normal', text: TF('econ.warn.mixOverlap', { names: overlap.map(p => p.name).join(', ') }, 'Микс салатов уже включает: {names} — уберите дубли из списка.') });
+    const mixPicked = parts.filter(function(p){ return p && p.row && p.row.mixInMix && p.cvId; });
+    if (mixPicked.length){
+      const sumMix = mixPicked.reduce(function(s, p){ return s + Math.max(0, parseFloat(p.row.mixPct) || 0); }, 0);
+      if (sumMix > 0 && Math.abs(sumMix - 100) > 0.05){
+        w.push({ level: 'normal', text: TF('econ.warn.mixPctSum', { pct: deps.r1(sumMix) }, 'Состав микса: сумма долей {pct}% (нужно 100%).') });
+      } else if (sumMix <= 0){
+        w.push({ level: 'normal', text: T('econ.warn.mixPctZero', 'Состав микса: укажите % для выбранных культур (иначе микс не считается).') });
       }
     }
     st().econ.cultures.forEach(row => {
@@ -858,7 +1092,7 @@
       const norm = normalizeEconCultureRow(row);
       const pct = deps.clamp(parseFloat(norm.pct) || 0, 0, 100) * scale;
       const area = plantingArea * pct / 100;
-      const salePrice = parseFloat(norm.salePrice) > 0 ? parseFloat(norm.salePrice) : (parseFloat(e.salePrice) || 0);
+      const salePrice = parseFloat(norm.salePrice) || 0;
       const slice = calcCultureSliceFromRow(norm, e, area, salePrice);
       return {
         cvId: norm.cvId || '',
@@ -869,7 +1103,7 @@
         salePrice: salePrice,
         slice: slice
       };
-    }).filter(p => p.pct > 0);
+    }).filter(p => p.pct > 0 && p.cvId);
 
     const payroll = calcPayrollMonthly(e);
     const staffGross = payroll.gross;
@@ -879,7 +1113,8 @@
     const staffTotal = payroll.total;
     const equipTotal = deps.sumEconEquipment();
     const amortMonths = Math.max(1, parseFloat(e.amortMonths) || 60);
-    const equipAmort = equipTotal / amortMonths;
+    const costScale = parseFloat(e._costScale) > 0 ? parseFloat(e._costScale) : 1;
+    const equipAmort = (equipTotal / amortMonths) * costScale;
     const rent = parseFloat(e.rentMonth) || 0;
     const logistics = parseFloat(e.logisticsMonth) || 0;
     const other = parseFloat(e.otherMonth) || 0;
@@ -919,7 +1154,7 @@
     const usnTaxAmt = e.usnTax ? revenue * 0.06 : 0;
     const vatPct = deps.clamp(parseFloat(e.vatPct) || 12, 0, 30);
     const profitTaxPct = deps.clamp(parseFloat(e.profitTaxPct) || 15, 0, 30);
-    const vatTaxAmt = e.vatTax ? revenue * (vatPct / 100) : 0;
+    const vatTaxAmt = calcVatTaxAmt(revenue, e);
     const profitBeforeTax = revenue - monthlyOpex - usnTaxAmt - vatTaxAmt;
     const profitTaxAmt = e.profitTax ? Math.max(0, profitBeforeTax) * (profitTaxPct / 100) : 0;
     const margin = profitBeforeTax - profitTaxAmt;
@@ -944,13 +1179,53 @@
     const marginKg = revKg - (fixedKg + lightKg + consKg) - taxShareKg;
     const marginPcs = revPcs - (fixedPcs + lightPcs + consPcs) - taxSharePcs;
 
+    const varCostKg = lightKg + consKg;
+    const contribPerKg = sellKg > 0 ? (revKg - varCostKg) / sellKg : 0;
+    const breakEvenKgMo = contribPerKg > 0 && fixedKg > 0 ? fixedKg / contribPerKg : 0;
+    const breakEvenKgSqm = breakEvenKgMo > 0 && areaKg > 0 ? breakEvenKgMo / areaKg : (breakEvenKgMo > 0 && plantingArea > 0 ? breakEvenKgMo / plantingArea : 0);
+    const varCostPcs = lightPcs + consPcs;
+    const contribPerPcs = sellPcs > 0 ? (revPcs - varCostPcs) / sellPcs : 0;
+    const breakEvenPcsMo = contribPerPcs > 0 && fixedPcs > 0 ? fixedPcs / contribPerPcs : 0;
+    const breakEvenPcsSqm = breakEvenPcsMo > 0 && areaPcs > 0 ? breakEvenPcsMo / areaPcs : (breakEvenPcsMo > 0 && plantingArea > 0 ? breakEvenPcsMo / plantingArea : 0);
+    const breakEvenDenom = margin + fixedOpex;
+    const breakEvenRevenue = revenue > 0 && fixedOpex > 0 && breakEvenDenom > 0
+      ? fixedOpex * revenue / breakEvenDenom
+      : 0;
+    const breakEvenRevenuePct = revenue > 0 && breakEvenRevenue > 0 ? (breakEvenRevenue / revenue) * 100 : 0;
+
     parts.forEach(p => {
       const isPcs = p.slice.outputUnit === 'шт';
-      const shareFixed = areaUsed > 0 ? fixedOpex * (p.slice.area / areaUsed) : 0;
+      const areaShare = areaUsed > 0 ? p.slice.area / areaUsed : 0;
+      const shareFixed = fixedOpex * areaShare;
+      const shareStaff = staffTotal * areaShare;
+      const shareRent = rent * areaShare;
+      const shareLogistics = logistics * areaShare;
+      const shareOtherElec = otherElecCost * areaShare;
+      const shareOther = other * areaShare;
+      const shareAmort = equipAmort * areaShare;
+      const shareLight = p.slice.lightCost || 0;
       const sell = (isPcs ? p.slice.monthlyOutput : p.slice.monthlyOutput) * wasteFactor;
       p.slice.allocatedFixed = shareFixed;
-      p.slice.monthlyOpex = shareFixed + p.slice.lightCost + p.slice.consumablesCost;
-      p.slice.unitCostFull = sell > 0 ? p.slice.monthlyOpex / sell : 0;
+      p.slice.allocatedStaff = shareStaff;
+      p.slice.allocatedRent = shareRent;
+      p.slice.allocatedLogistics = shareLogistics;
+      p.slice.allocatedOther = shareOther;
+      p.slice.allocatedAmort = shareAmort;
+      p.slice.allocatedElec = shareLight + shareOtherElec;
+      p.slice.monthlyOpex = shareFixed + shareLight + p.slice.consumablesCost;
+      function perUnit(v){ return sell > 0 ? v / sell : 0; }
+      p.slice.unitCostLight = perUnit(shareLight);
+      p.slice.unitCostElecOther = perUnit(shareOtherElec);
+      p.slice.unitCostElec = p.slice.unitCostLight + p.slice.unitCostElecOther;
+      p.slice.unitCostStaff = perUnit(shareStaff);
+      p.slice.unitCostRent = perUnit(shareRent);
+      p.slice.unitCostLogistics = perUnit(shareLogistics);
+      p.slice.unitCostOther = perUnit(shareOther);
+      p.slice.unitCostAmort = perUnit(shareAmort);
+      p.slice.unitCostConsumables = perUnit(p.slice.consumablesCost);
+      p.slice.unitCostConsPot = perUnit(p.slice.consumablesPotCost || 0);
+      p.slice.unitCostPackaging = perUnit(p.slice.consumablesPackagingCost || 0);
+      p.slice.unitCostFull = perUnit(shareFixed + shareLight + p.slice.consumablesCost);
       const revNet = p.slice.revenue * wasteFactor;
       const taxShare = revenue > 0 ? taxTotal * (revNet / revenue) : 0;
       p.slice.margin = revNet - p.slice.monthlyOpex - taxShare;
@@ -1006,8 +1281,17 @@
       other: other,
       equipAmort: equipAmort,
       equipTotal: equipTotal,
-      fixedOpex: fixedOpex
+      fixedOpex: fixedOpex,
+      breakEvenKgMo: breakEvenKgMo,
+      breakEvenKgSqm: breakEvenKgSqm,
+      breakEvenPcsMo: breakEvenPcsMo,
+      breakEvenPcsSqm: breakEvenPcsSqm,
+      breakEvenRevenue: breakEvenRevenue,
+      breakEvenRevenuePct: breakEvenRevenuePct,
+      contribPerKg: contribPerKg,
+      contribPerPcs: contribPerPcs
     };
+    farm.mixReport = calcMixReport(e, parts, farm);
     farm.warnings = collectEconWarnings(farm, e, parts);
     return farm;
   }
@@ -1039,6 +1323,8 @@
       importEconRowFromPlanting: importEconRowFromPlanting,
       importAllEconFromPlanting: importAllEconFromPlanting,
       calcOtherElecMonthly: calcOtherElecMonthly,
+      calcVatTaxAmt: calcVatTaxAmt,
+      scaleEconCostFields: scaleEconCostFields,
       calcFarmElecBreakdown: calcFarmElecBreakdown,
       calcPayrollMonthly: calcPayrollMonthly,
       migrateEconElecCats: migrateEconElecCats,

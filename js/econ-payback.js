@@ -77,6 +77,15 @@
     var cashBeforeAmort = margin + amort;
     var prep = (e && e.equipmentEnabled !== false) ? equipTotal : 0;
 
+    var html = '';
+    if (prep > 0 && margin > 0){
+      html += '<div class="econ-pb-callout">' +
+        '<p class="econ-pb-callout-title">' + T('pb.calloutTitle') + '</p>' +
+        '<p class="econ-pb-callout-main">' + TF('pb.calloutMain', { months: fmtMonths(prep / cashBeforeAmort) }) + '</p>' +
+        '<p class="econ-pb-callout-sub">' + TF('pb.calloutSub', { months: fmtMonths(prep / margin) }) + '</p>' +
+        '<p class="econ-pb-callout-note">' + T('pb.calloutNote') + '</p></div>';
+    }
+
     var rows = [
       { k: T('pb.capex'), v: prep },
       { k: T('pb.margin'), v: margin },
@@ -84,7 +93,7 @@
       { k: T('pb.cash'), v: cashBeforeAmort }
     ];
 
-    var html = '<div class="econ-pb-grid">';
+    html += '<div class="econ-pb-grid">';
     rows.forEach(function(r){
       html += '<div class="econ-pb-row"><span>' + r.k + '</span><strong>' +
         (typeof r.v === 'number' ? (r.v < 0 ? '−' : '') + (deps.fmtMoney ? deps.fmtMoney(Math.abs(r.v)) : Math.abs(Math.round(r.v)).toLocaleString('ru-RU') + ' ₽') : r.v) +
@@ -98,12 +107,10 @@
     } else if (margin <= 0){
       html += '<li>' + T('pb.noMargin') + '</li>';
     } else {
+      html += '<li>' + TF('pb.beforeAmortLi', { months: fmtMonths(prep / cashBeforeAmort) }) + '</li>';
       html += '<li>' + TF('pb.conservativeLi', { months: fmtMonths(prep / margin) }) + '</li>';
     }
-    if (prep > 0 && cashBeforeAmort > 0){
-      html += '<li>' + TF('pb.beforeAmortLi', { months: fmtMonths(prep / cashBeforeAmort) }) + '</li>';
-    }
-    html += '<li>' + TF('pb.rentNote', { rent: (deps.fmtMoney ? deps.fmtMoney(farm.rent || 0) : (farm.rent || 0)) + (deps.currencySym ? ' ' + deps.currencySym() : ' ₽') }) + '</li>';
+    html += '<li>' + TF('pb.rentNote', { rent: deps.fmtMoney ? deps.fmtMoney(farm.rent || 0) : ((farm.rent || 0) + ' ₽') }) + '</li>';
     html += '</ul>';
     return html;
   }
@@ -120,7 +127,8 @@
     var farm = deps.calcFarmEconomics(e);
     var equipTotal = (e.equipmentEnabled !== false && deps.sumEconEquipment) ? deps.sumEconEquipment() : 0;
     var horizon = 36;
-    var series = buildCashflow(equipTotal, farm.margin || 0, horizon);
+    var cashFlowNet = (farm.margin || 0) + (farm.equipAmort || 0);
+    var series = buildCashflow(equipTotal, cashFlowNet > 0 ? cashFlowNet : (farm.margin || 0), horizon);
     var be = breakEvenMonth(series);
 
     var html = '<p class="econ-sens-lead">' + T('pb.lead') + '</p>';

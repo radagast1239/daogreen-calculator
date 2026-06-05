@@ -83,7 +83,7 @@
       potHarvestMonths: potHarvestMonths || undefined,
       M_max: Math.max(Math.round(yieldPerCutG * 1.15) || 40, 25),
       k: 0.38, t50: germination + 14 + channelDays * 0.55,
-      ca: 10, bolt: 90, t_opt: 22,
+      ca: 10, bolt: 90, t_opt: opts.t_opt != null ? opts.t_opt : 22,
       babyGreen: section === 'baby',
       heatSigma: 70, heatBolt: 1.1
     };
@@ -105,7 +105,7 @@
     vfC('vf-melissa-baby', 'Мелисса', 'baby', '5-7', '35', '80-120', '20-30', '25', '20', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
     vfC('vf-mint-baby', 'Мята', 'baby', '5-7', '35', '80-120', '20', '25', '20', { replaceNote: 'До года' , sub: 'беби D6 · каналы' }),
     vfC('vf-arugula-dragon', 'Рукола Язык дракона', 'baby', '3-4', '25-30', '80-100', '20-25', '23', '15', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
-    vfC('vf-spinach-baby', 'Шпинат', 'baby', '5-7', '20-25', '150-220', '7', '7', '5', { replaceNote: '3-6 НЕДЕЛЬ' , sub: 'беби D6 · каналы' }),
+    vfC('vf-spinach-baby', 'Шпинат', 'baby', '5-7', '7', '220', '7', '7', '5', { replaceNote: '3-6 НЕДЕЛЬ', t_opt: 17, sub: 'беби D6 · каналы' }),
     vfC('vf-romano-baby', 'Салат Романо', 'baby', '3-4', '20-25', '50-80', '20-25', '23', '40', { replaceNote: '2-3 месяца' , sub: 'беби D6 · каналы' }),
     vfC('vf-pakchoi-baby', 'Пак чой', 'baby', '3-4', '20-25', '60-120', '15-18', '17', '25', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),
     vfC('vf-tatsoi-baby', 'Татсой', 'baby', '3', '20-25', '60-120', '20', '20', '25', { replaceNote: '3-4 месяца' , sub: 'беби D6 · каналы' }),

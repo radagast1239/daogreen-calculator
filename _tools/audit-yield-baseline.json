@@ -1,0 +1,657 @@
+{
+  "updatedAt": "2026-06-01T17:59:21.945Z",
+  "vf": {
+    "vf-sorrel": {
+      "yieldPerCutG": 17,
+      "channelDays": 35,
+      "density": 160
+    },
+    "vf-kale-baby": {
+      "yieldPerCutG": 28,
+      "channelDays": 30,
+      "density": 115
+    },
+    "vf-mizuna-baby": {
+      "yieldPerCutG": 23,
+      "channelDays": 28,
+      "density": 115
+    },
+    "vf-corn": {
+      "yieldPerCutG": 17,
+      "channelDays": 28,
+      "density": 115
+    },
+    "vf-chard-baby": {
+      "yieldPerCutG": 23,
+      "channelDays": 25,
+      "density": 220
+    },
+    "vf-basil-baby": {
+      "yieldPerCutG": 56,
+      "channelDays": 28,
+      "density": 115
+    },
+    "vf-melissa-baby": {
+      "yieldPerCutG": 23,
+      "channelDays": 35,
+      "density": 100
+    },
+    "vf-mint-baby": {
+      "yieldPerCutG": 23,
+      "channelDays": 35,
+      "density": 100
+    },
+    "vf-arugula-dragon": {
+      "yieldPerCutG": 17,
+      "channelDays": 28,
+      "density": 90
+    },
+    "vf-spinach-baby": {
+      "yieldPerCutG": 6,
+      "channelDays": 7,
+      "density": 220
+    },
+    "vf-romano-baby": {
+      "yieldPerCutG": 45,
+      "channelDays": 23,
+      "density": 65
+    },
+    "vf-pakchoi-baby": {
+      "yieldPerCutG": 28,
+      "channelDays": 23,
+      "density": 90
+    },
+    "vf-tatsoi-baby": {
+      "yieldPerCutG": 28,
+      "channelDays": 23,
+      "density": 90
+    },
+    "vf-komatsuna-baby": {
+      "yieldPerCutG": 23,
+      "channelDays": 23,
+      "density": 90
+    },
+    "vf-mustard-baby": {
+      "yieldPerCutG": 23,
+      "channelDays": 23,
+      "density": 90
+    },
+    "vf-marigold-leaf": {
+      "yieldPerCutG": 11,
+      "channelDays": 28,
+      "density": 115
+    },
+    "vf-viola": {
+      "yieldPerCutG": 80,
+      "channelDays": 18,
+      "density": 57
+    },
+    "vf-mimulus": {
+      "yieldPerCutG": 25,
+      "channelDays": 40,
+      "density": 45
+    },
+    "vf-torenia": {
+      "yieldPerCutG": 20,
+      "channelDays": 40,
+      "density": 51
+    },
+    "vf-marigold-flower": {
+      "yieldPerCutG": 20,
+      "channelDays": 45,
+      "density": 70
+    },
+    "vf-spilanthes": {
+      "yieldPerCutG": 20,
+      "channelDays": 30,
+      "density": 57
+    },
+    "vf-alyssum": {
+      "yieldPerCutG": 50,
+      "channelDays": 25,
+      "density": 57
+    },
+    "vf-carnation": {
+      "yieldPerCutG": 18,
+      "channelDays": 45,
+      "density": 57
+    },
+    "vf-pentas": {
+      "yieldPerCutG": 50,
+      "channelDays": 35,
+      "density": 45
+    },
+    "vf-cornflower": {
+      "yieldPerCutG": 10,
+      "channelDays": 45,
+      "density": 62
+    },
+    "vf-phlox": {
+      "yieldPerCutG": 30,
+      "channelDays": 60,
+      "density": 45
+    },
+    "vf-bellflower": {
+      "yieldPerCutG": 20,
+      "channelDays": 35,
+      "density": 51
+    },
+    "vf-balsam": {
+      "yieldPerCutG": 20,
+      "channelDays": 35,
+      "density": 51
+    },
+    "vf-mint-adult": {
+      "yieldPerCutG": 20,
+      "channelDays": 50,
+      "density": 43
+    },
+    "vf-melissa-adult": {
+      "yieldPerCutG": 20,
+      "channelDays": 50,
+      "density": 43
+    },
+    "vf-thyme": {
+      "yieldPerCutG": 17,
+      "channelDays": 60,
+      "density": 43
+    },
+    "vf-rosemary": {
+      "yieldPerCutG": 17,
+      "channelDays": 60,
+      "density": 55
+    },
+    "vf-basil-adult": {
+      "yieldPerCutG": 68,
+      "channelDays": 40,
+      "density": 55
+    },
+    "vf-oregano": {
+      "yieldPerCutG": 51,
+      "channelDays": 40,
+      "density": 43
+    },
+    "vf-sage": {
+      "yieldPerCutG": 34,
+      "channelDays": 40,
+      "density": 55
+    },
+    "vf-chervil": {
+      "yieldPerCutG": 28,
+      "channelDays": 40,
+      "density": 55
+    },
+    "vf-fennel": {
+      "yieldPerCutG": 28,
+      "channelDays": 45,
+      "density": 55
+    },
+    "vf-anise": {
+      "yieldPerCutG": 28,
+      "channelDays": 45,
+      "density": 55
+    },
+    "vf-tarragon": {
+      "yieldPerCutG": 17,
+      "channelDays": 60,
+      "density": 55
+    },
+    "vf-kale-adult": {
+      "yieldPerCutG": 28,
+      "channelDays": 40,
+      "density": 40
+    },
+    "vf-mizuna-adult": {
+      "yieldPerCutG": 56,
+      "channelDays": 35,
+      "density": 48
+    },
+    "vf-arugula-adult": {
+      "yieldPerCutG": 45,
+      "channelDays": 35,
+      "density": 60
+    },
+    "vf-arugula-dragon-adult": {
+      "yieldPerCutG": 34,
+      "channelDays": 30,
+      "density": 70
+    },
+    "vf-mustard-red": {
+      "yieldPerCutG": 56,
+      "channelDays": 35,
+      "density": 48
+    },
+    "vf-spinach-adult": {
+      "yieldPerCutG": 45,
+      "channelDays": 35,
+      "density": 80
+    },
+    "vf-batavia": {
+      "yieldPerCutG": 169,
+      "channelDays": 40,
+      "density": 43
+    },
+    "vf-romaine-adult": {
+      "yieldPerCutG": 169,
+      "channelDays": 35,
+      "density": 43
+    },
+    "vf-frillice-lollo": {
+      "yieldPerCutG": 158,
+      "channelDays": 35,
+      "density": 43
+    },
+    "vf-dill": {
+      "yieldPerCutG": 28,
+      "channelDays": 40,
+      "density": 55
+    },
+    "vf-parsley": {
+      "yieldPerCutG": 39,
+      "channelDays": 40,
+      "density": 55
+    },
+    "vf-cilantro": {
+      "yieldPerCutG": 39,
+      "channelDays": 40,
+      "density": 55
+    },
+    "vf-pakchoi-adult": {
+      "yieldPerCutG": 68,
+      "channelDays": 40,
+      "density": 48
+    },
+    "vf-komatsuna-adult": {
+      "yieldPerCutG": 56,
+      "channelDays": 38,
+      "density": 48
+    },
+    "vf-tatsoi-adult": {
+      "yieldPerCutG": 56,
+      "channelDays": 38,
+      "density": 48
+    }
+  },
+  "pallet": {
+    "pl-microgreens": {
+      "yieldPerCutG": 1,
+      "channelDays": 12,
+      "density": 275
+    },
+    "pl-salad": {
+      "yieldPerCutG": 1,
+      "channelDays": 33,
+      "density": 73
+    },
+    "pl-baby-living": {
+      "yieldPerCutG": 1,
+      "channelDays": 29,
+      "density": 73
+    },
+    "pl-wheatgrass": {
+      "yieldPerCutG": 1,
+      "channelDays": 13,
+      "density": 188
+    },
+    "pl-edible-flowers": {
+      "yieldPerCutG": 21,
+      "channelDays": 35,
+      "density": 60
+    },
+    "pl-cabbage-avg": {
+      "yieldPerCutG": 18,
+      "channelDays": 28,
+      "density": 130
+    },
+    "pl-adult-lettuce": {
+      "yieldPerCutG": 125,
+      "channelDays": 40,
+      "density": 42
+    },
+    "pl-baby-cut-lettuce": {
+      "yieldPerCutG": 35,
+      "channelDays": 22,
+      "density": 65
+    },
+    "pl-shiso": {
+      "yieldPerCutG": 10,
+      "channelDays": 30,
+      "density": 75
+    },
+    "pl-sorrel": {
+      "yieldPerCutG": 14,
+      "channelDays": 35,
+      "density": 190
+    },
+    "pl-kale-baby": {
+      "yieldPerCutG": 23,
+      "channelDays": 30,
+      "density": 133
+    },
+    "pl-mizuna-baby": {
+      "yieldPerCutG": 19,
+      "channelDays": 29,
+      "density": 133
+    },
+    "pl-corn": {
+      "yieldPerCutG": 15,
+      "channelDays": 29,
+      "density": 133
+    },
+    "pl-chard-baby": {
+      "yieldPerCutG": 19,
+      "channelDays": 25,
+      "density": 220
+    },
+    "pl-basil-baby": {
+      "yieldPerCutG": 19,
+      "channelDays": 29,
+      "density": 133
+    },
+    "pl-strawberry-spinach": {
+      "yieldPerCutG": 23,
+      "channelDays": 24,
+      "density": 110
+    },
+    "pl-melissa-baby": {
+      "yieldPerCutG": 19,
+      "channelDays": 35,
+      "density": 110
+    },
+    "pl-mint-baby": {
+      "yieldPerCutG": 19,
+      "channelDays": 35,
+      "density": 110
+    },
+    "pl-ice-plant": {
+      "yieldPerCutG": 14,
+      "channelDays": 30,
+      "density": 95
+    },
+    "pl-arugula-baby": {
+      "yieldPerCutG": 18,
+      "channelDays": 24,
+      "density": 128
+    },
+    "pl-arugula-dragon": {
+      "yieldPerCutG": 14,
+      "channelDays": 29,
+      "density": 95
+    },
+    "pl-spinach-baby": {
+      "yieldPerCutG": 5,
+      "channelDays": 24,
+      "density": 203
+    },
+    "pl-romano-baby": {
+      "yieldPerCutG": 38,
+      "channelDays": 24,
+      "density": 73
+    },
+    "pl-pakchoi-baby": {
+      "yieldPerCutG": 23,
+      "channelDays": 24,
+      "density": 105
+    },
+    "pl-nasturtium-baby": {
+      "yieldPerCutG": 7,
+      "channelDays": 24,
+      "density": 58
+    },
+    "pl-tatsoi-baby": {
+      "yieldPerCutG": 23,
+      "channelDays": 24,
+      "density": 105
+    },
+    "pl-komatsuna-baby": {
+      "yieldPerCutG": 20,
+      "channelDays": 24,
+      "density": 105
+    },
+    "pl-mustard-baby": {
+      "yieldPerCutG": 20,
+      "channelDays": 24,
+      "density": 105
+    },
+    "pl-verbena": {
+      "yieldPerCutG": 7,
+      "channelDays": 25,
+      "density": 73
+    },
+    "pl-marigold-leaf": {
+      "yieldPerCutG": 10,
+      "channelDays": 29,
+      "density": 133
+    },
+    "pl-oyster-leaf": {
+      "yieldPerCutG": 7,
+      "channelDays": 40,
+      "density": 73
+    },
+    "pl-viola": {
+      "yieldPerCutG": 75,
+      "channelDays": 18,
+      "density": 68
+    },
+    "pl-mimulus": {
+      "yieldPerCutG": 25,
+      "channelDays": 40,
+      "density": 53
+    },
+    "pl-begonia": {
+      "yieldPerCutG": 25,
+      "channelDays": 45,
+      "density": 53
+    },
+    "pl-torenia": {
+      "yieldPerCutG": 20,
+      "channelDays": 40,
+      "density": 68
+    },
+    "pl-marigold-flower": {
+      "yieldPerCutG": 20,
+      "channelDays": 45,
+      "density": 99
+    },
+    "pl-spilanthes": {
+      "yieldPerCutG": 19,
+      "channelDays": 30,
+      "density": 68
+    },
+    "pl-alyssum": {
+      "yieldPerCutG": 45,
+      "channelDays": 25,
+      "density": 68
+    },
+    "pl-nasturtium-flower": {
+      "yieldPerCutG": 10,
+      "channelDays": 45,
+      "density": 31
+    },
+    "pl-carnation": {
+      "yieldPerCutG": 18,
+      "channelDays": 45,
+      "density": 68
+    },
+    "pl-pentas": {
+      "yieldPerCutG": 45,
+      "channelDays": 35,
+      "density": 53
+    },
+    "pl-mesemb-flower": {
+      "yieldPerCutG": 10,
+      "channelDays": 40,
+      "density": 68
+    },
+    "pl-borage": {
+      "yieldPerCutG": 80,
+      "channelDays": 45,
+      "density": 30
+    },
+    "pl-cornflower": {
+      "yieldPerCutG": 10,
+      "channelDays": 45,
+      "density": 71
+    },
+    "pl-zucchini-flower": {
+      "yieldPerCutG": 7,
+      "channelDays": 35,
+      "density": 24
+    },
+    "pl-phlox": {
+      "yieldPerCutG": 28,
+      "channelDays": 60,
+      "density": 53
+    },
+    "pl-lavender": {
+      "yieldPerCutG": 28,
+      "channelDays": 50,
+      "density": 53
+    },
+    "pl-bellflower": {
+      "yieldPerCutG": 20,
+      "channelDays": 35,
+      "density": 68
+    },
+    "pl-balsam": {
+      "yieldPerCutG": 20,
+      "channelDays": 35,
+      "density": 68
+    },
+    "pl-mint-adult": {
+      "yieldPerCutG": 17,
+      "channelDays": 50,
+      "density": 44
+    },
+    "pl-melissa-adult": {
+      "yieldPerCutG": 17,
+      "channelDays": 50,
+      "density": 44
+    },
+    "pl-thyme": {
+      "yieldPerCutG": 14,
+      "channelDays": 60,
+      "density": 44
+    },
+    "pl-rosemary": {
+      "yieldPerCutG": 14,
+      "channelDays": 60,
+      "density": 58
+    },
+    "pl-basil-adult": {
+      "yieldPerCutG": 60,
+      "channelDays": 40,
+      "density": 58
+    },
+    "pl-oregano": {
+      "yieldPerCutG": 41,
+      "channelDays": 40,
+      "density": 44
+    },
+    "pl-sage": {
+      "yieldPerCutG": 30,
+      "channelDays": 40,
+      "density": 58
+    },
+    "pl-chervil": {
+      "yieldPerCutG": 25,
+      "channelDays": 40,
+      "density": 58
+    },
+    "pl-fennel": {
+      "yieldPerCutG": 25,
+      "channelDays": 45,
+      "density": 58
+    },
+    "pl-anise": {
+      "yieldPerCutG": 25,
+      "channelDays": 45,
+      "density": 58
+    },
+    "pl-tarragon": {
+      "yieldPerCutG": 14,
+      "channelDays": 60,
+      "density": 58
+    },
+    "pl-shiso-adult": {
+      "yieldPerCutG": 18,
+      "channelDays": 40,
+      "density": 44
+    },
+    "pl-kale-adult": {
+      "yieldPerCutG": 24,
+      "channelDays": 40,
+      "density": 43
+    },
+    "pl-mizuna-adult": {
+      "yieldPerCutG": 46,
+      "channelDays": 35,
+      "density": 49
+    },
+    "pl-arugula-adult": {
+      "yieldPerCutG": 38,
+      "channelDays": 35,
+      "density": 60
+    },
+    "pl-arugula-dragon-adult": {
+      "yieldPerCutG": 30,
+      "channelDays": 30,
+      "density": 75
+    },
+    "pl-mustard-red": {
+      "yieldPerCutG": 55,
+      "channelDays": 35,
+      "density": 49
+    },
+    "pl-spinach-adult": {
+      "yieldPerCutG": 38,
+      "channelDays": 35,
+      "density": 80
+    },
+    "pl-batavia": {
+      "yieldPerCutG": 138,
+      "channelDays": 43,
+      "density": 44
+    },
+    "pl-romaine-adult": {
+      "yieldPerCutG": 150,
+      "channelDays": 35,
+      "density": 44
+    },
+    "pl-frillice-lollo": {
+      "yieldPerCutG": 135,
+      "channelDays": 35,
+      "density": 44
+    },
+    "pl-dill": {
+      "yieldPerCutG": 25,
+      "channelDays": 40,
+      "density": 58
+    },
+    "pl-parsley": {
+      "yieldPerCutG": 33,
+      "channelDays": 40,
+      "density": 58
+    },
+    "pl-cilantro": {
+      "yieldPerCutG": 33,
+      "channelDays": 40,
+      "density": 58
+    },
+    "pl-pakchoi-adult": {
+      "yieldPerCutG": 55,
+      "channelDays": 40,
+      "density": 49
+    },
+    "pl-komatsuna-adult": {
+      "yieldPerCutG": 45,
+      "channelDays": 39,
+      "density": 49
+    },
+    "pl-tatsoi-adult": {
+      "yieldPerCutG": 45,
+      "channelDays": 39,
+      "density": 49
+    }
+  }
+}

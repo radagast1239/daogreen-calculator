@@ -184,6 +184,8 @@
   }
 
   function calc(){
+    var ghCh = deps.getGhChannelSimple ? deps.getGhChannelSimple() : null;
+    if (ghCh && ghCh.applyBeforeCalc) ghCh.applyBeforeCalc();
     var gm = georgyModeRef();
     if (gm) {
       if (gm.isGeorgyGh && gm.isGeorgyGh()) gm.applyGeorgyBeforeCalc();
@@ -204,6 +206,9 @@
     if (georgyModeRef() && georgyModeRef().isGeorgyHeadSalad && georgyModeRef().isGeorgyHeadSalad(cv)){
       const tdGeorgy = georgyModeRef().totalDaysFromSowGeorgy(cv);
       if (tdGeorgy != null && tdGeorgy > 0) t_total = tdGeorgy;
+    } else if (ghCh && ghCh.isEnabled && ghCh.isEnabled() && ghCh.totalDaysFromSow) {
+      const tdCh = ghCh.totalDaysFromSow(cv);
+      if (tdCh > 0) t_total = tdCh;
     }
     const massRaw = massAtTotal(cv, t_total);
     const canopyRaw = canopyAtTotal(cv, t_total);
@@ -234,7 +239,7 @@
     if (gm && st().georgyDensityFitted && st().georgyTargetDensity > 0 && gm.layoutAtDensity){
       var fitCv = cv;
       var useFitGap = (gm.isGeorgyHeadSalad && gm.isGeorgyHeadSalad(fitCv)) ||
-        (gm.canUseCanopyDensityPick && gm.canUseCanopyDensityPick(fitCv));
+        (gm.isHeadLettuceChannel && gm.isHeadLettuceChannel(fitCv));
       if (useFitGap){
         var layFit = gm.layoutAtDensity(fitCv, st().georgyTargetDensity);
         leafGap = layFit.gap;

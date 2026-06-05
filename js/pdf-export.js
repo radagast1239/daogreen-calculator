@@ -27,17 +27,17 @@
     { id: 'panel-pallet-guide', group: 'planting', selector: '#panel-pallet-guide' },
     { id: 'block-panel-standards', group: 'planting', selector: '#block-panel-standards' },
     { id: 'econ-warnings', group: 'economics', selector: '#econ-warnings' },
-    { id: 'econ-general', group: 'economics', selector: '#econ-panel-general' },
+    { id: 'econ-general', group: 'economics', selector: '#econ-panel-general', vectorId: 'econ-general' },
     { id: 'econ-cultures', group: 'economics', selector: '#econ-panel-cultures' },
     { id: 'econ-yield', group: 'economics', selector: '#econ-panel-yield-summary', vectorId: 'econ-yield-summary' },
-    { id: 'econ-elec', group: 'economics', selector: '#econ-panel-elec' },
-    { id: 'econ-payroll', group: 'economics', selector: '#econ-panel-payroll' },
-    { id: 'econ-costs', group: 'economics', selector: '#econ-panel-costs' },
-    { id: 'econ-equipment', group: 'economics', selector: '#econ-panel-equipment' },
-    { id: 'econ-results', group: 'economics', selector: '#econ-panel-results' },
+    { id: 'econ-elec', group: 'economics', selector: '#econ-panel-elec', vectorId: 'econ-elec' },
+    { id: 'econ-payroll', group: 'economics', selector: '#econ-panel-payroll', vectorId: 'econ-payroll' },
+    { id: 'econ-costs', group: 'economics', selector: '#econ-panel-costs', vectorId: 'econ-costs' },
+    { id: 'econ-equipment', group: 'economics', selector: '#econ-panel-equipment', vectorId: 'econ-equipment' },
+    { id: 'econ-results', group: 'economics', selector: '#econ-panel-results', vectorId: 'econ-results' },
     { id: 'econ-advanced', group: 'economics', selector: '#econ-panel-advanced' },
-    { id: 'econ-sensitivity', group: 'economics', selector: '#econ-panel-sensitivity' },
-    { id: 'econ-payback', group: 'economics', selector: '#econ-panel-payback' }
+    { id: 'econ-sensitivity', group: 'economics', selector: '#econ-panel-sensitivity', vectorId: 'econ-sensitivity' },
+    { id: 'econ-payback', group: 'economics', selector: '#econ-panel-payback', vectorId: 'econ-payback' }
   ];
 
   var DEFAULT_SELECTED = [
@@ -57,7 +57,7 @@
       'panel-channel-guide', 'panel-pallet-guide', 'block-panel-standards'
     ],
     econ: [
-      'cover', 'econ-warnings', 'econ-general', 'econ-cultures', 'econ-yield',
+      'cover', 'econ-warnings', 'econ-general', 'econ-yield',
       'econ-elec', 'econ-payroll', 'econ-costs', 'econ-equipment', 'econ-results',
       'econ-advanced', 'econ-sensitivity', 'econ-payback'
     ],
@@ -137,6 +137,12 @@
   }
 
   function initPdfExport(deps){
+    var pdfExportCtx = null;
+    deps = deps || {};
+    deps.getPdfExportContext = function(){ return pdfExportCtx; };
+    deps.setPdfExportContext = function(ctx){ pdfExportCtx = ctx || null; };
+    deps.clearPdfExportContext = function(){ pdfExportCtx = null; };
+
     var dialog = document.getElementById('pdf-export-dialog');
     var checklist = document.getElementById('pdf-export-checklist');
     var btnOpen = document.getElementById('btn-export-pdf');
@@ -194,6 +200,9 @@
 
     btnOpen.addEventListener('click', function(){
       renderChecklist();
+      if (deps.getState && deps.getState().appView === 'economics'){
+        applyPreset(PDF_PRESETS.econ);
+      }
       dialog.returnValue = '';
       if (typeof dialog.showModal === 'function') dialog.showModal();
     });
@@ -231,8 +240,7 @@
         '<p class="pdf-cover-date">' + (meta.date || '') + '</p>' +
         '<div class="pdf-cover-metrics">' + lines.map(function(l){
           return '<div class="pdf-cover-metric"><span class="pdf-cover-m-l">' + l.label + '</span><span class="pdf-cover-m-v">' + l.value + (l.unit ? ' <span class="pdf-cover-m-u">' + l.unit + '</span>' : '') + '</span></div>';
-        }).join('') + '</div>' +
-        '<p class="pdf-cover-build">' + (global.DG_tFmt ? global.DG_tFmt('pdf.build', { build: meta.build || '' }) : pdfT('pdf.build')) + '</p>';
+        }).join('') + '</div>';
       return wrap;
     }
 
@@ -261,6 +269,29 @@
         var ctx = dst.getContext('2d');
         if (ctx) ctx.drawImage(src, 0, 0);
       }
+    }
+
+    function stripEconBreakdownTable(tbl){
+      if (!tbl) return;
+      tbl.querySelectorAll('tr').forEach(function(tr){
+        var cells = tr.querySelectorAll('th, td');
+        if (cells.length < 3) return;
+        if (cells[0]) cells[0].remove();
+        if (cells[0]) cells[0].remove();
+      });
+    }
+
+    function maskEconDomForPdf(root){
+      root.querySelectorAll('#econ-panel-cultures, .econ-cultures-intro, .econ-cultures-total').forEach(function(el){
+        el.style.display = 'none';
+      });
+      root.querySelectorAll('.econ-mix-inline, .econ-mix-check, .econ-mix-pct-lbl').forEach(function(el){
+        el.style.display = 'none';
+      });
+      root.querySelectorAll('.econ-metric-line--share').forEach(function(el){
+        el.style.display = 'none';
+      });
+      stripEconBreakdownTable(root.querySelector('#econ-cultures-breakdown'));
     }
 
     function prepareClone(root){
@@ -317,6 +348,25 @@
       root.querySelectorAll('[hidden]').forEach(function(el){
         if (el.id === 'econ-warnings' && el.innerHTML.trim()) el.hidden = false;
       });
+      if (root.closest && root.closest('.pdf-export-wrap')){
+        root.querySelectorAll('.section-h').forEach(function(h){ h.style.display = 'none'; });
+      }
+      root.querySelectorAll('.econ-preset-bar, .econ-intro, .econ-elec-cats-intro, .planting-econ-bridge').forEach(function(el){
+        el.style.display = 'none';
+      });
+      root.querySelectorAll('#econ-panel-cultures > p[style]').forEach(function(el){
+        el.style.display = 'none';
+      });
+      root.querySelectorAll('.econ-elec-charts-wrap').forEach(function(el){
+        el.style.display = 'none';
+      });
+      if (root.querySelector('#econ-cultures-breakdown, #econ-results-metrics, .econ-culture-card, #econ-panel-cultures')){
+        maskEconDomForPdf(root);
+      }
+    }
+
+    function isEconSectionId(id){
+      return id && id.indexOf('econ-') === 0;
     }
 
     function cloneSection(el){
@@ -512,7 +562,7 @@
         if (!block) continue;
         var wrapped = wrapWithSectionTitle(block, secLabel(sec.id));
         var stagingOne = document.createElement('div');
-        stagingOne.className = 'pdf-staging';
+        stagingOne.className = 'pdf-staging' + (isEconSectionId(id) ? ' pdf-staging--econ' : '');
         applyStagingLayout(stagingOne);
         stagingOne.appendChild(wrapped);
         document.body.appendChild(stagingOne);
@@ -545,11 +595,33 @@
       var prevText = btn ? btn.textContent : '';
       if (btn){ btn.disabled = true; btn.textContent = pdfT('pdf.btn.exporting'); }
 
+      var pdfPlantingToken = null;
       try {
+        if (deps.setPdfExportContext) deps.setPdfExportContext({ sectionIds: selectedIds.slice() });
         var needEcon = selectedIds.some(function(id){ return id.indexOf('econ-') === 0; });
         var needPlanting = selectedIds.some(function(id){ return id.indexOf('econ-') !== 0 && id !== 'cover'; });
+        if (needPlanting && deps.preparePlantingForPdfExport){
+          pdfPlantingToken = deps.preparePlantingForPdfExport(selectedIds);
+        }
         if (needPlanting && deps.renderAll) deps.renderAll();
         if (needEcon && deps.renderEconomics) deps.renderEconomics();
+
+        if (needEcon && global.DG_collectCalcIssues && deps.getState && deps.calcFarmEconomics){
+          var st = deps.getState();
+          var farm = deps.calcFarmEconomics(st.econ);
+          var issues = global.DG_collectCalcIssues({
+            state: st,
+            farm: farm,
+            parts: farm.parts,
+            econWarnings: farm.warnings || [],
+            calcResult: deps.calc ? deps.calc() : null,
+            deps: deps
+          });
+          if (global.DG_hasCriticalCalcIssues(issues)){
+            var crit = global.DG_mergeIssueTexts(issues, ['critical']).join('\n');
+            throw new Error(pdfT('pdf.err.critical') + '\n' + crit);
+          }
+        }
 
         await loadPdfLibs();
 
@@ -574,6 +646,10 @@
         var docTitle = meta.title || pdfT('pdf.cover');
         await buildPdfFromSections(orderedIds, secMap, fname, docTitle);
       } finally {
+        if (deps.restorePlantingAfterPdfExport && pdfPlantingToken){
+          deps.restorePlantingAfterPdfExport(pdfPlantingToken);
+        }
+        if (deps.clearPdfExportContext) deps.clearPdfExportContext();
         var badge2 = document.getElementById('calc-build-badge');
         if (badge2) badge2.style.visibility = '';
         if (btn){ btn.disabled = false; btn.textContent = prevText || pdfT('pdf.btn.download'); }

@@ -79,6 +79,7 @@
       t: global.DG_t,
       tFmt: global.DG_tFmt,
       fmtMoney: global.DG_fmtMoney,
+      fmtMoneyPer: global.DG_fmtMoneyPer,
       currencySym: global.DG_currencySym,
       parseMoneyInput: global.DG_parseMoneyInput,
       formatMoneyInput: global.DG_formatMoneyInput,

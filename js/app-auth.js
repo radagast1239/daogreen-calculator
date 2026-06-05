@@ -175,7 +175,7 @@
     if (msg == null || msg === '') return '';
     if (typeof msg === 'string') return msg;
     if (typeof msg === 'object' && msg.message) return String(msg.message);
-    return 'Неверный логин или пароль';
+    return tAuth('auth.error.invalid', 'Неверный логин или пароль');
   }
 
   function showError(msg) {
@@ -269,20 +269,20 @@
   function tryClientLogin(login, password) {
     var cfg = getClientCfg();
     if (!clientReady()) {
-      return Promise.resolve({ ok: false, error: 'Вход не настроен. Выполните npm run auth:config и обновите сайт на GitHub.' });
+      return Promise.resolve({ ok: false, error: tAuth('auth.error.notConfigured', 'Вход не настроен. Выполните npm run auth:config и обновите сайт на GitHub.') });
     }
     if (!global.crypto || !global.crypto.subtle) {
       return Promise.resolve({
         ok: false,
-        error: 'Нужен HTTPS или http://localhost (не file://).'
+        error: tAuth('auth.error.https', 'Нужен HTTPS или http://localhost (не file://).')
       });
     }
     return passHash(login, password, cfg).then(function (hash) {
       if (hash !== cfg.passHash) {
-        return { ok: false, error: 'Неверный логин или пароль' };
+        return { ok: false, error: tAuth('auth.error.invalid', 'Неверный логин или пароль') };
       }
       if (String(login || '').trim().toLowerCase() !== String(cfg.login || '').trim().toLowerCase()) {
-        return { ok: false, error: 'Неверный логин или пароль' };
+        return { ok: false, error: tAuth('auth.error.invalid', 'Неверный логин или пароль') };
       }
       return sessionToken(cfg).then(function (tok) {
         writeClientSession(tok);
@@ -290,7 +290,7 @@
         return { ok: true };
       });
     }).catch(function () {
-      return { ok: false, error: 'Ошибка проверки пароля в браузере.' };
+      return { ok: false, error: tAuth('auth.error.clientCheck', 'Ошибка проверки пароля в браузере.') };
     });
   }
 
@@ -353,7 +353,7 @@
             if (passEl) passEl.value = '';
             return;
           }
-          showError(r.error || 'Неверный логин или пароль');
+          showError(r.error || tAuth('auth.error.invalid', 'Неверный логин или пароль'));
           if (passEl) {
             passEl.value = '';
             passEl.focus();
@@ -363,7 +363,7 @@
 
       if (useClientMode || preferClientAuth()) {
         if (!clientReady()) {
-          showError('Не загружен js/auth-client-config.js. В терминале: node _tools/write-auth-client-config.js daogreen пароль — затем Ctrl+F5. В F12 → Console не должно быть ошибок.');
+          showError(tAuth('auth.error.noConfig', 'Не загружен js/auth-client-config.js.'));
           return;
         }
         enableClientMode();
@@ -377,7 +377,7 @@
           if (passEl) passEl.value = '';
           return;
         }
-        showError(formatErr(r.error) || 'Неверный логин или пароль');
+        showError(formatErr(r.error) || tAuth('auth.error.invalid', 'Неверный логин или пароль'));
         if (passEl) {
           passEl.value = '';
           passEl.focus();

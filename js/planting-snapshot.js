@@ -21,8 +21,22 @@
       return T('facility.greenhouse', 'Теплица');
     }
 
+    function georgyModeRef(){
+      if (typeof deps.getGeorgyMode === 'function') return deps.getGeorgyMode();
+      return deps.georgyMode;
+    }
+
+    function isHeadHallSingleCut(cv){
+      var gm = georgyModeRef();
+      if (!gm || !cv || gm.getGeorgyProfile(cv)) return false;
+      if (gm.isHeadLettuceChannel) return gm.isHeadLettuceChannel(cv);
+      if (cv.multicut || cv.babyGreen) return false;
+      return !!(deps.getState().georgyMode);
+    }
+
     function usesMonthlyCutYield(cv){
       var state = deps.getState();
+      if (isHeadHallSingleCut(cv)) return false;
       if (state.multicut && deps.supportsMulticut(cv)) return true;
       return (
         deps.isPalletView() &&

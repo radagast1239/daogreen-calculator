@@ -342,6 +342,13 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var
 .gh-yield-scenario-lbl { flex: 1 1 12rem; max-width: 42ch; }
 .gh-yield-scenario-val { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--olive-deep); text-align: right; }
 .gh-yield-note { font-size: 11.5px; color: var(--ink-faint); margin-top: 10px; line-height: 1.45; }
+.gh-yield-turnover-hint, .cycle-yield-turnover-hint {
+  font-size: 12.5px; line-height: 1.5; margin: 0 0 12px; padding: 8px 10px;
+  background: var(--brand-pale); border-radius: var(--radius); border: 1px solid rgba(39, 109, 92, 0.2);
+  color: var(--ink-soft); max-width: 72ch;
+}
+.cycle-yield-turnover-hint { margin-top: 8px; margin-bottom: 0; }
+.yield-turnover-sub { display: block; margin-top: 6px; font-size: 11.5px; color: var(--ink-faint); }
 .gh-yield-georgy-compare { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--rule); }
 .gh-yield-georgy-compare .gh-yield-compare-pick { margin: 10px 0 12px; }
 .gh-yield-compare-table tr.gh-yield-row-active td { background: var(--olive-pale); }
@@ -374,6 +381,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; background: var
 .georgy-harvest-preview .ghp-item { font-size: 13px; }
 .georgy-harvest-preview .ghp-label { color: var(--ink-soft); font-size: 12px; margin-bottom: 4px; }
 .georgy-harvest-preview .ghp-val { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink); }
+.georgy-head-ready-hint { font-size: 12.5px; color: var(--ink); margin: 2px 0 12px; padding: 8px 10px; background: var(--honey-pale); border-radius: var(--radius); border: 1px solid rgba(180, 120, 0, 0.22); line-height: 1.5; }
 .georgy-density-block.is-locked .georgy-density-ctrl { opacity: 0.55; pointer-events: none; }
 .georgy-multicut-badge { font-size: 11px; font-weight: 600; color: var(--brick); margin-left: 6px; }
 .georgy-warn-title { font-size: 13px; font-weight: 600; margin: 0 0 8px; color: var(--ink); }
@@ -468,10 +476,25 @@ html.georgy-active #block-env-gh-season .collapse-body { display: block !importa
 html.georgy-active #block-env-climate { display: block !important; }
 html.georgy-active .georgy-multicut-badge { display: none !important; }
 html.georgy-active #gh-cuts-block { display: none !important; }
-.canopy-density-wrap { margin: 0 0 14px; }
-.canopy-density-wrap .sys-aux-actions { margin-top: 0; margin-bottom: 8px; }
-.canopy-density-block.is-locked #density { pointer-events: none; opacity: 0.55; }
-#ctrl-density.canopy-density-locked input[type="range"] { pointer-events: none; opacity: 0.55; }
+
+.canopy-density-block { margin: 0 0 16px; }
+.canopy-density-block .georgy-btn-row { margin-bottom: 8px; }
+#ctrl-density.canopy-density-locked { opacity: 0.55; }
+#ctrl-density.canopy-density-locked input[type="range"] { pointer-events: none; }
+.grow-phase-yield-hint {
+  font-size: 12px;
+  color: var(--ink-faint);
+  line-height: 1.45;
+  margin: -6px 0 12px;
+  padding-left: 4px;
+  max-width: 72ch;
+}
+.veg-period-block .grow-phase-yield-hint { margin-left: 0; padding-left: 8px; }
+.canopy-overlap-status { display: block; font-size: 12.5px; line-height: 1.45; margin-top: 6px; }
+.canopy-overlap-status--ok { color: var(--ink-soft); }
+.canopy-overlap-status--warn { color: #8a5a00; background: var(--honey-pale); padding: 6px 8px; border-radius: var(--radius); border: 1px solid rgba(180, 120, 0, 0.22); }
+.canopy-overlap-status--bad { color: #9b3826; background: var(--brick-pale); padding: 6px 8px; border-radius: var(--radius); border: 1px solid rgba(155, 56, 38, 0.25); }
+.canopy-overlap-status--muted { color: var(--ink-faint); font-size: 12px; }
 .multicut-baby-only.env-block-hidden { display: none !important; }
 html.simple-ui-active #block-panel-growth,
 html.simple-ui-active #panel-cv-compare,
@@ -590,6 +613,78 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   grid-column: 1 / -1;
   margin: 2px 0 4px;
 }
+.econ-tax-block {
+  grid-column: 1 / -1;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper-deep);
+}
+.econ-tax-block-title {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.econ-toggle-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+  max-width: 100%;
+}
+.econ-toggle-row .toggle-label {
+  color: var(--ink);
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+.econ-tax-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 2px;
+  border-top: 1px solid var(--rule);
+}
+.econ-tax-group:first-of-type { border-top: none; padding-top: 0; }
+.econ-tax-nested {
+  margin-left: 54px;
+  max-width: 220px;
+}
+.econ-tax-nested .econ-field { margin: 0; }
+.econ-tax-hint { margin: 0 0 0 54px; max-width: 340px; }
+.econ-results-final-wrap {
+  margin-top: 20px;
+  padding: 16px 16px 14px;
+  border: 2px solid var(--olive);
+  border-radius: calc(var(--radius) + 2px);
+  background: linear-gradient(180deg, var(--olive-pale) 0%, var(--card) 48%);
+  box-shadow: var(--shadow-sm);
+}
+.econ-results-final-head { margin-bottom: 12px; }
+.econ-results-final-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--olive-deep);
+  letter-spacing: 0.01em;
+}
+.econ-results-final-lead {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+.econ-results-final-cards { margin-bottom: 12px; }
+.econ-results-final-cards .econ-results { margin-top: 0; }
+.econ-breakdown-final { margin-top: 0; }
 .econ-equip-panel-head {
   margin-bottom: 12px;
 }
@@ -731,6 +826,7 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   width: 100%;
 }
 .econ-results .m { text-align: center; }
+.econ-results .m-sub { font-size: 11px; color: var(--ink-faint); margin-top: 4px; line-height: 1.3; }
 .econ-results .m-val { font-size: 28px; }
 .econ-results-farm {
   margin-top: 14px;
@@ -832,13 +928,39 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .econ-culture-metric .line span {
   flex: 1 1 auto;
   min-width: 0;
-  color: var(--ink-faint);
+  color: var(--ink-soft);
+  font-weight: 500;
 }
 .econ-culture-metric .line strong {
   flex: 0 0 auto;
   text-align: right;
   font-weight: 700;
 }
+.econ-culture-metric .line--total {
+  margin-top: 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+.econ-culture-metric .line--total strong { font-size: 13px; }
+.econ-uc-breakdown {
+  margin: 8px 0 10px;
+  padding: 8px 8px 6px;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--card);
+  border: 1px solid var(--rule);
+}
+.econ-uc-breakdown-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+.econ-culture-metric .line--sub span { padding-left: 4px; color: var(--ink-faint); font-size: 11px; }
+.econ-culture-metric .line--sub strong { font-size: 11px; font-weight: 600; }
+.econ-uc-extra { margin-top: 2px; padding-top: 6px; border-top: 1px dashed var(--rule); }
+.econ-uc-extra .line:first-child { margin-top: 0; }
 .auto-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .econ-breakdown {
   margin-top: 16px;
@@ -866,11 +988,19 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .econ-breakdown td:nth-child(2) { text-align: right; font-variant-numeric: tabular-nums; }
 .econ-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 .econ-cultures-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+#econ-panel-cultures .section-h { color: var(--ink-soft); }
+#econ-panel-cultures .econ-cultures-intro {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: -6px 0 10px;
+}
 .econ-culture-card {
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   padding: 12px 12px 10px;
   background: var(--card);
+  color: var(--ink);
 }
 .econ-culture-head {
   display: grid;
@@ -894,8 +1024,10 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   align-items: flex-end;
   line-height: 1.12;
   margin-bottom: 4px;
-  font-size: 9.5px;
+  font-size: 10px;
   letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  font-weight: 600;
 }
 @media (max-width: 900px) {
   .econ-culture-params {
@@ -909,28 +1041,74 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 }
 .econ-culture-hint {
   margin-top: 8px;
-  font-size: 12px;
-  color: var(--ink-faint);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.45;
   font-variant-numeric: tabular-nums;
 }
+.econ-mix-editor { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--rule); }
+.econ-mix-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--olive-deep); margin: 0 0 8px; }
+.econ-mix-rows { display: flex; flex-direction: column; gap: 6px; }
+.econ-mix-row { display: grid; grid-template-columns: 1fr 92px 32px; gap: 6px; align-items: end; }
+.econ-mix-row select { width: 100%; padding: 7px 8px; border: 1px solid var(--rule); border-radius: var(--radius); font-size: 12.5px; background: var(--card); }
+.econ-mix-row input { width: 100%; padding: 8px 10px; border: 1px solid var(--rule-strong); border-radius: var(--radius); font-family: inherit; font-size: 14px; background: var(--card); color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+.econ-mix-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.econ-mix-hint { margin: 0; }
+.econ-mix-bd-hint { margin: 6px 0 0; }
+.econ-mix-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 10px 0 0; }
+.econ-culture-card .econ-mix-check,
+.econ-culture-card .econ-mix-pct-lbl {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  max-width: 100%;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink-soft);
+  margin-bottom: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.econ-culture-card .econ-mix-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  accent-color: var(--olive-deep);
+}
+.econ-culture-card .econ-mix-pct-lbl input[type="text"] {
+  width: 88px;
+  min-width: 72px;
+  flex-shrink: 0;
+  text-align: right;
+}
 .econ-culture-card select,
-.econ-culture-card input {
+.econ-culture-card input:not([type="checkbox"]) {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 500;
   background: var(--card);
   color: var(--ink);
 }
-.econ-culture-card label {
+.econ-culture-card label:not(.econ-mix-check):not(.econ-mix-pct-lbl) {
   display: block;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink-soft);
   margin-bottom: 4px;
 }
 .econ-culture-card .econ-rm {
@@ -945,9 +1123,11 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 }
 .econ-culture-card .econ-rm:hover { color: var(--ink); border-color: var(--ink-faint); }
 .econ-cultures-total {
-  font-size: 13px;
+  font-size: 13.5px;
   margin: 0 0 8px;
   font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  font-weight: 500;
 }
 .econ-cultures-total.ok { color: var(--olive-deep); }
 .econ-cultures-total.warn { color: #b45309; }
@@ -989,6 +1169,64 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   background: rgba(217, 119, 6, 0.22);
   color: #fde68a;
   border-color: #f59e0b;
+}
+.econ-planting-sync {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.econ-planting-sync-stale { color: #b45309; font-weight: 600; }
+.econ-planting-sync-ok { color: var(--brand-text); }
+.calc-trace { margin-top: 10px; font-size: 12.5px; }
+.calc-trace-dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 0; }
+.calc-trace-src { color: var(--ink-faint); font-weight: 400; }
+.farm-cal-status { margin-top: 0; }
+.farm-cal-applied-line { color: var(--brand-text); font-weight: 500; }
+.cv-badge--farm { background: #276D5C; color: #fff; }
+.planting-active-cv-bar {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--paper-deep) 0%, var(--paper) 100%);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: var(--radius, 10px);
+}
+.planting-active-cv-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+}
+.planting-active-cv-label {
+  flex: 0 0 100%;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-faint);
+}
+.planting-active-cv-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.planting-active-cv-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.planting-active-cv-mode-wrap {
+  margin-left: auto;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.planting-active-cv-mode-lbl {
+  margin-right: 6px;
+  color: var(--ink-faint);
 }
 .planting-year-month-hint {
   grid-column: 1 / -1;
@@ -1805,6 +2043,50 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .pdf-staging table { border-collapse: collapse; width: 100%; }
 .pdf-staging th, .pdf-staging td { border: 1px solid #ddd; padding: 6px 8px; font-size: 12px; color: #111; }
 .pdf-staging .econ-breakdown th { background: #f5f5f0; }
+/* Компактная вёрстка экономики в PDF (растровые секции: культуры, расширения, предупреждения) */
+.pdf-staging--econ { padding: 0 8px; }
+.pdf-staging--econ .pdf-export-wrap { margin-bottom: 12px; }
+.pdf-staging--econ .pdf-section-title { font-size: 11px; margin: 8px 0 6px; padding-bottom: 4px; }
+.pdf-staging--econ .panel { padding: 6px 8px !important; border-radius: 4px !important; }
+.pdf-staging--econ .section-h { display: none !important; }
+.pdf-staging--econ .econ-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px 8px; margin-bottom: 2px; }
+.pdf-staging--econ .econ-field label { font-size: 8px; margin-bottom: 1px; letter-spacing: 0.03em; }
+.pdf-staging--econ .econ-field .econ-hint { font-size: 8px; margin-top: 0; line-height: 1.25; }
+.pdf-staging--econ .pdf-static-val { font-size: 10px; line-height: 1.3; }
+.pdf-staging--econ .econ-cultures-list { gap: 4px; margin: 4px 0; }
+.pdf-staging--econ .econ-culture-card { padding: 5px 6px 4px; }
+.pdf-staging--econ .econ-culture-head { gap: 4px; margin-bottom: 2px; }
+.pdf-staging--econ .econ-culture-params { gap: 3px 5px; margin-top: 4px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pdf-staging--econ .econ-culture-params label { min-height: 0; font-size: 8px; margin-bottom: 1px; }
+.pdf-staging--econ .econ-culture-hint { margin-top: 3px; font-size: 9px; }
+.pdf-staging--econ .econ-cultures-total { margin: 2px 0 4px; font-size: 10px; }
+.pdf-staging--econ .econ-derived { padding: 5px 6px; margin: 4px 0; }
+.pdf-staging--econ .econ-derived dl { gap: 2px 8px; font-size: 10px; }
+.pdf-staging--econ .econ-breakdown th, .pdf-staging--econ .econ-breakdown td { padding: 2px 4px; font-size: 9px; }
+.pdf-staging--econ .econ-breakdown th { font-size: 8px; }
+.pdf-staging--econ .econ-payroll-block { margin-bottom: 6px; }
+.pdf-staging--econ .econ-payroll-h4 { font-size: 9px; margin: 0 0 3px; }
+.pdf-staging--econ .econ-payroll-row { padding: 2px 0; font-size: 10px; gap: 4px; }
+.pdf-staging--econ .econ-payroll-items { gap: 2px; margin-bottom: 3px; }
+.pdf-staging--econ .econ-elec-cat-card { padding: 4px 5px; }
+.pdf-staging--econ .econ-elec-cat-title { font-size: 9px; margin-bottom: 2px; }
+.pdf-staging--econ .econ-elec-cats-grid { gap: 4px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pdf-staging--econ .econ-equip-group { margin-bottom: 5px; }
+.pdf-staging--econ .econ-equip-group h4 { font-size: 8px; margin: 0 0 3px; }
+.pdf-staging--econ .econ-equip-row { gap: 4px; padding: 1px 0; }
+.pdf-staging--econ .econ-equip-total { margin-top: 4px; padding: 4px 6px; }
+.pdf-staging--econ .econ-results-per-culture { gap: 4px 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pdf-staging--econ .econ-culture-metric { padding: 4px 5px; }
+.pdf-staging--econ .econ-culture-metric .name { font-size: 9px; margin-bottom: 3px; }
+.pdf-staging--econ .econ-culture-metric .line { font-size: 8.5px; margin-top: 2px; }
+.pdf-staging--econ .econ-results-sub { font-size: 9px; margin: 0 0 3px; }
+.pdf-staging--econ .econ-sens-lead, .pdf-staging--econ .econ-sens-payback { font-size: 9px; margin: 0 0 4px; padding: 4px 6px; }
+.pdf-staging--econ .econ-pb-grid { gap: 2px; margin: 4px 0; }
+.pdf-staging--econ .econ-pb-row { font-size: 9px; padding: 2px 0; }
+.pdf-staging--econ .econ-pb-list { font-size: 9px; margin: 0 0 4px; padding-left: 14px; line-height: 1.35; }
+.pdf-staging--econ .econ-cf-caption { font-size: 9px; margin: 0 0 2px; }
+.pdf-staging--econ .econ-custom-block { margin-top: 6px; padding-top: 5px; }
+.pdf-staging--econ .econ-warn { font-size: 10px; padding: 4px 6px; margin-bottom: 3px; }
 .planting-econ-bridge {
   display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
   padding: 14px 18px; margin: 0 0 18px;
@@ -1814,7 +2096,12 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 }
 .planting-econ-bridge strong { color: var(--ink); font-weight: 600; }
 .econ-preset-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; font-size: 12px; color: var(--ink-faint); }
+.econ-preset-sep { opacity: 0.45; padding: 0 2px; user-select: none; }
+.econ-preset-btn--scenario { border-color: rgba(39, 109, 92, 0.35); color: var(--brand-text); }
+.econ-preset-btn--payback { font-weight: 600; color: var(--brand-text); }
 .econ-sens-lead { font-size: 12.5px; color: var(--ink-faint); margin: 0 0 10px; line-height: 1.45; }
+.econ-sens-sync { font-size: 12px; color: var(--ink-soft); margin: 0 0 6px; line-height: 1.4; }
+.econ-sens-base { font-size: 13px; font-weight: 600; color: var(--olive-deep); margin: 0 0 10px; }
 .econ-sens-payback { font-size: 13px; margin: 0 0 12px; padding: 10px 12px; background: var(--paper-deep); border-radius: var(--radius); border: 1px solid var(--rule); }
 .econ-sens-table { margin-top: 8px; }
 .econ-sens-table .econ-sens-base { background: rgba(107,123,46,0.08); }
@@ -1827,6 +2114,17 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .econ-custom-form input { font-size: 13px; padding: 6px 8px; border: 1px solid var(--rule); border-radius: var(--radius); }
 .econ-custom-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .econ-pb-grid { display: grid; gap: 6px; margin: 10px 0 12px; }
+.econ-pb-callout {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(39, 109, 92, 0.35);
+  background: linear-gradient(135deg, var(--brand-pale), var(--card));
+}
+.econ-pb-callout-title { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; }
+.econ-pb-callout-main { margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.35; }
+.econ-pb-callout-sub { margin: 0 0 6px; font-size: 13px; color: var(--ink-soft); line-height: 1.4; }
+.econ-pb-callout-note { margin: 0; font-size: 11.5px; color: var(--ink-faint); line-height: 1.45; }
 .econ-pb-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; padding: 6px 0; border-bottom: 1px dashed var(--rule); }
 .econ-pb-list { margin: 0 0 14px; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--ink); }
 .econ-cf-caption { font-size: 12.5px; color: var(--ink-faint); margin: 0 0 6px; }
@@ -1972,7 +2270,8 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 .adv-infl-form label { display: flex; flex-direction: column; gap: 4px; color: var(--ink-faint); }
 .adv-infl-form input { width: 72px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: var(--radius); }
 </style>
-<link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-20-stdcat-grid">
+<link rel="stylesheet" href="css/daogreen-unify.css?v=2026-05-27-econ-ui">
+<link rel="stylesheet" href="css/econ-unify.css?v=2026-05-27-econ-ui">
 <link rel="stylesheet" href="css/mobile.css?v=2026-05-19-desktop-page-width">
 <link rel="stylesheet" href="css/app-auth.css?v=2026-05-19-preview-mode">
 </head>
@@ -2107,6 +2406,18 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     <p class="georgy-mode-intro georgy-only" id="georgy-mode-intro" data-i18n="georgy.intro">Упрощённый режим теплицы: сроки, плотность, свет и срезки подставляются автоматически.</p>
   </div>
 
+  <div id="planting-active-cv-bar" class="planting-active-cv-bar" aria-live="polite">
+    <div class="planting-active-cv-inner">
+      <span class="planting-active-cv-label" data-i18n="planting.activeCv">Настройка культуры</span>
+      <strong class="planting-active-cv-name" id="planting-active-cv-name">—</strong>
+      <span class="planting-active-cv-sub" id="planting-active-cv-sub"></span>
+      <span class="planting-active-cv-mode-wrap">
+        <span class="planting-active-cv-mode-lbl" data-i18n="planting.activeCvMode">Режим</span>
+        <span class="planting-active-cv-mode" id="planting-active-cv-mode"></span>
+      </span>
+    </div>
+  </div>
+
   <section class="panel collapse-block" id="panel-cultivars">
     <div class="collapse-head" data-collapse-target="panel-cultivars">
       <span>Культуры</span>
@@ -2165,6 +2476,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <div class="ghp-item"><div class="ghp-label" id="georgy-preview-mass-lbl">Масса</div><div class="ghp-val" id="georgy-preview-mass">—</div></div>
       <div class="ghp-item"><div class="ghp-label" data-i18n="georgy.preview.canopy">Шапка ⌀</div><div class="ghp-val" id="georgy-preview-canopy">—</div></div>
     </div>
+    <p class="georgy-head-ready-hint georgy-head-only env-block-hidden" id="georgy-head-ready-hint" role="status"></p>
     <p class="georgy-step-label" data-i18n="georgy.step3">3. Плотность стояния</p>
     <div class="georgy-density-block is-locked" id="georgy-density-block">
       <div class="ctrl-row-extra georgy-btn-row georgy-only">
@@ -2207,7 +2519,6 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     </section>
 
   </section>
-  
 
   <section class="panel" id="panel-culture">
     <div class="section-h">Параметры цикла</div>
@@ -2229,21 +2540,34 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 
         <div class="veg-period-block">
           <p class="veg-period-head">Период вегетации <span class="veg-period-total" id="veg-period-total"></span></p>
+          <p class="cycle-yield-turnover-hint env-block-hidden" id="cycle-yield-turnover-hint" role="status"></p>
 
           <div class="ctrl ctrl-veg-sub" id="ctrl-nursery">
             <span class="ctrl-label">Рассада</span>
             <input type="range" id="nursery" min="7" max="28" step="1" value="14">
             <span class="ctrl-val"><span id="nursery-v">14</span><span class="unit">сут</span></span>
           </div>
+          <p class="grow-phase-yield-hint" id="nursery-yield-hint" data-i18n="grow.nurseryYieldHint"></p>
 
           <div class="ctrl ctrl-veg-sub" id="ctrl-day" data-vf-param="day">
             <span class="ctrl-label">Дней роста до среза/готовности<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="day" id="vf-badge-day">стандарт</button></span>
             <input type="range" id="day" min="1" max="40" step="1" value="21">
             <span class="ctrl-val"><span id="day-v">21</span><span class="unit">сут</span></span>
           </div>
+          <p class="grow-phase-yield-hint" id="channel-day-yield-hint" data-i18n="grow.channelYieldHint"></p>
+          <p class="grow-phase-yield-hint vf-only env-block-hidden" id="vf-growth-slider-hint" data-i18n="vf.growthSliderHint"></p>
           <div class="ctrl-row-extra grow-auto-day-row">
             <button type="button" class="auto-btn" id="auto-day">→ К рекомендуемому дню съёма</button>
+            <p class="grow-auto-day-hint georgy-density-hint" id="auto-day-hint" data-i18n="grow.autoDayHint"></p>
           </div>
+          <p class="georgy-density-hint channel-gh-only sys-channel-only env-block-hidden" id="channel-total-days-wrap"><span data-i18n="georgy.totalDaysFromSow">Всего с момента посева</span>: <strong id="channel-total-days">—</strong> <span class="unit" data-i18n="georgy.unit.days">сут</span></p>
+          <p class="georgy-density-hint channel-gh-only channel-head-only sys-channel-only env-block-hidden" data-i18n="ghCh.headCycleHint">Оборот в основном отделении — только дни в канале и только после подбора плотности.</p>
+          <p class="georgy-head-ready-hint channel-gh-only channel-head-only sys-channel-only env-block-hidden" id="channel-head-ready-hint" role="status"></p>
+          <div class="ctrl-row-extra grow-auto-day-row channel-gh-only channel-baby-only sys-channel-only env-block-hidden">
+            <button type="button" class="auto-btn" id="channel-rucola-std" data-i18n="georgy.rucola.stdBtn">Стандарт рукколы</button>
+            <button type="button" class="auto-btn" id="channel-lettuce-std" data-i18n="georgy.lettuce.stdBtn">Стандарт салата беби</button>
+          </div>
+          <div id="channel-density-warnings" class="channel-gh-only sys-channel-only env-block-hidden"></div>
         </div>
 
         <div id="block-panel-multicut" class="multicut-in-cycle" data-collapse-vf="cutInterval">
@@ -2255,6 +2579,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
               <span class="toggle-switch"></span>
             </label>
           </div>
+          <p id="multicut-yield-only-hint" class="multicut-enable-hint" data-i18n="multicut.yieldOnlyHint"></p>
           <p id="multicut-enable-hint" class="multicut-enable-hint env-block-hidden"></p>
           <div id="multicut-detail" class="env-block-hidden">
             <div class="ctrl ctrl-veg-sub" id="ctrl-cut-interval" data-vf-param="cutInterval">
@@ -2325,6 +2650,25 @@ html.share-mode .page { user-select: text; padding-top: 0; }
         <span class="collapse-chev" aria-hidden="true">▼</span>
       </div>
       <div class="collapse-body" id="block-mass-body">
+        <div class="georgy-harvest-preview channel-gh-only sys-channel-only env-block-hidden" id="channel-harvest-preview">
+          <div class="ghp-item"><div class="ghp-label" id="channel-preview-mass-lbl" data-i18n="ghCh.preview.massModel">Масса на срез (модель)</div><div class="ghp-val" id="channel-preview-mass">—</div></div>
+          <div class="ghp-item"><div class="ghp-label" data-i18n="georgy.preview.canopy">Шапка ⌀ (подбор плотности)</div><div class="ghp-val" id="channel-preview-canopy">—</div></div>
+        </div>
+        <p class="georgy-head-ready-hint channel-gh-only channel-head-only sys-channel-only env-block-hidden" id="channel-head-ready-hint-mass" role="status" aria-hidden="true"></p>
+        <p class="georgy-step-label canopy-density-pick-only sys-channel-only env-block-hidden" data-i18n="georgy.step3">3. Плотность стояния</p>
+        <div class="georgy-density-block canopy-density-block is-locked canopy-density-pick-only sys-channel-only env-block-hidden" id="canopy-density-block">
+          <div class="ctrl-row-extra georgy-btn-row">
+            <button type="button" class="auto-btn" id="canopy-density-no-touch" data-i18n="ghCh.densityNoTouch" data-readonly-allow>Подобрать по шапке (без касания)</button>
+            <button type="button" class="auto-btn" id="canopy-density-auto" data-i18n="canopy.density.autoBtn" data-readonly-allow>Подобрать по шапке (≤20 мм)</button>
+            <span class="georgy-density-hint" id="canopy-density-hint" data-i18n="georgy.densityHintBefore">Задайте дни роста, проверьте массу и шапку, затем нажмите кнопку подбора.</span>
+          </div>
+          <div id="canopy-density-overlap"></div>
+        </div>
+        <div class="ctrl sys-channel-only" id="ctrl-density" data-vf-param="density">
+          <span class="ctrl-label" id="density-ctrl-label" data-i18n="georgy.densityLabel">Плотность (после подбора)<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="density" id="vf-badge-density">стандарт</button></span>
+          <input type="range" id="density" min="15" max="220" step="1" value="40" disabled>
+          <span class="ctrl-val"><span id="density-v">40</span><span class="unit" data-i18n="georgy.unit.pcsSqm">шт/м²</span></span>
+        </div>
         <div class="toggle-wrap toggle-wrap--spaced">
           <span class="toggle-label">Задать массу урожая вручную</span>
           <label class="toggle">
@@ -2608,17 +2952,6 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </div>
     </div>
 
-    <div class="canopy-density-wrap sys-channel-only env-block-hidden" id="canopy-density-wrap">
-      <div class="sys-aux-actions">
-        <button type="button" class="auto-btn" id="canopy-density-auto" data-i18n="canopy.density.autoBtn">Подобрать по шапке (≤20 мм)</button>
-      </div>
-      <p class="georgy-density-hint" id="canopy-density-hint"></p>
-    </div>
-<div class="ctrl sys-channel-only" id="ctrl-density" data-vf-param="density">
-      <span class="ctrl-label">Целевая плотность<button type="button" class="vf-sheet-badge env-block-hidden" data-vf-field="density" id="vf-badge-density">стандарт</button></span>
-      <input type="range" id="density" min="15" max="220" step="1" value="40">
-      <span class="ctrl-val"><span id="density-v">40</span><span class="unit">шт/м²</span></span>
-    </div>
     <div class="ctrl sys-channel-only">
       <span class="ctrl-label">Сдвиг рядов</span>
       <input type="range" id="offset" min="0" max="50" step="5" value="50">
@@ -2695,6 +3028,8 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   <section class="panel gh-yield-panel plant-yield-only" id="panel-gh-yield-totals">
     <div class="section-h" id="gh-yield-section-title" data-i18n="gh.yield.title">Урожай с полезной площади теплицы</div>
     <p class="gh-yield-intro" id="gh-yield-intro" data-i18n="gh.yield.intro">Площадь — вся полезная посевная зона (м²). Урожай масштабируется от кг/м² текущего расчёта (сорт, свет, температура, плотность). Погрешность — разброс по партии.</p>
+    <p class="gh-yield-turnover-hint env-block-hidden" id="gh-yield-turnover-hint" role="status"></p>
+    <p class="georgy-density-hint channel-gh-only sys-channel-only env-block-hidden" id="channel-staff-hint"></p>
     <div class="gh-yield-controls">
       <div class="gh-yield-area-wrap">
         <label for="gh-useful-area" data-i18n="gh.yield.areaLabel">Полезная посевная площадь</label>
@@ -2780,6 +3115,41 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 
     <div class="section-h" id="sys-metrics-section-title">Система целиком</div>
     <div class="metrics" id="metrics-sys"></div>
+  </section>
+
+  <section class="panel collapse-block" id="block-panel-farm-calibration">
+    <div class="collapse-head" data-collapse-target="block-panel-farm-calibration">
+      <span>Калибровка по замерам</span>
+      <span class="collapse-chev" aria-hidden="true">▼</span>
+    </div>
+    <div class="collapse-body" id="block-panel-farm-calibration-body">
+      <p class="ui-hint ui-hint--tight env-block-hidden" id="farm-cal-no-cv">Выберите сорт в списке культур.</p>
+      <div id="farm-cal-form">
+        <p class="ui-hint ui-hint--tight" id="farm-cal-intro">Замеры с объекта подгоняют модель под вашу ферму. Сохраняются в проект JSON.</p>
+        <p class="ui-hint ui-hint--tight farm-cal-status" id="farm-cal-model" hidden></p>
+        <p class="ui-hint ui-hint--tight farm-cal-status farm-cal-applied-line" id="farm-cal-applied" hidden></p>
+        <div class="ctrl">
+          <span class="ctrl-label" id="farm-cal-mass-lbl">Факт. масса срезки, г</span>
+          <input type="number" id="farm-cal-mass" step="0.1" min="0">
+        </div>
+        <div class="ctrl">
+          <span class="ctrl-label" id="farm-cal-yield-lbl">Факт. урожай, кг/м²·мес</span>
+          <input type="number" id="farm-cal-yield" step="0.01" min="0">
+        </div>
+        <div class="ctrl">
+          <span class="ctrl-label" id="farm-cal-date-lbl">Дата замера</span>
+          <input type="date" id="farm-cal-date">
+        </div>
+        <div class="ctrl">
+          <span class="ctrl-label" id="farm-cal-comment-lbl">Комментарий</span>
+          <input type="text" id="farm-cal-comment" maxlength="120">
+        </div>
+        <div class="gh-standards-actions">
+          <button type="button" class="auto-btn auto-btn--primary" id="farm-cal-save">Применить калибровку</button>
+          <button type="button" class="auto-btn env-block-hidden" id="farm-cal-clear">Сбросить замеры</button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section class="panel" id="panel-scenarios">
@@ -2912,57 +3282,69 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   </div>
 
   <div id="view-economics" class="app-view app-view-hidden">
-    <p class="econ-intro" id="econ-intro" data-i18n="econ.intro">Экономика считается <strong>отдельно от вкладки «Посадка»</strong>: плотность, урожай, свет и затраты вводите сами или подставляете кнопкой «Импорт из посадки». Выбор сорта в списке <strong>не меняет</strong> числа автоматически.</p>
+    <div class="econ-hero">
+      <p class="econ-intro" id="econ-intro" data-i18n="econ.intro">Экономика считается <strong>отдельно от вкладки «Посадка»</strong>: плотность, урожай, свет и затраты вводите сами или подставляете кнопкой «Импорт из посадки». Выбор сорта в списке <strong>не меняет</strong> числа автоматически.</p>
     <ul class="econ-warnings" id="econ-warnings" hidden></ul>
-    <div class="econ-preset-bar" id="econ-preset-bar">
+    <div class="econ-planting-sync" id="econ-planting-sync" hidden></div>
+      <div class="econ-toolbar">
+        <div class="econ-preset-bar" id="econ-preset-bar">
       <span data-i18n="econ.preset">Шаблон фермы:</span>
       <button type="button" class="auto-btn econ-preset-btn" data-econ-preset="micro150" data-i18n="econ.preset.micro150">150 м²</button>
       <button type="button" class="auto-btn econ-preset-btn" data-econ-preset="vf300" data-i18n="econ.preset.vf300">VF 300 m²</button>
       <button type="button" class="auto-btn econ-preset-btn" data-econ-preset="greenhouse500" data-i18n="econ.preset.greenhouse500">Теплица 500 м²</button>
-    </div>
-    <div class="econ-actions">
-      <button type="button" class="auto-btn" id="econ-sync-planting" data-i18n="econ.sync" data-readonly-allow>Импорт из посадки (все культуры)</button>
+      <span class="econ-preset-sep" aria-hidden="true">·</span>
+      <button type="button" class="auto-btn econ-preset-btn econ-preset-btn--scenario" data-econ-preset="baseScenario" data-i18n="econ.preset.baseScenario">Базовый ассортимент</button>
+      <button type="button" class="auto-btn econ-preset-btn econ-preset-btn--payback" data-econ-preset="newbieScenario" data-i18n="econ.preset.newbieScenario">Сценарий для новичков</button>
+        </div>
+        <p class="econ-preset-hint" data-i18n="econ.preset.baseHint">Микрозелень, беби (растущая), пищевые цветы, рукола, шпинат, капуста, базилик, мангольд, салат взрослый и беби-срез, витграсс. Лотки/горшки — в шт (₽/шт), зелень на срез — в г (₽/кг).</p>
+        <div class="econ-actions">
+          <button type="button" class="auto-btn auto-btn--primary" id="econ-sync-planting" data-i18n="econ.sync" data-readonly-allow>Импорт из посадки (все культуры)</button>
       <button type="button" class="auto-btn" id="econ-fill-areas" data-i18n="econ.fillAreas">Площадь из геометрии посадки</button>
       <button type="button" class="auto-btn" id="econ-export-csv" data-i18n="econ.csv">Скачать CSV</button>
+        </div>
+      </div>
     </div>
 
-    <section class="panel" id="econ-panel-general">
+    <div class="econ-zone econ-zone--inputs">
+      <h2 class="econ-zone-label" data-i18n="econ.zone.inputs">Параметры фермы</h2>
+
+    <section class="panel econ-panel" id="econ-panel-general">
       <div class="section-h" data-i18n="econ.section.general">Общие параметры</div>
       <div class="econ-grid" id="econ-inputs-general"></div>
     </section>
 
-    <section class="panel" id="econ-panel-cultures">
+    <section class="panel econ-panel" id="econ-panel-cultures">
       <div class="section-h" data-i18n="econ.section.cultures">Состав фермы по культурам</div>
-      <p style="font-size:12.5px;color:var(--ink-faint);margin:-6px 0 10px" data-i18n="econ.cultures.intro">До 6 культур. Доли площади — не больше 100%. Расходники на посев: шт/м² × цена за горшок (семена, горшок, субстрат) — ориентир 3–6 за горшок, по умолчанию 4; сумма ÷ срок урожая с посева → в месяц на м². Урожай и свет — вручную или «Импорт из посадки» (в т.ч. культуры поддонов <code>pl-*</code>).</p>
+      <p class="econ-cultures-intro econ-lead" data-i18n="econ.cultures.intro">До 12 культур. Доли площади — не больше 100%. Расходники на посев: шт/м² × цена за горшок (семена, горшок, субстрат) — ориентир 3–6 за горшок, по умолчанию 4; сумма ÷ срок урожая с посева → в месяц на м². Урожай и свет — вручную или «Импорт из посадки» (в т.ч. культуры поддонов <code>pl-*</code>).</p>
       <p class="econ-cultures-total" id="econ-cultures-total"></p>
       <div class="econ-cultures-list" id="econ-cultures-list"></div>
       <div class="econ-actions">
         <button type="button" class="auto-btn" id="econ-add-culture" data-i18n="econ.addCulture">+ Культура</button>
-        <button type="button" class="auto-btn" id="econ-add-salad-mix" data-i18n="econ.addMix">+ Микс салатов</button>
+        <!-- Микс теперь формируется из обычных культур (чекбокс «В микс») -->
       </div>
     </section>
 
-    <section class="panel" id="econ-panel-yield-summary">
+    <section class="panel econ-panel" id="econ-panel-yield-summary">
       <div class="section-h" data-i18n="econ.section.yield">Сводка урожая (из полей культур)</div>
       <div class="econ-derived" id="econ-derived-panel"></div>
     </section>
 
-    <section class="panel" id="econ-panel-elec">
+    <section class="panel econ-panel" id="econ-panel-elec">
       <div class="section-h" data-i18n="econ.section.elec">Электроэнергия по категориям</div>
       <div id="econ-elec-cats-inputs"></div>
     </section>
 
-    <section class="panel" id="econ-panel-payroll">
+    <section class="panel econ-panel" id="econ-panel-payroll">
       <div class="section-h" data-i18n="econ.section.payroll">Персонал, учёт и налоги</div>
       <div id="econ-payroll-body"></div>
     </section>
 
-    <section class="panel" id="econ-panel-costs">
+    <section class="panel econ-panel" id="econ-panel-costs">
       <div class="section-h" data-i18n="econ.section.costs">Затраты (в месяц)</div>
       <div class="econ-grid" id="econ-inputs-costs"></div>
     </section>
 
-    <section class="panel" id="econ-panel-equipment">
+    <section class="panel econ-panel" id="econ-panel-equipment">
       <div class="section-h" data-i18n="econ.section.equipment">Оборудование и подготовка (разово)</div>
       <div class="toggle-wrap econ-equip-panel-head">
         <span class="toggle-label">Учитывать в себестоимости</span>
@@ -2971,7 +3353,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
           <span class="toggle-switch"></span>
         </label>
       </div>
-      <p class="econ-equip-panel-hint" id="econ-equipment-panel-hint" style="font-size:12.5px;color:var(--ink-faint);margin:0 0 12px">Сумма участвует в себестоимости через амортизацию — укажите срок в общих параметрах.</p>
+      <p class="econ-equip-panel-hint econ-lead" id="econ-equipment-panel-hint">Сумма участвует в себестоимости через амортизацию — укажите срок в общих параметрах.</p>
       <div id="econ-equipment-body" class="econ-equipment-body">
         <div id="econ-equipment-groups"></div>
       </div>
@@ -2981,32 +3363,44 @@ html.share-mode .page { user-select: text; padding-top: 0; }
         <p class="econ-equip-total-hint" id="econ-equipment-total-hint">Оборудование + подготовка помещения (разово)</p>
       </div>
     </section>
+    </div>
 
-    <section class="panel" id="econ-panel-results">
+    <div class="econ-zone econ-zone--results">
+      <h2 class="econ-zone-label" data-i18n="econ.zone.results">Результаты и сценарии</h2>
+
+    <section class="panel econ-panel econ-panel--highlight" id="econ-panel-results">
       <div class="section-h" data-i18n="econ.section.results">Итог</div>
       <div class="econ-results-stack" id="econ-results-metrics"></div>
       <div class="econ-table-scroll">
         <table class="econ-breakdown econ-cultures-table" id="econ-cultures-breakdown"></table>
       </div>
-      <div class="econ-table-scroll">
-        <table class="econ-breakdown" id="econ-breakdown-table"></table>
+      <div class="econ-results-final-wrap" id="econ-results-final">
+        <div class="econ-results-final-head">
+          <h3 class="econ-results-final-title" data-i18n="econ.final.title">Итоговая экономика фермы</h3>
+          <p class="econ-results-final-lead" data-i18n="econ.final.lead">Все статьи затрат, выручка, налоги и маржа — главный результат расчёта.</p>
+        </div>
+        <div id="econ-results-final-cards" class="econ-results-final-cards"></div>
+        <div class="econ-table-scroll">
+          <table class="econ-breakdown econ-breakdown-final" id="econ-breakdown-table"></table>
+        </div>
       </div>
     </section>
 
-    <section class="panel" id="econ-panel-advanced">
+    <section class="panel econ-panel" id="econ-panel-advanced">
       <div class="section-h" data-i18n="econ.section.advanced">Расширенная модель</div>
       <div id="econ-advanced-body"></div>
     </section>
 
-    <section class="panel" id="econ-panel-sensitivity">
-      <div class="section-h">Сценарии «что если»</div>
+    <section class="panel econ-panel" id="econ-panel-sensitivity">
+      <div class="section-h" data-i18n="econ.section.sensitivity">Сценарии «что если»</div>
       <div id="econ-sensitivity-body"></div>
     </section>
 
-    <section class="panel" id="econ-panel-payback">
-      <div class="section-h">Окупаемость и cash-flow</div>
+    <section class="panel econ-panel" id="econ-panel-payback">
+      <div class="section-h" data-i18n="econ.section.payback">Окупаемость и cash-flow</div>
       <div id="econ-payback-body"></div>
     </section>
+    </div>
   </div>
 
   <div id="view-standards" class="app-view app-view-hidden">
@@ -3120,6 +3514,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 <script src="js/planting-public-api.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-snapshot.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/georgy-mode.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/gh-channel-simple.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/canopy-density-ui.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/simple-ui-mode.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/planting-guides.js?v=2026-05-20-p109-pdf-sections"></script>
@@ -3129,6 +3524,10 @@ html.share-mode .page { user-select: text; padding-top: 0; }
 <script src="js/i18n-econ-extras.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/i18n-recs.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/locale.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/planting-econ-sync.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/calc-issues.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/calc-trace.js?v=2026-05-20-p109-pdf-sections"></script>
+<script src="js/farm-calibration.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/econ-core.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/econ-ui.js?v=2026-05-20-p109-pdf-sections"></script>
 <script src="js/vendor/html2canvas.min.js"></script>
@@ -3233,6 +3632,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       PC: PC,
       getState: function(){ return state; },
       getGeorgyMode: function(){ return georgyMode; },
+      getGhChannelSimple: function(){ return ghChannelSimple; },
       getPlantingHarvestYieldParams: function(){ return plantingHarvestYieldParams; },
       getPlantingStateEconSlice: function(){ return getPlantingStateEconSlice; },
       restorePlantingStateEconSlice: function(){ return restorePlantingStateEconSlice; },
@@ -3257,6 +3657,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   }
 
   var georgyMode;
+  var ghChannelSimple;
   var plantingHarvestYieldParams, buildPlantingSnapshot, getPlantingSnapshot;
   var getPlantingStateEconSlice, restorePlantingStateEconSlice, plantingCvIdMatchesLiveState;
   var getPlantingSnapshotForCvId, averageSnapshots, getSaladMixSnapshot;
@@ -3414,6 +3815,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   function rebuildGhCutCountRow(){ return _rt.rebuildGhCutCountRow.apply(_rt, arguments); }
   function syncMulticutBabyUi(){ return _rt.syncMulticutBabyUi.apply(_rt, arguments); }
   function syncGhCutsUI(){ return _rt.syncGhCutsUI.apply(_rt, arguments); }
+  function syncGhCultivarFromCv(){ return _rt.syncGhCultivarFromCv.apply(_rt, arguments); }
   function syncGhFacilityPanels(){ return _rt.syncGhFacilityPanels.apply(_rt, arguments); }
   function applyGhProfileToStateOnly(){ return _rt.applyGhProfileToStateOnly.apply(_rt, arguments); }
   function renderGhStandardsPanel(){ return _rt.renderGhStandardsPanel.apply(_rt, arguments); }
@@ -3588,6 +3990,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
   _lateInitApi.install();
   _render = _lateInitApi.getRender();
   georgyMode = _lateInitApi.getGeorgyMode();
+  ghChannelSimple = _lateInitApi.getGhChannelSimple();
   plantingHarvestYieldParams = _lateInitApi.plantingHarvestYieldParams;
   buildPlantingSnapshot = _lateInitApi.buildPlantingSnapshot;
   getPlantingSnapshot = _lateInitApi.getPlantingSnapshot;
@@ -3731,12 +4134,94 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     return dd + ' ' + mm + yr;
   }
 
+  function pdfExportSectionIds(ctx){
+    return (ctx && ctx.sectionIds) ? ctx.sectionIds : null;
+  }
+  function pdfExportIsEconLed(ctx){
+    if (state.appView === 'economics') return true;
+    var ids = pdfExportSectionIds(ctx);
+    if (!ids || !ids.length) return false;
+    return ids.some(function(id){ return id.indexOf('econ-') === 0; }) &&
+      ids.every(function(id){ return id === 'cover' || id.indexOf('econ-') === 0; });
+  }
+  function primaryEconCultureRow(){
+    if (typeof ensureEconCultures === 'function') ensureEconCultures();
+    var rows = (state.econ.cultures || []).filter(function(r){
+      return r && r.cvId && (parseFloat(r.pct) || 0) > 0;
+    });
+    if (!rows.length) return null;
+    return rows.slice().sort(function(a, b){
+      return (parseFloat(b.pct) || 0) - (parseFloat(a.pct) || 0);
+    })[0];
+  }
+  function slugFromName(name){
+    return String(name || '').replace(/[^a-zA-ZЀ-ӿ0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 28);
+  }
+
   function initPlantingPdfExport(){
     if (!window.DG_initPdfExport) return;
-    window.DG_initPdfExport({
+    var pdfDeps;
+    window.DG_initPdfExport(pdfDeps = {
       renderEconomics: typeof renderEconomics === "function" ? renderEconomics : null,
       renderAll: typeof renderAll === "function" ? renderAll : null,
+      getState: function(){ return state; },
+      calc: typeof calc === "function" ? calc : null,
+      calcFarmEconomics: typeof calcFarmEconomics === "function" ? calcFarmEconomics : null,
       getExportMeta: function(){
+        var ctx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
+        if (pdfExportIsEconLed(ctx) && typeof calcFarmEconomics === 'function'){
+          var row = primaryEconCultureRow();
+          if (row && row.cvId){
+            var farm = calcFarmEconomics(state.econ);
+            var part = (farm.parts || []).find(function(p){ return p.cvId === row.cvId; }) || (farm.parts && farm.parts[0]);
+            var cv = findCvById(row.cvId);
+            var name = (typeof econCvDisplayName === 'function') ? econCvDisplayName(row.cvId) : (cv ? cv.name : row.cvId);
+            var lines = [];
+            var wf = 1 - (parseFloat(farm.wastePct) || 0) / 100;
+            lines.push({ label: ui('ui.pdf.meta.cultivar'), value: name, unit: '' });
+            if (part && part.slice){
+              var sell = part.slice.monthlyOutput * wf;
+              var isPcs = part.slice.outputUnit === 'шт';
+              lines.push({
+                label: ui('ui.pdf.meta.outputMo'),
+                value: sell > 0 ? fmtNum(sell) : '—',
+                unit: isPcs ? tr('sum.unit.pcsMo') : tr('sum.unit.kgMo')
+              });
+              if (part.slice.unitCostFull > 0){
+                lines.push({
+                  label: ui('ui.pdf.meta.unitCost'),
+                  value: isPcs ? r2(part.slice.unitCostFull) : r2(part.slice.unitCostFull),
+                  unit: isPcs ? '₽/шт' : '₽/кг'
+                });
+              }
+              if (parseFloat(row.salePrice) > 0){
+                lines.push({
+                  label: ui('ui.pdf.meta.salePrice'),
+                  value: r2(parseFloat(row.salePrice)),
+                  unit: isPcs ? '₽/шт' : '₽/кг'
+                });
+              }
+              lines.push({
+                label: ui('ui.pdf.meta.plantingArea'),
+                value: r1(part.pct) + '% · ' + r1(part.slice.area),
+                unit: tr('sum.unit.sqm')
+              });
+            }
+            if (farm.parts && farm.parts.length > 1){
+              lines.push({ label: ui('ui.pdf.meta.culturesN'), value: String(farm.parts.length), unit: '' });
+            }
+            lines.push({ label: ui('ui.pdf.meta.mode'), value: tr('mode.economics'), unit: '' });
+            var sub = name;
+            if (farm.parts && farm.parts.length > 1) sub += ' · ' + farm.parts.length + ' культ.';
+            return {
+              title: pt('econ.title'),
+              subtitle: sub,
+              date: new Date().toLocaleDateString((window.DG_getLocale && DG_getLocale() === 'en') ? 'en-US' : 'ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }),
+              build: CALC_BUILD,
+              lines: lines
+            };
+          }
+        }
         var r = calc();
         var cv = getActiveCv();
         var lines = [];
@@ -3760,9 +4245,53 @@ html.share-mode .page { user-select: text; padding-top: 0; }
         };
       },
       pdfFilename: function(){
+        var ctx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
+        if (pdfExportIsEconLed(ctx)){
+          var row = primaryEconCultureRow();
+          if (row && row.cvId){
+            var name = (typeof econCvDisplayName === 'function') ? econCvDisplayName(row.cvId) : row.cvId;
+            var slug = slugFromName(name);
+            return 'daogreen-econ-' + (slug || 'econ') + '-' + new Date().toISOString().slice(0, 10);
+          }
+        }
         var cv = getActiveCv();
-        var slug = (cv && cv.name) ? String(cv.name).replace(/[^a-zA-ZЀ-ӿ0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 28) : 'calc';
+        var slug = slugFromName(cv && cv.name);
         return 'daogreen-' + (slug || 'calc') + '-' + new Date().toISOString().slice(0, 10);
+      },
+      preparePlantingForPdfExport: function(){
+        if (state.appView !== 'economics') return null;
+        var row = primaryEconCultureRow();
+        if (!row || !row.cvId) return null;
+        var cvId = row.cvId;
+        var token = {
+          appView: state.appView,
+          cv: state.cv,
+          vfCv: state.vfCv,
+          palletCv: state.palletCv,
+          facility: state.facility
+        };
+        if (isPalletCvId(cvId)){
+          if (typeof setAppView === 'function') setAppView('pallets');
+          state.palletCv = cvId;
+          state.cv = cvId;
+        } else if (isVfCvId(cvId)){
+          if (typeof setAppView === 'function') setAppView('channels');
+          state.facility = 'vertical';
+          state.vfCv = cvId;
+        } else {
+          if (typeof setAppView === 'function') setAppView('channels');
+          state.facility = 'greenhouse';
+          state.cv = cvId;
+        }
+        return token;
+      },
+      restorePlantingAfterPdfExport: function(token){
+        if (!token) return;
+        state.cv = token.cv;
+        state.vfCv = token.vfCv;
+        state.palletCv = token.palletCv;
+        state.facility = token.facility;
+        if (typeof setAppView === 'function') setAppView(token.appView);
       }
     });
   }
@@ -3773,6 +4302,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       getState: function(){ return state; },
       getGeorgyMode: function(){ return georgyMode; },
       georgyMode: georgyMode,
+      getGhChannelSimple: function(){ return ghChannelSimple; },
       canopyDensityUi: canopyDensityUi,
       $: $, clamp: clamp, parseNumInput: parseNumInput,
       VF_CULTIVARS: VF_CULTIVARS, PALLET_CULTIVARS: PALLET_CULTIVARS,
@@ -3787,7 +4317,8 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       setAppView: setAppView, isVF: isVF, isPalletView: isPalletView, isPalletCvId: isPalletCvId, getCv: getCv,
       getVfCv: getVfCv, getActiveCv: getActiveCv, getCompareList: getCompareList,
       comparePickActiveId: comparePickActiveId, ensureComparePick: ensureComparePick,
-      ghCutCountMax: ghCutCountMax, syncGhCutsUI: syncGhCutsUI, syncGhYieldMarginSliders: syncGhYieldMarginSliders,
+      ghCutCountMax: ghCutCountMax, syncGhCutsUI: syncGhCutsUI, syncGhCultivarFromCv: syncGhCultivarFromCv,
+      syncGhYieldMarginSliders: syncGhYieldMarginSliders,
       syncVfSlidersFromState: syncVfSlidersFromState, syncPalletZoneLength: syncPalletZoneLength,
       syncPalletPlantsHint: syncPalletPlantsHint, syncPalletCellButtons: syncPalletCellButtons,
       syncPalletMountButtons: syncPalletMountButtons, syncManualMassUI: syncManualMassUI,

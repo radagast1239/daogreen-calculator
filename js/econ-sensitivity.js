@@ -8,12 +8,10 @@
 
   function scalePrices(e, factor){
     var c = cloneEcon(e);
-    var base = parseFloat(c.salePrice) || 0;
-    c.salePrice = Math.max(0, base * (1 + factor));
     c.cultures = (c.cultures || []).map(function(row){
       var r = Object.assign({}, row);
       var sp = parseFloat(r.salePrice);
-      r.salePrice = sp > 0 ? Math.max(0, sp * (1 + factor)) : c.salePrice;
+      if (sp > 0) r.salePrice = Math.max(0, sp * (1 + factor));
       return r;
     });
     return c;
@@ -42,6 +40,7 @@
     { id: 'price-m10', labelKey: 'priceM10', label: 'Цена продажи −10%', apply: function(e){ return scalePrices(e, -0.1); } },
     { id: 'price-p10', labelKey: 'priceP10', label: 'Цена продажи +10%', apply: function(e){ return scalePrices(e, 0.1); } },
     { id: 'yield-m15', labelKey: 'yieldM15', label: 'Урожай −15%', apply: function(e){ return scaleYields(e, -0.15); } },
+    { id: 'crisis', labelKey: 'crisis', label: 'Кризис: цена −10% и урожай −15%', apply: function(e){ return scalePrices(scaleYields(e, -0.15), -0.1); } },
     { id: 'waste-p5', labelKey: 'wasteP5', label: 'Брак +5 п.п.', apply: function(e){
       var c = cloneEcon(e);
       c.wastePct = Math.min(50, (parseFloat(c.wastePct) || 0) + 5);
@@ -172,11 +171,17 @@
     var baseFarm = deps.calcFarmEconomics(e);
     var rows = runScenarios(e, deps.calcFarmEconomics, customRows);
     var base = rows[0] || { margin: 0, revenue: 0 };
-
-    var html = '<p class="econ-sens-lead">' + T('sens.lead') + '</p>';
-    html += '<p class="econ-sens-payback">' + paybackHint(baseFarm, deps.sumEconEquipment ? deps.sumEconEquipment() : 0) + '</p>';
     var sym = deps.currencySym ? deps.currencySym() : '₽';
     var perMo = deps.t ? deps.t('econ.perMonth') : '/мес';
+
+    var html = '<p class="econ-sens-lead">' + T('sens.lead') + '</p>';
+    html += '<p class="econ-sens-sync">' + T('sens.syncHint') + '</p>';
+    html += '<p class="econ-sens-base">' + TF('sens.baseLine', {
+      rev: deps.fmtMoney ? deps.fmtMoney(baseFarm.revenue) : deps.fmtNum(baseFarm.revenue),
+      margin: deps.fmtMoney ? deps.fmtMoney(baseFarm.margin) : deps.fmtNum(baseFarm.margin),
+      perMo: perMo
+    }) + '</p>';
+    html += '<p class="econ-sens-payback">' + paybackHint(baseFarm, deps.sumEconEquipment ? deps.sumEconEquipment() : 0) + '</p>';
     html += '<table class="econ-breakdown econ-sens-table"><thead><tr>' +
       '<th>' + T('sens.th.scenario') + '</th><th>' + (deps.t ? deps.t('sum.revenue') : T('econ.bd.revenue')) + ' ' + sym + perMo + '</th><th>' +
       (deps.t ? deps.t('sum.opex') : T('econ.metrics.opex')) + ' ' + sym + perMo + '</th><th>' +

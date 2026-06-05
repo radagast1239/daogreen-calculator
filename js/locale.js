@@ -9,7 +9,7 @@
 
   var MONEY_ECON_KEYS = {
     priceKwh: 1, rentMonth: 1, staffSalary: 1, logisticsMonth: 1, salePrice: 1,
-    otherMonth: 1, consumablesPerKg: 1, accountingMonth: 1
+    otherMonth: 1, consumablesPerKg: 1, consumablesPerPcs: 1, accountingMonth: 1
   };
   var MONEY_CULT_FIELDS = { salePrice: 1, consumablesPerPot: 1 };
 
@@ -59,6 +59,26 @@
       'badge.loading': 'Калькулятор · загрузка…',
       'auth.preview.banner': 'Режим предпросмотра — можно смотреть все вкладки. Для расчётов и правок войдите.',
       'auth.preview.login': 'Войти',
+      'auth.gate.lead': 'Калькулятор посадки и экономики фермы',
+      'auth.field.login': 'Логин',
+      'auth.field.password': 'Пароль',
+      'auth.submit': 'Войти',
+      'auth.welcome': 'Добро пожаловать',
+      'auth.successText': 'Контакты и ссылки:',
+      'auth.openCalc': 'Открыть калькулятор',
+      'auth.contact': 'Связаться',
+      'auth.close': 'Закрыть',
+      'auth.error.invalid': 'Неверный логин или пароль',
+      'auth.error.notConfigured': 'Вход не настроен. Выполните npm run auth:config и обновите сайт на GitHub.',
+      'auth.error.https': 'Нужен HTTPS или http://localhost (не file://).',
+      'auth.error.clientCheck': 'Ошибка проверки пароля в браузере.',
+      'auth.error.noConfig': 'Не загружен js/auth-client-config.js. В терминале: node _tools/write-auth-client-config.js daogreen пароль — затем Ctrl+F5.',
+      'btn.logout': 'Выход',
+      'btn.logoutTitle': 'Выйти из калькулятора',
+      'issues.plantingStale': 'После импорта изменились параметры посадки ({fields}) — нажмите «Импорт из посадки».',
+      'issues.priceZero': '«{name}»: цена продажи 0 — выручка и маржа будут нулевыми.',
+      'issues.widthExceeds': 'Ширина системы превышает допустимый предел.',
+      'issues.overlapBad': 'Сильное перекрытие шапок ({mm} мм).',
       'currency.note': 'В проекте суммы хранятся в ₽',
       'currency.activeUsd': 'Суммы в долларах США (USD)',
       'currency.activeRub': 'Суммы в рублях (₽)',
@@ -67,19 +87,24 @@
       'econ.intro': 'Экономика считается отдельно от вкладки «Посадка»: плотность, урожай, свет и затраты вводите сами или «Импорт из посадки». Сорт в посадке не меняет цифры автоматически.',
       'econ.preset': 'Шаблон фермы:',
       'econ.sync': 'Импорт из посадки (все культуры)',
+      'econ.sync.meta': 'Данные посадки от {time}: {name}, {facility}.',
+      'econ.sync.stale': 'Изменено: {fields}. Нажмите «Импорт из посадки».',
+      'econ.sync.fresh': 'Связь с посадкой актуальна.',
       'econ.fillAreas': 'Площадь из геометрии посадки',
       'econ.csv': 'Скачать CSV',
       'econ.section.general': 'Общие параметры',
       'econ.section.cultures': 'Состав фермы по культурам',
-      'econ.cultures.intro': 'До 6 культур. Доли площади — не больше 100%. Расходники на посев: шт/м² × цена за горшок (семена, горшок, субстрат) — ориентир 3–6 за горшок, по умолчанию 4; сумма ÷ срок урожая с посева → в месяц на м². Урожай и свет — вручную или «Импорт из посадки» (в т.ч. культуры поддонов pl-*).',
+      'econ.cultures.intro': 'До 12 культур. Доли площади — не больше 100%. Расходники на посев: шт/м² × цена за горшок (семена, горшок, субстрат) — ориентир 3–6 за горшок, по умолчанию 4; сумма ÷ срок урожая с посева → в месяц на м². Урожай и свет — вручную или «Импорт из посадки» (в т.ч. культуры поддонов pl-*).',
       'econ.section.yield': 'Сводка урожая (из полей культур)',
       'econ.section.elec': 'Электроэнергия по категориям',
       'econ.section.payroll': 'Персонал, учёт и налоги',
       'econ.section.costs': 'Затраты (в месяц)',
       'econ.section.equipment': 'Оборудование и подготовка (разово)',
       'econ.section.results': 'Итог',
-      'econ.section.sensitivity': 'Что если',
-      'econ.section.payback': 'Окупаемость',
+      'econ.section.sensitivity': 'Сценарии «что если»',
+      'econ.section.payback': 'Окупаемость и cash-flow',
+      'econ.zone.inputs': 'Параметры фермы',
+      'econ.zone.results': 'Результаты и сценарии',
       'econ.section.advanced': 'Расширенная модель',
       'econ.priceKwh': 'Стоимость электроэнергии',
       'econ.rentMonth': 'Аренда помещения',
@@ -93,10 +118,10 @@
       'econ.wastePct.hint': 'Снижает продаваемый объём; себестоимость на чистый выпуск',
       'econ.salePrice': 'Цена продажи (по умолчанию)',
       'econ.salePrice.hint': 'Для всех культур; можно задать в строке',
-      'econ.kwhPerM2Hour': 'Свет по умолчанию, кВт·ч/м²·ч',
-      'econ.kwhPerM2Hour.hint': 'При выборе сорта; в строке — своё',
-      'econ.lightHoursDay': 'Часы света по умолчанию',
-      'econ.lightHoursDay.hint': 'Для новых строк',
+      'econ.kwhPerM2Hour': 'Свет, кВт·ч/м²',
+      'econ.kwhPerM2Hour.hint': 'Общий параметр: при изменении обновляет все культуры',
+      'econ.lightHoursDay': 'Часы света',
+      'econ.lightHoursDay.hint': 'Общий параметр: при изменении обновляет все культуры',
       'econ.amortMonths': 'Амортизация оборудования, мес',
       'econ.otherElecKw': 'Прочая электроэнергия, кВт',
       'econ.otherElecKw.hint': 'Вытяжка, кондиционирование',
@@ -104,10 +129,14 @@
       'econ.otherElecHoursDay.hint': 'Часов работы оборудования в сутки',
       'econ.otherMonth': 'Прочие расходы фермы',
       'econ.otherMonth.hint': 'Дезинфекция, хозрасходы',
-      'econ.consumablesPerKg': 'Доп. на ед. продукции',
-      'econ.consumablesPerKg.hint': 'Упаковка на единицу выпуска; в таблице — на м²·мес',
+      'econ.consumablesPerKg': 'Упаковка на проданный кг',
+      'econ.consumablesPerKg.hint': 'Упаковка/этикетка на кг продажи (культуры в кг). Горшок и субстрат — в «₽/горшок» у культуры',
+      'econ.consumablesPerPcs': 'Упаковка на проданную шт',
+      'econ.consumablesPerPcs.hint': 'Упаковка/этикетка на шт продажи (микрозелень, салат в горшке и т.п.). Горшок/субстрат — в «₽/горшок» у культуры; для лотковых культур — «₽/лоток»',
       'econ.usnTax': 'УСН 6% с выручки',
       'econ.vatTax': 'НДС с выручки',
+      'econ.vatInclusive': 'Цены с НДС (включён)',
+      'econ.vatInclusive.hint': 'Если включено — цены в строках культур уже с НДС',
       'econ.vatPct': 'Ставка НДС, %',
       'econ.profitTax': 'Налог на прибыль',
       'econ.profitTaxPct': 'Ставка налога на прибыль, %',
@@ -118,6 +147,7 @@
       'econ.perSqm': '/м²',
       'econ.perSqmMonth': '/м²·мес',
       'econ.perPot': '/горшок',
+      'econ.perTray': '/лоток',
       'econ.equip.enable': 'Учитывать в себестоимости',
       'econ.equip.total': 'Итого',
       'econ.equip.head': 'Статья',
@@ -129,13 +159,35 @@
       'econ.cult.price': 'Цена',
       'econ.cult.density': 'Плотность, шт/м²',
       'econ.cult.yield': 'Масса одной срезки',
+      'econ.cult.yieldPcs': 'Шт за срезку',
+      'econ.cult.yieldCycle': 'Шт за цикл',
+      'econ.cult.yieldCycleHint': 'Количество штук (лотков) с одного цикла на 1 м²',
       'econ.cult.interval': 'Интервал / цикл, сут',
-      'econ.cult.lightKwh': 'кВт·ч/м²·ч',
+      'econ.cult.lightKwh': 'кВт·ч/м²',
       'econ.cult.lightH': 'Часов света',
+      'econ.unit.hPerDay': 'ч/сут',
       'econ.cult.consPot': 'Посев на 1 горшок',
+      'econ.cult.consPot.lotHint': '₽/горшок на каждую проданную шт — попадает в себестоимость, строка «Расходники». Упаковка/этикетка — отдельно, «₽/шт» в затратах фермы',
+      'econ.cult.consTray': 'Посев на 1 лоток',
+      'econ.cult.consPcs': 'Расходники на 1 шт',
       'econ.cult.potLife': 'Срок жизни горшка, мес',
       'econ.addCulture': '+ Культура',
       'econ.addMix': '+ Микс салатов',
+      'econ.warn.mixPctSum': 'Состав микса: сумма долей {pct}% (нужно 100%).',
+      'econ.mix.title': 'Состав микса (внутри микса)',
+      'econ.mix.add': '+ Компонент',
+      'econ.mix.hint': '«Доля, %» — сколько выращиваете на ферме. «% в миксе» — рецепт упаковки (сумма 100%). Можно выращивать больше, чем идёт в микс.',
+      'econ.mix.breakdownTitle': 'Детализация микса',
+      'econ.mix.comp': 'Компонент',
+      'econ.mix.sellKgMo': 'Продажа, кг/мес',
+      'econ.mix.varCost': 'Перем. себест., ₽/кг',
+      'econ.mix.fixedCost': 'Фикс., ₽/кг',
+      'econ.mix.fullCost': 'Полная, ₽/кг',
+      'econ.mix.total': 'Итого по миксу',
+      'econ.mix.breakdownHint': '₽/кг по строкам — из «Доли» на ферме. «Итого по миксу» — взвешенная сумма по рецепту (% в миксе), себестоимость 1 кг готового микса. Урожай в кг/мес — фактический, только для справки.',
+      'econ.mix.use': 'В микс',
+      'econ.mix.pct': '% в миксе',
+      'econ.warn.mixPctZero': 'Состав микса: укажите % для выбранных культур (иначе микс не считается).',
       'sum.revenue': 'Выручка / мес',
       'sum.opex': 'Затраты / мес',
       'sum.margin': 'Маржа / мес',
@@ -154,6 +206,12 @@
       'sum.sales': 'Продажи',
       'sum.unit.sqm': 'м²',
       'sum.unit.kgMo': 'кг/мес',
+      'sum.unit.pcsMo': 'шт/мес',
+      'sum.unit.kgSqmBe': 'кг/м²·мес',
+      'sum.unit.pcsSqmBe': 'шт/м²·мес',
+      'sum.breakEvenKgSqm': 'Безубыточность',
+      'sum.breakEvenPcsSqm': 'Безубыточность',
+      'sum.breakEvenRevenue': 'Безубыточность (выручка)',
       'sum.unit.g': 'г',
       'sum.unit.pcs': 'шт',
       'sum.unit.cells': 'яч.',
@@ -210,6 +268,26 @@
       'badge.loading': 'Calculator · loading…',
       'auth.preview.banner': 'Preview mode — browse all tabs. Sign in to edit and calculate.',
       'auth.preview.login': 'Sign in',
+      'auth.gate.lead': 'Planting & farm economics calculator',
+      'auth.field.login': 'Login',
+      'auth.field.password': 'Password',
+      'auth.submit': 'Sign in',
+      'auth.welcome': 'Welcome',
+      'auth.successText': 'Contacts & links:',
+      'auth.openCalc': 'Open calculator',
+      'auth.contact': 'Contact',
+      'auth.close': 'Close',
+      'auth.error.invalid': 'Invalid login or password',
+      'auth.error.notConfigured': 'Sign-in not configured. Run npm run auth:config and redeploy.',
+      'auth.error.https': 'HTTPS or http://localhost required (not file://).',
+      'auth.error.clientCheck': 'Browser password check failed.',
+      'auth.error.noConfig': 'js/auth-client-config.js not loaded. Run node _tools/write-auth-client-config.js in the project folder, then hard-refresh.',
+      'btn.logout': 'Sign out',
+      'btn.logoutTitle': 'Sign out of the calculator',
+      'issues.plantingStale': 'Planting parameters changed after import ({fields}) — click «Import from planting».',
+      'issues.priceZero': '«{name}»: sale price is 0 — revenue and margin will be zero.',
+      'issues.widthExceeds': 'System width exceeds the allowed limit.',
+      'issues.overlapBad': 'Heavy canopy overlap ({mm} mm).',
       'currency.note': 'Project amounts are stored in ₽',
       'currency.activeUsd': 'Amounts in US dollars (USD)',
       'currency.activeRub': 'Amounts in Russian rubles (₽)',
@@ -218,19 +296,24 @@
       'econ.intro': 'Economics is separate from Planting: enter density, yield, light and costs yourself or use Import from planting. Cultivar in planting does not auto-update numbers.',
       'econ.preset': 'Farm template:',
       'econ.sync': 'Import from planting (all crops)',
+      'econ.sync.meta': 'Planting data from {time}: {name}, {facility}.',
+      'econ.sync.stale': 'Changed: {fields}. Click «Import from planting».',
+      'econ.sync.fresh': 'In sync with planting tab.',
       'econ.fillAreas': 'Area from planting geometry',
       'econ.csv': 'Download CSV',
       'econ.section.general': 'General parameters',
       'econ.section.cultures': 'Farm crop mix',
-      'econ.cultures.intro': 'Up to 6 crops. Area shares must not exceed 100%. Sowing consumables: pcs/m² × price per pot (seed, pot, substrate) — typical 3–6 per pot, default 4; total ÷ months to harvest from sowing → per m² per month. Yield and light — manual or Import from planting (incl. pallet crops pl-*).',
+      'econ.cultures.intro': 'Up to 12 crops. Area shares must not exceed 100%. Sowing consumables: pcs/m² × price per pot (seed, pot, substrate) — typical 3–6 per pot, default 4; total ÷ months to harvest from sowing → per m² per month. Yield and light — manual or Import from planting (incl. pallet crops pl-*).',
       'econ.section.yield': 'Yield summary (from crop fields)',
       'econ.section.elec': 'Electricity by category',
       'econ.section.payroll': 'Staff, accounting & taxes',
       'econ.section.costs': 'Costs (monthly)',
       'econ.section.equipment': 'Equipment & setup (one-time)',
       'econ.section.results': 'Summary',
-      'econ.section.sensitivity': 'What if',
-      'econ.section.payback': 'Payback',
+      'econ.section.sensitivity': 'What-if scenarios',
+      'econ.section.payback': 'Payback and cash flow',
+      'econ.zone.inputs': 'Farm parameters',
+      'econ.zone.results': 'Results and scenarios',
       'econ.section.advanced': 'Advanced model',
       'econ.priceKwh': 'Electricity cost',
       'econ.rentMonth': 'Facility rent',
@@ -244,10 +327,10 @@
       'econ.wastePct.hint': 'Reduces sellable volume; cost per net output',
       'econ.salePrice': 'Default sale price',
       'econ.salePrice.hint': 'For all crops; override per row',
-      'econ.kwhPerM2Hour': 'Default light, kWh/m²·h',
-      'econ.kwhPerM2Hour.hint': 'On cultivar select; per-row override',
-      'econ.lightHoursDay': 'Default light hours',
-      'econ.lightHoursDay.hint': 'For new rows',
+      'econ.kwhPerM2Hour': 'Light, kWh/m²',
+      'econ.kwhPerM2Hour.hint': 'Global: changing updates all culture rows',
+      'econ.lightHoursDay': 'Light hours',
+      'econ.lightHoursDay.hint': 'Global: changing updates all culture rows',
       'econ.amortMonths': 'Equipment amortization, mo',
       'econ.otherElecKw': 'Other electricity, kW',
       'econ.otherElecKw.hint': 'HVAC, exhaust',
@@ -255,10 +338,14 @@
       'econ.otherElecHoursDay.hint': 'Equipment run hours per day',
       'econ.otherMonth': 'Other farm costs',
       'econ.otherMonth.hint': 'Sanitation, supplies',
-      'econ.consumablesPerKg': 'Extra per product unit',
-      'econ.consumablesPerKg.hint': 'Packaging per sold unit; table shows per m²·mo',
+      'econ.consumablesPerKg': 'Packaging per sold kg',
+      'econ.consumablesPerKg.hint': 'Packaging/labels per kg sold (kg crops). Pot/substrate — per-pot field on crop',
+      'econ.consumablesPerPcs': 'Packaging per sold unit',
+      'econ.consumablesPerPcs.hint': 'Packaging/labels per piece sold (microgreens, potted salad, etc.). Pot/substrate — per-pot on crop; tray crops — per-tray',
       'econ.usnTax': 'Simplified tax 6% of revenue',
       'econ.vatTax': 'VAT on revenue',
+      'econ.vatInclusive': 'Prices include VAT',
+      'econ.vatInclusive.hint': 'When on — culture prices are VAT-inclusive',
       'econ.vatPct': 'VAT rate, %',
       'econ.profitTax': 'Profit tax',
       'econ.profitTaxPct': 'Profit tax rate, %',
@@ -269,6 +356,7 @@
       'econ.perSqm': '/m²',
       'econ.perSqmMonth': '/m²·mo',
       'econ.perPot': '/pot',
+      'econ.perTray': '/tray',
       'econ.equip.enable': 'Include in unit cost',
       'econ.equip.total': 'Total',
       'econ.equip.head': 'Item',
@@ -280,13 +368,35 @@
       'econ.cult.price': 'Price',
       'econ.cult.density': 'Density, pots/m²',
       'econ.cult.yield': 'Yield per cut',
+      'econ.cult.yieldPcs': 'Pcs per cut',
+      'econ.cult.yieldCycle': 'Pcs per cycle',
+      'econ.cult.yieldCycleHint': 'Pieces (trays) per cycle per m²',
       'econ.cult.interval': 'Interval / cycle, d',
-      'econ.cult.lightKwh': 'kWh/m²·h',
+      'econ.cult.lightKwh': 'kWh/m²',
       'econ.cult.lightH': 'Light hours',
+      'econ.unit.hPerDay': 'h/d',
       'econ.cult.consPot': 'Sowing per pot',
+      'econ.cult.consPot.lotHint': '₽/pot per unit sold — in unit cost under “Consumables”. Packaging/labels — separate “per unit” farm cost',
+      'econ.cult.consTray': 'Sowing per tray',
+      'econ.cult.consPcs': 'Consumables per pc',
       'econ.cult.potLife': 'Pot life, mo',
       'econ.addCulture': '+ Crop',
       'econ.addMix': '+ Salad mix',
+      'econ.warn.mixPctSum': 'Mix composition: shares sum to {pct}% (should be 100%).',
+      'econ.mix.title': 'Mix composition (inside the mix)',
+      'econ.mix.add': '+ Component',
+      'econ.mix.hint': '“Share, %” is how much you grow on the farm. “% in mix” is the pack recipe (must sum to 100%). You can grow more than goes into the mix.',
+      'econ.mix.breakdownTitle': 'Mix breakdown',
+      'econ.mix.comp': 'Component',
+      'econ.mix.sellKgMo': 'Sellable, kg/mo',
+      'econ.mix.varCost': 'Variable cost, ₽/kg',
+      'econ.mix.fixedCost': 'Fixed, ₽/kg',
+      'econ.mix.fullCost': 'Full, ₽/kg',
+      'econ.mix.total': 'Mix total',
+      'econ.mix.breakdownHint': '₽/kg per row comes from farm share. “Mix total” is recipe-weighted (% in mix) — cost of 1 kg of finished mix. kg/mo is actual output for reference only.',
+      'econ.mix.use': 'Use in mix',
+      'econ.mix.pct': '% in mix',
+      'econ.warn.mixPctZero': 'Mix composition: set % for selected crops (otherwise mix is not calculated).',
       'sum.revenue': 'Revenue / mo',
       'sum.opex': 'Costs / mo',
       'sum.margin': 'Margin / mo',
@@ -305,6 +415,12 @@
       'sum.sales': 'Sales',
       'sum.unit.sqm': 'm²',
       'sum.unit.kgMo': 'kg/mo',
+      'sum.unit.pcsMo': 'pcs/mo',
+      'sum.unit.kgSqmBe': 'kg/m²·mo',
+      'sum.unit.pcsSqmBe': 'pcs/m²·mo',
+      'sum.breakEvenKgSqm': 'Break-even',
+      'sum.breakEvenPcsSqm': 'Break-even',
+      'sum.breakEvenRevenue': 'Break-even (revenue)',
       'sum.unit.g': 'g',
       'sum.unit.pcs': 'pcs',
       'sum.unit.cells': 'cells',
@@ -531,6 +647,13 @@
     return n + '\u00a0' + sym;
   }
 
+  /** Сумма с единицей (/кг, /м²…) — без повторного символа валюты */
+  function fmtMoneyPer(rub, perKey, opts){
+    var per = perKey ? t(perKey) : '';
+    if (!per && perKey) per = perKey;
+    return fmtMoney(rub, opts) + per;
+  }
+
   function fmtMoneyPlain(rub, opts){
     return fmtNumLocale(rubToDisplay(rub), opts);
   }
@@ -568,6 +691,32 @@
       var tipKey = el.getAttribute('data-i18n-tip');
       if (tipKey) el.title = t(tipKey);
     });
+    var logout = document.getElementById('btn-logout');
+    if (logout) {
+      logout.textContent = t('btn.logout');
+      logout.title = t('btn.logoutTitle');
+    }
+    var authLead = document.querySelector('.app-auth-lead');
+    if (authLead) authLead.textContent = t('auth.gate.lead');
+    var authLoginLbl = document.querySelector('#app-auth-form label:nth-child(1) span');
+    if (authLoginLbl) authLoginLbl.textContent = t('auth.field.login');
+    var authPassLbl = document.querySelector('#app-auth-form label:nth-child(2) span');
+    if (authPassLbl) authPassLbl.textContent = t('auth.field.password');
+    var authSubmit = document.querySelector('.app-auth-submit');
+    if (authSubmit) authSubmit.textContent = t('auth.submit');
+    var authWelcome = document.querySelector('.app-auth-success-title');
+    if (authWelcome) authWelcome.textContent = t('auth.welcome');
+    var authSuccessText = document.querySelector('.app-auth-success-text');
+    if (authSuccessText) authSuccessText.textContent = t('auth.successText');
+    var authEnter = document.getElementById('app-auth-enter');
+    if (authEnter) authEnter.textContent = t('auth.openCalc');
+    var authContact = document.querySelector('.app-auth-links-title');
+    if (authContact) authContact.textContent = t('auth.contact');
+    var authClose = document.getElementById('app-auth-gate-close');
+    if (authClose) {
+      authClose.setAttribute('aria-label', t('auth.close'));
+      authClose.title = t('auth.close');
+    }
   }
 
   function invalidateDynamicForms(){
@@ -689,6 +838,7 @@
   global.DG_moneySuffix = moneySuffix;
   global.DG_fmtNumLocale = fmtNumLocale;
   global.DG_fmtMoney = fmtMoney;
+  global.DG_fmtMoneyPer = fmtMoneyPer;
   global.DG_fmtMoneyPlain = fmtMoneyPlain;
   global.DG_syncCurrencyUi = syncCurrencyUi;
   global.DG_parseMoneyInput = parseMoneyInput;

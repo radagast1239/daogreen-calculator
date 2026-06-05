@@ -128,8 +128,12 @@ function syncVegPeriodTotal(){
     el.textContent = deps.ui('georgy.vegTotal', { day: stateRef().day, dUnit: deps.pt('unit.days') });
     return;
   }
-  const sum = stateRef().nursery + stateRef().day;
-  el.textContent = deps.ui('ui.veg.periodTotal', { nursery: stateRef().nursery, day: stateRef().day, sum: sum, dUnit: deps.pt('unit.days') });
+  const germ = stateRef().germination;
+  const nursery = stateRef().nursery;
+  const day = stateRef().day;
+  const sum = germ + nursery + day;
+  el.textContent = deps.ui('ui.veg.periodTotal', { germ: germ, nursery: nursery, day: day, sum: sum, dUnit: deps.pt('unit.days') });
+  if (deps.syncYieldTurnoverHint) deps.syncYieldTurnoverHint();
 }
 function syncVfStdBadges(){
   const cv = deps.getSheetCv();
@@ -214,10 +218,18 @@ function vfEffectiveDensity(cv){
   cv = cv || deps.getVfCv();
   return stateRef().vfStd.density ? cv.density : stateRef().density;
 }
+function vfSheetMassLocked(cv){
+  cv = cv || deps.getVfCv();
+  var st = stateRef();
+  return !!(st.vfStd.mass && st.vfStd.day && st.vfStd.density && !st.useManualMass);
+}
+
 function vfEffectiveMass(cv, massAuto){
   cv = cv || deps.getVfCv();
-  if (stateRef().vfStd.mass && !stateRef().useManualMass) return Math.round(cv.yieldPerCutG) || massAuto;
   if (stateRef().useManualMass) return deps.manualHarvestMass(massAuto);
+  if (vfSheetMassLocked(cv) && stateRef().multicut && deps.supportsMulticut && deps.supportsMulticut(cv)) {
+    return Math.round(cv.yieldPerCutG) || massAuto;
+  }
   return massAuto;
 }
 

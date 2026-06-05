@@ -65,9 +65,9 @@
       priceKwh: 5, rentMonth: 0, payrollTax: true, staffLines: [], payrollCustom: [], accountingMonth: 15000,
       logisticsMonth: 0, floorArea: 200, plantingArea: 150,
       cultures: [{ cvId: '', pct: 100, salePrice: 0, density: 80, yieldPerCut: 15, cutIntervalDays: 15,
-        kwhPerM2Hour: 0.08, lightHoursDay: 16, consumablesPerPot: 4, potHarvestMonths: 3, unitIsPieces: false }],
-      salePrice: 800, kwhPerM2Hour: 0.08, lightHoursDay: 16, elecCats: {},
-      otherMonth: 15000, consumablesPerKg: 0, wastePct: 0, usnTax: false, vatTax: false, vatPct: 12,
+        kwhPerM2Hour: 0.12, lightHoursDay: 16, consumablesPerPot: 4, potHarvestMonths: 3, unitIsPieces: false }],
+      salePrice: 800, kwhPerM2Hour: 0.12, lightHoursDay: 16, elecCats: {},
+      otherMonth: 15000, consumablesPerKg: 0, consumablesPerPcs: 0, wastePct: 0, usnTax: false, vatTax: false, vatPct: 12,
       profitTax: false, profitTaxPct: 15, amortMonths: 60,
       equipmentEnabled: true, equipment: {}, equipmentCustom: []
     };
@@ -83,7 +83,7 @@
   function getDefaultEconCultureRow(cvId, opts){
     if (typeof defaultEconCultureRow === 'function') return defaultEconCultureRow(cvId, opts);
     return { cvId: cvId || '', pct: 100, salePrice: 0, density: 80, yieldPerCut: 15, cutIntervalDays: 15,
-      kwhPerM2Hour: 0.08, lightHoursDay: 16, consumablesPerPot: 4, potHarvestMonths: 3, unitIsPieces: false };
+      kwhPerM2Hour: 0.12, lightHoursDay: 16, consumablesPerPot: 4, potHarvestMonths: 3, unitIsPieces: false };
   }
 
   function loadEconStore(){
@@ -201,6 +201,7 @@
     collectEconWarnings = ec.collectEconWarnings;
     calcFarmEconomics = ec.calcFarmEconomics;
     calcEconomics = ec.calcEconomics;
+    global.DG_scaleEconCostFields = ec.scaleEconCostFields;
     if (!st().econ && typeof ec.defaultEconState === 'function') st().econ = ec.defaultEconState();
   }
 
@@ -227,8 +228,10 @@
       migrateEconCultureRows: migrateEconCultureRows,
       dedupeEconCultures: dedupeEconCultures,
       normalizeEconCultureRow: normalizeEconCultureRow,
+      econCvDisplayName: econCvDisplayName,
       econCultureBio: econCultureBio,
       formatEconCultureHint: formatEconCultureHint,
+      findCvById: findCvById,
       econApplyCultureSelect: econApplyCultureSelect,
       calcFarmEconomics: calcFarmEconomics,
       importAllEconFromPlanting: importAllEconFromPlanting,

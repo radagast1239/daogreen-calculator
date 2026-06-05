@@ -7,9 +7,11 @@
 
   function createPlantingLateInit(deps) {
     var georgyMode;
+    var ghChannelSimple;
     var canopyDensityUi;
     var simpleUiMode;
     var plantingGuides;
+    var farmCalibration;
     var plantingHarvestYieldParams, buildPlantingSnapshot, getPlantingSnapshot;
     var getPlantingStateEconSlice, restorePlantingStateEconSlice, plantingCvIdMatchesLiveState;
     var getPlantingSnapshotForCvId, averageSnapshots, getSaladMixSnapshot;
@@ -47,6 +49,7 @@
     var getGhCvStandards = deps.getGhCvStandards;
     var buildDefaultVfStandards = deps.buildDefaultVfStandards;
     var getCv = deps.getCv;
+    var getActiveCv = deps.getActiveCv;
     var plantLayout = deps.plantLayout;
     var massAtTotal = deps.massAtTotal;
     var harvestCanopy = deps.harvestCanopy;
@@ -118,6 +121,8 @@
       hasEconSavedProfile: hasEconSavedProfile,
       ECON_SALAD_MIX_ID: ECON_SALAD_MIX_ID,
       ECON_SALAD_MIX_CV_IDS: ECON_SALAD_MIX_CV_IDS,
+      getGeorgyMode: function(){ return georgyMode; },
+      georgyMode: georgyMode,
       t: window.DG_t,
       tFmt: window.DG_tFmt
     });
@@ -244,11 +249,38 @@
         renderAll();
       });
     }
+    if (window.DG_createGhChannelSimple && georgyMode){
+      ghChannelSimple = window.DG_createGhChannelSimple({
+        getState: deps.getState,
+        getCv: getCv,
+        findCvById: findCvById,
+        georgyMode: georgyMode,
+        isVF: isVF,
+        isPalletView: isPalletView,
+        boltChannel: boltChannel,
+        syncMainSliders: function(){
+          if ($('day')){ $('day').value = deps.getState().day; if ($('day-v')) $('day-v').textContent = deps.getState().day; }
+          if ($('density')){ $('density').value = deps.getState().density; if ($('density-v')) $('density-v').textContent = deps.getState().density; }
+          if ($('nch')){ $('nch').value = deps.getState().nch; if ($('nch-v')) $('nch-v').textContent = deps.getState().nch; }
+          if ($('offset')){ $('offset').value = deps.getState().offset; if ($('offset-v')) $('offset-v').textContent = deps.getState().offset; }
+          if ($('cutInterval')){ $('cutInterval').value = deps.getState().cutInterval; if ($('cutInterval-v')) $('cutInterval-v').textContent = deps.getState().cutInterval; }
+          syncVegPeriodTotal();
+        },
+        renderAll: renderAll,
+        renderCultivars: renderCultivars,
+        syncMulticutBabyUi: deps.syncMulticutBabyUi,
+        t: window.DG_t,
+        tFmt: window.DG_tFmt
+      });
+      ghChannelSimple.bind();
+    }
     if (window.DG_createCanopyDensityUi){
       canopyDensityUi = window.DG_createCanopyDensityUi({
         getState: deps.getState,
         getCv: getCv,
+        getGeorgyMode: function(){ return georgyMode; },
         georgyMode: georgyMode,
+        getGhChannelSimple: function(){ return ghChannelSimple; },
         syncMainSliders: function(){
           if ($('density')){ $('density').value = deps.getState().density; if ($('density-v')) $('density-v').textContent = deps.getState().density; }
           if ($('extraB')){ $('extraB').value = deps.getState().extraB; if ($('extraB-v')) $('extraB-v').textContent = deps.getState().extraB; }
@@ -267,6 +299,21 @@
       });
       simpleUiMode.load();
       simpleUiMode.bind();
+    }
+    if (window.DG_createFarmCalibration){
+      farmCalibration = window.DG_createFarmCalibration({
+        getState: deps.getState,
+        getActiveCv: getActiveCv,
+        findCvById: findCvById,
+        calc: deps.calc,
+        renderAll: renderAll,
+        r1: deps.r1,
+        r2: deps.r2,
+        t: window.DG_plantT || window.DG_t,
+        tFmt: window.DG_plantTF || window.DG_tFmt
+      });
+      farmCalibration.bind();
+      global.DG_farmCalibrationRef = farmCalibration;
     }
     if (window.DG_createPlantingGuides){
       plantingGuides = window.DG_createPlantingGuides({
@@ -327,6 +374,7 @@
         fmtNumRu: deps.fmtNumRu, catalogPhrase: deps.catalogPhrase, cvSubLine: deps.cvSubLine,
         r1: deps.r1, r2: deps.r2, round: deps.round, clamp: deps.clamp, htmlEsc: deps.htmlEsc,
         getGeorgyMode: function(){ return georgyMode; }, georgyMode: georgyMode,
+        getGhChannelSimple: function(){ return ghChannelSimple; },
         calc: deps.calc, renderAll: function(){ return _render.renderAll(); },
         getCv: deps.getCv, getActiveCv: deps.getActiveCv, getVfCv: deps.getVfCv, getPalletCv: deps.getPalletCv,
         isVF: deps.isVF, isPalletView: deps.isPalletView, isGreenhousePlanting: deps.isGreenhousePlanting,
@@ -396,6 +444,7 @@
         allPalletCultivars: deps.allPalletCultivars, addCustomGhCultivar: deps.addCustomGhCultivar,
         addCustomVfCultivar: deps.addCustomVfCultivar, removeCustomCultivar: deps.removeCustomCultivar,
         renderEconomics: deps.renderEconomics,
+        getFarmCalibration: function(){ return farmCalibration; },
         canopyDensityUi: canopyDensityUi, plantingGuides: plantingGuides, simpleUiMode: simpleUiMode
       });
     }
@@ -412,6 +461,7 @@
         install: install,
         getRender: function(){ return _render; },
         getGeorgyMode: function(){ return georgyMode; },
+        getGhChannelSimple: function(){ return ghChannelSimple; },
         hasEconSavedProfile: hasEconSavedProfile,
         plantingHarvestYieldParams: plantingHarvestYieldParams,
         buildPlantingSnapshot: buildPlantingSnapshot,

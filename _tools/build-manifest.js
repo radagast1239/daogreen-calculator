@@ -50,7 +50,12 @@ module.exports = {
     'js/planting-gh-standards.js',
     'js/planting-vf-user-standards.js',
     'js/planting-snapshot.js',
+    'js/planting-econ-sync.js',
+    'js/calc-issues.js',
+    'js/calc-trace.js',
+    'js/farm-calibration.js',
     'js/georgy-mode.js',
+    'js/gh-channel-simple.js',
     'js/canopy-density-ui.js',
     'js/simple-ui-mode.js',
     'js/planting-guides.js',
@@ -80,6 +85,14 @@ module.exports = {
     'js/econ-advanced.js',
     'js/readonly-mode.js',
     'js/share-view.js'
+  ],
+
+  /** CSS с ?v= — offline PWA */
+  cssFiles: [
+    'css/daogreen-unify.css',
+    'css/econ-unify.css',
+    'css/mobile.css',
+    'css/app-auth.css'
   ],
 
   /** Без версии в URL (vendor, CDN fallback внутри модулей) */
@@ -125,6 +138,11 @@ module.exports = {
     'js/planting-harvest-ui.js',
     'js/planting-gh-standards.js',
     'js/planting-vf-user-standards.js',
+    'js/planting-snapshot.js',
+    'js/planting-econ-sync.js',
+    'js/calc-issues.js',
+    'js/calc-trace.js',
+    'js/farm-calibration.js',
     'js/locale.js',
     'js/planting-i18n.js',
     'js/i18n-plant-dynamic.js',

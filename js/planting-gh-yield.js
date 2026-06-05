@@ -50,6 +50,88 @@
       return deps.georgyMode;
     }
 
+    var HMD = deps.HARVEST_MONTH_DAYS || 30.5;
+
+    function isHeadHallSingleCut(cv, state, gm) {
+      if (!gm || !cv || gm.getGeorgyProfile(cv)) return false;
+      if (!gm.canUseCanopyDensityPick || !gm.canUseCanopyDensityPick(cv)) return false;
+      if (state.georgyMode) return true;
+      return isChannelGreenhouse() && !state.georgyMode;
+    }
+
+    function syncYieldTurnoverHint(r) {
+      var ghEl = $('gh-yield-turnover-hint');
+      var cycleEl = $('cycle-yield-turnover-hint');
+      var state = st();
+      var cv = (r && r.cv) || getCv();
+      var gm = georgyModeRef();
+
+      function hideEl(el) {
+        if (!el) return;
+        el.classList.add('env-block-hidden');
+        el.innerHTML = '';
+      }
+
+      if (gm && gm.isGeorgyGh && gm.isGeorgyGh()) {
+        hideEl(ghEl);
+        hideEl(cycleEl);
+        return;
+      }
+
+      var headSingle = gm && isHeadHallSingleCut(cv, state, gm);
+      var mcOn = !!(state.multicut && supportsMulticut(cv) && !headSingle);
+      var channelDays = r && r.mainHallIntervalDays > 0
+        ? Math.max(1, Math.round(r.mainHallIntervalDays))
+        : Math.max(1, Math.round(state.day));
+      var interval = mcOn
+        ? (r && r.mainHallIntervalDays > 0
+          ? Math.max(1, Math.round(r.mainHallIntervalDays))
+          : Math.max(1, Math.round(state.cutInterval || 12)))
+        : channelDays;
+      var cutsMo = r && r.harvestCyclesPerMonth > 0
+        ? r1(r.harvestCyclesPerMonth)
+        : r1(HMD / (mcOn ? interval : channelDays));
+
+      var showGh = isGreenhousePlanting() && !isPalletView();
+      var showCycle = (isChannelGreenhouse() || isVF()) && !isPalletView();
+
+      if (showGh && ghEl) {
+        if (mcOn) {
+          ghEl.classList.remove('env-block-hidden');
+          ghEl.innerHTML = ui('gh.yield.turnoverMulticut', { interval: interval, cutsMo: cutsMo });
+        } else if (headSingle || (r && r.usefulAreaBasis === 'main_hall' && channelDays > 0)) {
+          ghEl.classList.remove('env-block-hidden');
+          ghEl.innerHTML = ui('gh.yield.turnoverChannel', { days: channelDays, cutsMo: cutsMo });
+          if (state.multicut && supportsMulticut(cv)) {
+            ghEl.innerHTML += ' <span class="yield-turnover-sub">' +
+              ui('gh.yield.turnoverHeadIgnoreMulticut') + '</span>';
+          }
+        } else {
+          hideEl(ghEl);
+        }
+      } else {
+        hideEl(ghEl);
+      }
+
+      if (showCycle && cycleEl) {
+        if (mcOn) {
+          cycleEl.classList.remove('env-block-hidden');
+          cycleEl.innerHTML = ui('cycle.yield.turnoverMulticut', { interval: interval, cutsMo: cutsMo });
+        } else if (channelDays > 0) {
+          cycleEl.classList.remove('env-block-hidden');
+          cycleEl.innerHTML = ui('cycle.yield.turnoverChannel', { days: channelDays, cutsMo: cutsMo });
+          if (headSingle && state.multicut) {
+            cycleEl.innerHTML += ' <span class="yield-turnover-sub">' +
+              ui('gh.yield.turnoverHeadIgnoreMulticut') + '</span>';
+          }
+        } else {
+          hideEl(cycleEl);
+        }
+      } else {
+        hideEl(cycleEl);
+      }
+    }
+
     const GH_USEFUL_AREA_KEY = 'calc-gh-useful-area-m2';
 
     function loadGhUsefulArea() {
@@ -197,8 +279,18 @@
         bindGhYieldI18n(btn, 'gh.yield.fromGeomVf');
         bindGhYieldI18n(areaLbl, 'gh.yield.areaLabel');
       } else {
+        var cvGh = (r && r.cv) || getCv();
+        var gmGh = georgyModeRef();
+        var introKey = 'gh.yield.intro';
+        if (
+          isChannelGreenhouse() && r && r.usefulAreaBasis === 'main_hall' &&
+          r.mainHallIntervalDays > 0 &&
+          !(st().multicut && supportsMulticut(cvGh) && !(gmGh && isHeadHallSingleCut(cvGh, st(), gmGh)))
+        ){
+          introKey = 'gh.yield.introChannel';
+        }
         bindGhYieldI18n(title, 'gh.yield.title');
-        bindGhYieldI18n(intro, 'gh.yield.intro');
+        bindGhYieldI18n(intro, introKey);
         bindGhYieldI18n(btn, 'gh.yield.fromGeom');
         bindGhYieldI18n(areaLbl, 'gh.yield.areaLabel');
       }
@@ -226,6 +318,7 @@
       syncGhYieldMarginSliders();
       syncBioMarginVisibility();
       updateGhYieldPanelCopy(r);
+      syncYieldTurnoverHint(r);
       var inp = $('gh-useful-area');
       if (inp && document.activeElement !== inp) {
         var a = st().ghUsefulArea;
@@ -245,7 +338,8 @@
       syncGhYieldMarginSliders: syncGhYieldMarginSliders,
       syncBioMarginVisibility: syncBioMarginVisibility,
       updateGhYieldPanelCopy: updateGhYieldPanelCopy,
-      syncGhYieldControls: syncGhYieldControls
+      syncGhYieldControls: syncGhYieldControls,
+      syncYieldTurnoverHint: syncYieldTurnoverHint
     };
   }
 
