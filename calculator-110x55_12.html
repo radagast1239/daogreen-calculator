@@ -2132,6 +2132,18 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .pdf-staging--econ .econ-cf-caption { font-size: 9px; margin: 0 0 2px; }
 .pdf-staging--econ .econ-custom-block { margin-top: 6px; padding-top: 5px; }
 .pdf-staging--econ .econ-warn { font-size: 10px; padding: 4px 6px; margin-bottom: 3px; }
+.pdf-staging--econ .econ-results-final-wrap {
+  margin-top: 0; padding: 10px 12px 8px; border: 2px solid var(--olive); border-radius: 6px;
+  background: linear-gradient(180deg, var(--olive-pale) 0%, #fff 48%);
+}
+.pdf-staging--econ .econ-results-final-title { font-size: 13px; margin: 0 0 4px; }
+.pdf-staging--econ .econ-results-final-lead { font-size: 10px; margin: 0 0 8px; line-height: 1.35; }
+.pdf-staging--econ .econ-results-final-cards .econ-results {
+  grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 0;
+}
+.pdf-staging--econ .econ-results-final-cards .m-label { font-size: 8px; }
+.pdf-staging--econ .econ-results-final-cards .m-val { font-size: 16px; }
+.pdf-staging--econ .econ-results-final-cards .m-sub { font-size: 8px; }
 .planting-econ-bridge {
   display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
   padding: 14px 18px; margin: 0 0 18px;
@@ -4309,22 +4321,23 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       getState: function(){ return state; },
       calc: typeof calc === "function" ? calc : null,
       calcFarmEconomics: typeof calcFarmEconomics === "function" ? calcFarmEconomics : null,
+      syncEconFromPlanting: typeof syncEconFromPlanting === "function" ? syncEconFromPlanting : null,
       getExportMeta: function(){
         var ctx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
         if (pdfExportIsEconLed(ctx) && typeof calcFarmEconomics === 'function'){
           var farm = calcFarmEconomics(state.econ);
           if (farm && (farm.parts || []).length){
-            var pm = projectMetaFields();
+            var projMeta = projectMetaFields();
             return {
-              title: econCoverTitle(pm),
-              projectTitle: econCoverTitle(pm),
-              client: pm.client,
-              city: pm.city,
-              projectNote: pm.note,
+              title: econCoverTitle(projMeta),
+              projectTitle: econCoverTitle(projMeta),
+              client: projMeta.client,
+              city: projMeta.city,
+              projectNote: projMeta.note,
               subtitle: econCoverSubtitle(farm),
               date: new Date().toLocaleDateString((window.DG_getLocale && DG_getLocale() === 'en') ? 'en-US' : 'ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }),
               build: CALC_BUILD,
-              lines: econCoverLines(farm, pm),
+              lines: econCoverLines(farm, projMeta),
               kpiCards: econCoverKpiCards(farm),
               brandCover: true
             };
@@ -4355,8 +4368,8 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       pdfFilename: function(ctx){
         var pdfCtx = pdfDeps.getPdfExportContext ? pdfDeps.getPdfExportContext() : null;
         if (pdfExportIsEconLed(pdfCtx)){
-          var pm = projectMetaFields();
-          var slugSrc = pm.client || pm.city || pm.title;
+          var projMeta = projectMetaFields();
+          var slugSrc = projMeta.client || projMeta.city || projMeta.title;
           if (!slugSrc){
             var row = primaryEconCultureRow();
             if (row && row.cvId && typeof econCvDisplayName === 'function'){
