@@ -89,7 +89,7 @@
 
 .app-tab.on,
 .facility-btn.on {
-  background: linear-gradient(180deg, var(--card) 0%, var(--brand-pale) 100%) !important;
+  background: var(--paper) !important;
   border-color: var(--brand) !important;
   color: var(--brand-text) !important;
   box-shadow: var(--shadow-sm), inset 0 0 0 1px rgba(39, 109, 92, 0.12);
@@ -292,7 +292,7 @@
   padding: 16px 20px;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(39, 109, 92, 0.2);
-  background: linear-gradient(120deg, var(--brand-pale) 0%, var(--card) 42%, var(--paper-deep) 100%);
+  background: var(--paper);
 }
 
 .planting-econ-bridge .auto-btn--primary,
@@ -369,7 +369,7 @@
 .panel .collapse-block:not(.panel) {
   border: 1px solid var(--rule);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, var(--card), var(--paper-deep));
+  background: var(--paper);
   margin-top: 12px;
 }
 
