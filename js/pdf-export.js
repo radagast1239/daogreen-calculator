@@ -591,7 +591,8 @@
         if (!sec) continue;
 
         if (useVector && DG_isVectorEconPdfSection(vectorSectionKey(sec))){
-          await DG_renderVectorEconPdfSection(pdf, pdfCtx, vectorSectionKey(sec), secLabel(sec.id));
+          var exportCtx = deps.getPdfExportContext ? deps.getPdfExportContext() : null;
+          await DG_renderVectorEconPdfSection(pdf, pdfCtx, vectorSectionKey(sec), secLabel(sec.id), exportCtx);
           if (id === 'econ-payback') await appendPaybackChartRaster(pdf, pdfCtx, apis);
           hasContent = true;
           continue;

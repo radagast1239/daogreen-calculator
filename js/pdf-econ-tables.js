@@ -54,6 +54,11 @@
         { titleKey: 'pdf.vec.mixBreakdown', selector: '#econ-mix-breakdown-table' },
         { titleKey: 'pdf.vec.electricity', selector: '#econ-results-metrics table.econ-breakdown' }
       ],
+      'econ-results-client': [
+        { titleKey: 'pdf.vec.farmTotals', selector: '#econ-results-final-cards .econ-results', mode: 'metric-cards' },
+        { titleKey: 'pdf.vec.byCult', selector: '#econ-cultures-breakdown', clientCultTable: true },
+        { titleKey: 'pdf.vec.costsMargin', selector: '#econ-breakdown-table' }
+      ],
       'econ-sensitivity': [
         { titleKey: 'pdf.vec.scenarios', selector: '#econ-sensitivity-body table.econ-sens-table' }
       ],
@@ -243,6 +248,16 @@
     };
   }
 
+  function dropTableCols(data, dropIndices){
+    if (!data || !dropIndices || !dropIndices.length) return data;
+    var drop = {};
+    dropIndices.forEach(function(i){ drop[i] = true; });
+    return {
+      headers: data.headers.filter(function(_, i){ return !drop[i]; }),
+      rows: data.rows.map(function(r){ return r.filter(function(_, i){ return !drop[i]; }); })
+    };
+  }
+
   function parseKvGrid(root){
     if (!root) return null;
     var rows = [];
@@ -399,8 +414,8 @@
     ensureSpace(ctx, headerH);
     var y0 = ctx.y;
 
-    pdf.setFillColor(107, 123, 46);
-    pdf.setDrawColor(180, 186, 160);
+    pdf.setFillColor(39, 109, 92);
+    pdf.setDrawColor(180, 200, 192);
     pdf.rect(margin, y0, contentW, headerH, 'FD');
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(headerSize);
@@ -442,15 +457,18 @@
     ensureSpace(ctx, 14);
     if (!ctx.firstContent) ctx.y += COMPACT.sectionBlockGap;
     pdf.setFontSize(COMPACT.sectionTitleSize);
-    pdf.setTextColor(60, 70, 30);
+    pdf.setTextColor(39, 109, 92);
     pdf.text(title == null || title === '' ? '—' : String(title), ctx.margin, ctx.y);
     ctx.y += COMPACT.sectionTitleGap;
     pdf.setTextColor(0, 0, 0);
     ctx.firstContent = false;
   }
 
-  function collectTablesForSection(sectionId){
-    var spec = vectorSections()[sectionId];
+  function collectTablesForSection(sectionId, exportOpts){
+    exportOpts = exportOpts || {};
+    var specKey = sectionId;
+    if (exportOpts.clientMode && sectionId === 'econ-results') specKey = 'econ-results-client';
+    var spec = vectorSections()[specKey];
     if (!spec) return [];
     var out = [];
     spec.forEach(function(item){
@@ -480,14 +498,15 @@
       else if (item.mode === 'equip-total') data = parseEquipTotal(el);
       else if (el.tagName === 'TABLE') data = parseHtmlTable(el);
       else data = parseHtmlTable(el.querySelector('table'));
-      if (data && item.selector === '#econ-cultures-breakdown') data = sliceTableCols(data, 2);
+      if (data && item.clientCultTable) data = dropTableCols(data, [5]);
+      else if (data && item.selector === '#econ-cultures-breakdown') data = sliceTableCols(data, 2);
       if (data && (data.rows.length || data.headers.length)) out.push({ title: title, data: data });
     });
     return out;
   }
 
-  function renderVectorEconSection(pdf, ctx, sectionId, sectionTitle){
-    var tables = collectTablesForSection(sectionId);
+  function renderVectorEconSection(pdf, ctx, sectionId, sectionTitle, exportOpts){
+    var tables = collectTablesForSection(sectionId, exportOpts);
     if (!tables.length) return Promise.resolve(ctx);
     drawSectionTitle(pdf, ctx, sectionTitle);
     var multi = tables.length > 1;
