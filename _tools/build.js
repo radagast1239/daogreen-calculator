@@ -59,6 +59,24 @@ function syncScriptVersions(html, build){
   return html;
 }
 
+function syncCssVersions(html, build){
+  (manifest.cssFiles || []).forEach(function(rel){
+    var esc = escapeRe(rel);
+    var withV = new RegExp('(<link rel="stylesheet" href="' + esc + ')\\?v=[^"]+"', 'g');
+    if (html.match(withV)){
+      html = html.replace(withV, '$1?v=' + build + '"');
+      return;
+    }
+    var bare = new RegExp('(<link rel="stylesheet" href="' + esc + '")(\\s*/?>)', 'g');
+    if (html.match(bare)){
+      html = html.replace(bare, '$1?v=' + build + '$2');
+      return;
+    }
+    throw new Error('stylesheet link not found in HTML: ' + rel);
+  });
+  return html;
+}
+
 function syncIndex(build){
   var p = manifest.indexFile;
   var html = read(p);
@@ -144,6 +162,12 @@ function collectVersionDrift(html, build){
     if (!m) drift.push(rel + ': not linked');
     else if (m[1] !== build) drift.push(rel + ': ' + m[1]);
   });
+  (manifest.cssFiles || []).forEach(function(rel){
+    var re = new RegExp('<link rel="stylesheet" href="' + escapeRe(rel) + '\\?v=([^"]+)"');
+    var m = html.match(re);
+    if (!m) drift.push(rel + ': not linked');
+    else if (m[1] !== build) drift.push(rel + ': ' + m[1]);
+  });
   return drift;
 }
 
@@ -166,6 +190,7 @@ function main(){
 
   var beforeDrift = collectVersionDrift(html, build);
   html = syncScriptVersions(html, build);
+  html = syncCssVersions(html, build);
   html = syncCacheGuard(html, build);
   var afterDrift = collectVersionDrift(html, build);
 
@@ -174,7 +199,7 @@ function main(){
     console.log('Version drift fixed:');
     beforeDrift.forEach(function(d){ console.log('  - ' + d); });
   } else {
-    console.log('Script ?v= already aligned with CALC_BUILD');
+    console.log('Script/CSS ?v= already aligned with CALC_BUILD');
   }
   if (afterDrift.length){
     console.error('Still drifted after sync:', afterDrift);

@@ -8,7 +8,7 @@
 npm run build
 ```
 
-Команда выравнивает версии скриптов (`?v=`), обновляет service worker и проверяет целостность (`npm run check`).
+Команда выравнивает версии скриптов и CSS (`?v=`), обновляет service worker и проверяет целостность (`npm run check`).
 
 ## Локально (разработка)
 
@@ -27,7 +27,9 @@ npm run serve
 
 ## Статический хостинг
 
-Скопируйте **всю папку проекта** на хостинг (или только нужные файлы: `calculator-110x55_12.html`, `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, `js/`, `vf-cultivars.js`, `pallet-cultivars.js` и каталоги `КАНАЛЫ` / `ПОДДОНЫ КАССЕТЫ`, если используете встроенные таблицы).
+Скопируйте **всю папку проекта** на хостинг (или минимум: `calculator-110x55_12.html`, `index.html`, `manifest.webmanifest`, `sw.js`, `icons/`, `assets/`, `css/`, `js/`, `vf-cultivars.js`, `pallet-cultivars.js`).
+
+Справочники сортов уже **встроены** в `vf-cultivars.js` и `pallet-cultivars.js`. Исходные эталонные таблицы — в папке `АУДИТ/` (см. [АУДИТ/README.md](АУДИТ/README.md)); для деплоя xlsx не нужны.
 
 | Платформа | Как |
 |-----------|-----|
@@ -85,6 +87,7 @@ server {
 | Экономика | [docs/ECONOMICS-RECOVERY.md](docs/ECONOMICS-RECOVERY.md) |
 | Поддоны из Excel | [docs/PALLET-CULTIVARS-GENERATION.md](docs/PALLET-CULTIVARS-GENERATION.md) |
 | VF из Excel | [docs/VF-CULTIVARS-GENERATION.md](docs/VF-CULTIVARS-GENERATION.md) |
+| Эталоны АУДИТ (xlsx → JS) | [АУДИТ/README.md](АУДИТ/README.md) |
 | GH каталог | [docs/GH-CULTIVARS-RECOVERY.md](docs/GH-CULTIVARS-RECOVERY.md) |
 | Режим Георгия | [docs/GEORGY-MODE-RECOVERY.md](docs/GEORGY-MODE-RECOVERY.md) |
 | Share / auth / readonly | [docs/SHARE-AUTH-READONLY-RECOVERY.md](docs/SHARE-AUTH-READONLY-RECOVERY.md) |

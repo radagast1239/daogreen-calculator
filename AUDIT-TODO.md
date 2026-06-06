@@ -11,6 +11,7 @@
 
 - [x] `npm run sync:audit` → `vf-cultivars.js`, `pallet-cultivars.js`
 - [x] Подписи в UI, `СТАНДАРТЫ-ВФ.md`, отчёт `АУДИТ/sync-report.md`
+- [x] `АУДИТ/README.md` — эталоны = проверенные замеры; xlsx локально, JS в репо
 
 ## №2 (архив) — Эталоны ВФ из папки АУДИТ
 

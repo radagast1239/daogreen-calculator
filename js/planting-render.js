@@ -205,7 +205,7 @@
       meta.textContent = ui('gh.yield.compareMeta', {
         area: r1(area),
         days: st().day,
-        month: monthLabel(st().month - 1),
+        month: monthLabel(st().month),
         temp: r1(st().temp)
       });
     }

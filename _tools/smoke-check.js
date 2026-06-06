@@ -31,6 +31,13 @@ if (build){
     else if (m[1] !== build) fail('version drift ' + s + ': ' + m[1] + ' != ' + build);
     else ok('version synced: ' + s);
   });
+  (manifest.cssFiles || []).forEach(function(s){
+    var re = new RegExp('<link rel="stylesheet" href="' + s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\?v=([^"]+)"');
+    var m = html.match(re);
+    if (!m) fail('css version tag missing: ' + s);
+    else if (m[1] !== build) fail('css version drift ' + s + ': ' + m[1] + ' != ' + build);
+    else ok('css version synced: ' + s);
+  });
 }
 
 manifest.staticScripts.forEach(function(s){

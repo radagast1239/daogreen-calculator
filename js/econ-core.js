@@ -268,7 +268,7 @@
     return row;
   }
 
-  /** Плотность для экономики поддona: шт/м² из справочника, не геометрия layout snap. */
+  /** Плотность для экономики поддона: шт/м² из справочника, не геометрия layout snap. */
   function econPalletDensity(cv, snap){
     if (cv && cv.palletSheet){
       if (cv.econLotSale) return econLotStandDensity(cv);

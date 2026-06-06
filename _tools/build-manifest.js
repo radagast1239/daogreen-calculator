@@ -13,6 +13,7 @@ module.exports = {
     'js/cut-model.js',
     'js/planting-cut-model-init.js',
     'js/preview-config.js',
+    'js/auth-client-config.js',
     'js/planting-constants.js',
     'js/planting-state.js',
     'js/planting-runtime-init.js',
@@ -94,7 +95,6 @@ module.exports = {
     'css/econ-unify.css',
     'css/visual-polish.css',
     'css/pdf-planting.css',
-    'css/visual-polish.css',
     'css/mobile.css',
     'css/app-auth.css'
   ],

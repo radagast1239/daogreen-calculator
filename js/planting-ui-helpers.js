@@ -5,7 +5,10 @@
 (function (global) {
   'use strict';
 
-  var MONTH_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var MONTH_KEYS = [
+    'month.jan', 'month.feb', 'month.mar', 'month.apr', 'month.may', 'month.jun',
+    'month.jul', 'month.aug', 'month.sep', 'month.oct', 'month.nov', 'month.dec'
+  ];
 
   function createPlantingUiHelpers(deps) {
     function naturalDli() {
@@ -15,12 +18,15 @@
     }
 
     function monthLabel(i) {
-      var dli = naturalDli();
       var idx = (i || 1) - 1;
-      if (typeof global.DG_getLocale === 'function' && global.DG_getLocale() === 'en') {
-        return MONTH_EN[idx] || (dli[idx] && dli[idx].m) || '';
+      if (idx < 0 || idx > 11) return '';
+      if (global.DG_t) {
+        var tKey = MONTH_KEYS[idx];
+        var v = global.DG_t(tKey);
+        if (v && v !== tKey) return v;
       }
-      return (dli[idx] && dli[idx].m) || MONTH_EN[idx] || '';
+      var dli = naturalDli();
+      return (dli[idx] && dli[idx].m) || '';
     }
 
     function syncMoneySliderDisplays() {

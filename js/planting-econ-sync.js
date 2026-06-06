@@ -11,7 +11,7 @@
     'ghUsefulArea', 'georgyMode', 'extraB'
   ];
 
-  var FIELD_LABELS = {
+  var FIELD_LABELS_RU = {
     facility: 'режим',
     appView: 'вкладка',
     cv: 'сорт (теплица)',
@@ -31,8 +31,24 @@
     month: 'месяц',
     ghUsefulArea: 'полезная площадь',
     georgyMode: 'режим Георгия',
-    extraB: 'шаг ряда'
+    extraB: 'шаг ряда',
+    vfStd: 'стандарты ВФ',
+    palletStd: 'стандарты поддонов'
   };
+
+  function fieldLabel(key) {
+    if (global.DG_t) {
+      var tKey = 'import.field.' + key;
+      var v = global.DG_t(tKey);
+      if (v && v !== tKey) return v;
+    }
+    return FIELD_LABELS_RU[key] || key;
+  }
+
+  function importTimeLocale() {
+    if (global.DG_getLocale && global.DG_getLocale() === 'en') return 'en-US';
+    return 'ru-RU';
+  }
 
   function plantingImportFingerprint(state) {
     state = state || {};
@@ -47,7 +63,7 @@
     if (!iso) return '—';
     try {
       var d = new Date(iso);
-      return d.toLocaleString('ru-RU', {
+      return d.toLocaleString(importTimeLocale(), {
         hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
       });
     } catch (_) {
@@ -97,9 +113,7 @@
   }
 
   function changedFieldsLabel(keys) {
-    return (keys || []).map(function (k) {
-      return FIELD_LABELS[k] || k;
-    }).join(', ');
+    return (keys || []).map(fieldLabel).join(', ');
   }
 
   global.DG_plantingImportFingerprint = plantingImportFingerprint;
