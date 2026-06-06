@@ -183,6 +183,7 @@
       logisticsMonth: 0,
       floorArea: 200,
       plantingArea: 150,
+      areaMode: 'pct',
       cultures: defaultEconCultures(),
       salePrice: 0,
       kwhPerM2Hour: ECON_DEFAULT_KWH_M2H,
@@ -414,6 +415,10 @@
     const out = Object.assign(base, row || {});
     out.cvId = row && row.cvId != null ? row.cvId : '';
     out.pct = row && row.pct != null ? row.pct : base.pct;
+    const pa = st().econ ? Math.max(0, parseFloat(st().econ.plantingArea) || 0) : 0;
+    const sqmRaw = row && row.areaSqm != null ? parseFloat(row.areaSqm) : NaN;
+    if (Number.isFinite(sqmRaw) && sqmRaw >= 0) out.areaSqm = sqmRaw;
+    else out.areaSqm = pa > 0 ? pa * (parseFloat(out.pct) || 0) / 100 : 0;
     out.salePrice = row && row.salePrice != null ? row.salePrice : 0;
     out.unitIsPieces = !!(row && row.unitIsPieces);
     if (out.cvId){
@@ -744,7 +749,10 @@
 
     dedupeEconCultures();
     const filled = st().econ.cultures.filter(function(r){ return r.cvId; });
-    if (filled.length === 1) filled[0].pct = 100;
+    if (filled.length === 1) {
+      filled[0].pct = 100;
+      filled[0].areaSqm = Math.max(0, parseFloat(st().econ.plantingArea) || 0);
+    }
 
     if (global.DG_recordPlantingImportMeta){
       global.DG_recordPlantingImportMeta(st(), liveSnap, { activeId: activeId });
@@ -915,9 +923,55 @@
     }
   }
 
+  function econGetAreaMode(e){
+    e = e || st().econ;
+    return e && e.areaMode === 'sqm' ? 'sqm' : 'pct';
+  }
+
   function econCulturesTotalPct(){
     ensureEconCultures();
     return st().econ.cultures.reduce((s, row) => s + (parseFloat(row.pct) || 0), 0);
+  }
+
+  function econCulturesTotalSqm(plantingArea){
+    ensureEconCultures();
+    const pa = Math.max(0, parseFloat(plantingArea) || 0);
+    return st().econ.cultures.reduce(function(s, row){
+      const norm = normalizeEconCultureRow(row);
+      const sqm = parseFloat(norm.areaSqm);
+      if (Number.isFinite(sqm) && sqm >= 0) return s + sqm;
+      const pct = parseFloat(norm.pct) || 0;
+      return s + (pa > 0 ? pa * pct / 100 : 0);
+    }, 0);
+  }
+
+  function syncEconCultureAreaFields(row, plantingArea){
+    row = normalizeEconCultureRow(row);
+    const pa = Math.max(0, parseFloat(plantingArea) || 0);
+    const pct = parseFloat(row.pct) || 0;
+    let sqm = parseFloat(row.areaSqm);
+    if (!Number.isFinite(sqm) || sqm < 0) sqm = pa > 0 ? pa * pct / 100 : 0;
+    row.areaSqm = Math.max(0, sqm);
+    row.pct = pa > 0 ? row.areaSqm / pa * 100 : pct;
+    return row;
+  }
+
+  function setEconAreaMode(mode){
+    ensureEconCultures();
+    const next = mode === 'sqm' ? 'sqm' : 'pct';
+    const prev = econGetAreaMode();
+    if (prev === next) return;
+    const pa = Math.max(0, parseFloat(st().econ.plantingArea) || 0);
+    st().econ.cultures = st().econ.cultures.map(function(row){
+      row = normalizeEconCultureRow(row);
+      if (next === 'sqm') {
+        row.areaSqm = pa > 0 ? pa * (parseFloat(row.pct) || 0) / 100 : 0;
+      } else {
+        row.pct = pa > 0 ? (parseFloat(row.areaSqm) || 0) / pa * 100 : (parseFloat(row.pct) || 0);
+      }
+      return row;
+    });
+    st().econ.areaMode = next;
   }
 
   function calcCultureSliceFromRow(row, e, area, salePrice){
@@ -1010,9 +1064,14 @@
       });
       w.push({ level: 'normal', text: TF('econ.warn.dupCv', { names: names.join(', ') }, 'Один сорт нельзя добавить дважды: {names} — оставьте одну строку.') });
     }
+    const areaMode = econGetAreaMode(e);
+    const plantingArea = Math.max(0, parseFloat(e.plantingArea) || 0);
     st().econ.cultures.forEach(row => {
-      const pct = parseFloat(row.pct) || 0;
-      if (pct <= 0) return;
+      const norm = normalizeEconCultureRow(row);
+      const hasShare = areaMode === 'sqm'
+        ? (parseFloat(norm.areaSqm) || 0) > 0
+        : (parseFloat(norm.pct) || 0) > 0;
+      if (!hasShare) return;
       const name = econCvDisplayName(row.cvId);
       if (!row.cvId) w.push({ level: 'normal', text: TF('econ.warn.noCvId', { name: name }, 'Строка «{name}»: выберите сорт в списке — иначе в расчёт не попадёт.') });
     });
@@ -1020,7 +1079,22 @@
       if (!p.bio || p.bio.density <= 0) w.push({ level: 'normal', text: TF('econ.warn.noDensity', { name: p.name }, '«{name}»: укажите плотность стояния (шт/м²).') });
       if (p.bio && p.bio.yieldPerCut <= 0) w.push({ level: 'normal', text: TF('econ.warn.noYield', { name: p.name }, '«{name}»: укажите урожай за срезку.') });
     });
-    if (farm.totalPct > 100){
+    if (areaMode === 'sqm'){
+      const totalSqm = econCulturesTotalSqm(plantingArea);
+      if (totalSqm > plantingArea && plantingArea > 0){
+        w.push({
+          level: 'strong',
+          text: TF('econ.warn.sqmOver', { total: deps.r1(totalSqm), planting: deps.r1(plantingArea) },
+            'Сумма площадей {total} м² превышает посевную {planting} м² — в расчёте площади уменьшены пропорционально.')
+        });
+      } else if (totalSqm > 0 && totalSqm < plantingArea){
+        w.push({
+          level: 'strong',
+          text: TF('econ.warn.sqmUnder', { total: deps.r1(totalSqm), planting: deps.r1(plantingArea), free: deps.r1(plantingArea - totalSqm) },
+            'Занято {total} м² из {planting} м² (свободно {free} м²): полная аренда и ФОТ делятся на меньший выпуск → себестоимость выше.')
+        });
+      }
+    } else if (farm.totalPct > 100){
       w.push({
         level: 'strong',
         text: TF('econ.warn.pctOver', { pct: deps.r1(farm.totalPct) }, 'Сумма долей {pct}% — в расчёте доли уменьшены пропорционально до 100%.')
@@ -1037,14 +1111,32 @@
   function calcFarmEconomics(e){
     ensureEconCultures();
     const plantingArea = Math.max(0, parseFloat(e.plantingArea) || 0);
-    const totalPct = econCulturesTotalPct();
-    const scale = totalPct > 100 ? 100 / totalPct : 1;
+    const areaMode = econGetAreaMode(e);
+    const totalPctRaw = econCulturesTotalPct();
+    const totalSqmRaw = econCulturesTotalSqm(plantingArea);
+    let scale;
+    let totalPct;
+    if (areaMode === 'sqm'){
+      scale = totalSqmRaw > plantingArea && plantingArea > 0 ? plantingArea / totalSqmRaw : 1;
+      totalPct = plantingArea > 0 ? (totalSqmRaw / plantingArea) * 100 : 0;
+    } else {
+      scale = totalPctRaw > 100 ? 100 / totalPctRaw : 1;
+      totalPct = totalPctRaw;
+    }
     const wasteFactor = 1 - deps.clamp(parseFloat(e.wastePct) || 0, 0, 50) / 100;
 
     const parts = st().econ.cultures.map(row => {
       const norm = normalizeEconCultureRow(row);
-      const pct = deps.clamp(parseFloat(norm.pct) || 0, 0, 100) * scale;
-      const area = plantingArea * pct / 100;
+      let area;
+      let pct;
+      if (areaMode === 'sqm'){
+        const rawSqm = Math.max(0, parseFloat(norm.areaSqm) || 0);
+        area = rawSqm * scale;
+        pct = plantingArea > 0 ? area / plantingArea * 100 : 0;
+      } else {
+        pct = deps.clamp(parseFloat(norm.pct) || 0, 0, 100) * scale;
+        area = plantingArea * pct / 100;
+      }
       const salePrice = parseFloat(norm.salePrice) || 0;
       const slice = calcCultureSliceFromRow(norm, e, area, salePrice);
       return {
@@ -1056,7 +1148,7 @@
         salePrice: salePrice,
         slice: slice
       };
-    }).filter(p => p.pct > 0 && p.cvId);
+    }).filter(p => p.slice.area > 0 && p.cvId);
 
     const payroll = calcPayrollMonthly(e);
     const staffGross = payroll.gross;
@@ -1199,7 +1291,9 @@
 
     const farm = {
       parts: parts,
+      areaMode: areaMode,
       totalPct: totalPct,
+      totalSqm: totalSqmRaw,
       areaUsed: areaUsed,
       plantingArea: plantingArea,
       wastePct: parseFloat(e.wastePct) || 0,
@@ -1301,7 +1395,11 @@
       migrateEconOtherElectricity: migrateEconOtherElectricity,
       ECON_ELEC_CAT_IDS: ECON_ELEC_CAT_IDS,
       ensureEconCultures: ensureEconCultures,
+      econGetAreaMode: econGetAreaMode,
       econCulturesTotalPct: econCulturesTotalPct,
+      econCulturesTotalSqm: econCulturesTotalSqm,
+      syncEconCultureAreaFields: syncEconCultureAreaFields,
+      setEconAreaMode: setEconAreaMode,
       calcCultureSliceFromRow: calcCultureSliceFromRow,
       dedupeEconCultures: dedupeEconCultures,
       canAddEconCulture: canAddEconCulture,

@@ -48,9 +48,12 @@
         });
       }
 
+      var areaMode = state.econ.areaMode === 'sqm' ? 'sqm' : 'pct';
       (state.econ.cultures || []).forEach(function (row) {
-        var pct = parseFloat(row.pct) || 0;
-        if (pct <= 0 || !row.cvId) return;
+        var hasShare = areaMode === 'sqm'
+          ? (parseFloat(row.areaSqm) || 0) > 0
+          : (parseFloat(row.pct) || 0) > 0;
+        if (!hasShare || !row.cvId) return;
         var price = parseFloat(row.salePrice) || 0;
         if (price <= 0) {
           var name = ctx.cvName ? ctx.cvName(row.cvId) : row.cvId;

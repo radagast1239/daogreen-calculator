@@ -70,6 +70,51 @@
   margin: 0 0 10px;
 }
 
+#view-economics .econ-area-mode-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 10px;
+}
+
+#view-economics .econ-area-mode-label {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+#view-economics .econ-area-mode-bar {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid rgba(39, 109, 92, 0.22);
+  background: var(--card);
+}
+
+#view-economics .econ-area-mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+#view-economics .econ-area-mode-btn:hover {
+  background: var(--brand-pale);
+  color: var(--brand-text);
+}
+
+#view-economics .econ-area-mode-btn.on {
+  background: var(--brand);
+  color: #fff;
+}
+
 #view-economics .econ-actions {
   margin: 0;
   gap: 8px;

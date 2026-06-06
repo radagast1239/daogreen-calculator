@@ -56,7 +56,7 @@
     var econCvDisplayName, econGhYieldPerCutFromStd, econCvTotalCycleDays, econSheetCutIntervalDays, econSheetYieldPerCut;
     var econYieldParamsForCvId, econCatalogDefaultsForCvId, normalizeEconCultureRow, parsePotHarvestMonthsFromCv, migrateEconCultureRows;
     var econCultureBio, formatEconCultureHint, calcCultureConsumables, econApplyCultureSelect, importEconRowFromPlanting, importAllEconFromPlanting;
-    var calcOtherElecMonthly, migrateEconOtherElectricity, ensureEconCultures, econCulturesTotalPct, calcCultureSliceFromRow;
+    var calcOtherElecMonthly, migrateEconOtherElectricity, ensureEconCultures, econGetAreaMode, econCulturesTotalPct, econCulturesTotalSqm, syncEconCultureAreaFields, setEconAreaMode, calcCultureSliceFromRow;
     var dedupeEconCultures, canAddEconCulture, findDuplicateCultureIds, collectEconWarnings, calcFarmEconomics, calcEconomics;
     var getEconCultureOptionsHtml, isEconCvIdTaken, renderEconomics, syncEconFromPlanting, syncEconInputsFromState;
 
@@ -193,7 +193,11 @@
     calcOtherElecMonthly = ec.calcOtherElecMonthly;
     migrateEconOtherElectricity = ec.migrateEconOtherElectricity;
     ensureEconCultures = ec.ensureEconCultures;
+    econGetAreaMode = ec.econGetAreaMode;
     econCulturesTotalPct = ec.econCulturesTotalPct;
+    econCulturesTotalSqm = ec.econCulturesTotalSqm;
+    syncEconCultureAreaFields = ec.syncEconCultureAreaFields;
+    setEconAreaMode = ec.setEconAreaMode;
     calcCultureSliceFromRow = ec.calcCultureSliceFromRow;
     dedupeEconCultures = ec.dedupeEconCultures;
     canAddEconCulture = ec.canAddEconCulture;
@@ -241,7 +245,11 @@
       sumEconEquipmentRaw: sumEconEquipmentRaw,
       sumEconEquipment: sumEconEquipment,
       canAddEconCulture: canAddEconCulture,
+      econGetAreaMode: econGetAreaMode,
       econCulturesTotalPct: econCulturesTotalPct,
+      econCulturesTotalSqm: econCulturesTotalSqm,
+      syncEconCultureAreaFields: syncEconCultureAreaFields,
+      setEconAreaMode: setEconAreaMode,
       migrateEconOtherElectricity: migrateEconOtherElectricity,
       parseNumInput: parseNumInput,
       formatInputValue: formatInputValue,

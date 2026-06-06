@@ -672,19 +672,66 @@
       '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="' + dec + '" data-econ-cult-field="' + field + '" data-econ-cult-idx="' + i + '" value="' + disp + '"' + ph + title + '></div>';
   }
 
+  function econAreaMode(){
+    return deps.econGetAreaMode ? deps.econGetAreaMode(st().econ) : 'pct';
+  }
+
+  function plantingAreaVal(){
+    return Math.max(0, parseFloat(st().econ.plantingArea) || 0);
+  }
+
+  function renderEconAreaModeBar(){
+    const wrap = deps.$('econ-area-mode-wrap');
+    if (!wrap) return;
+    const mode = econAreaMode();
+    wrap.innerHTML =
+      '<p class="econ-area-mode-label">' + L('econ.areaMode.label') + '</p>' +
+      '<div class="econ-area-mode-bar" role="group" aria-label="' + L('econ.areaMode.aria') + '">' +
+      '<button type="button" class="econ-area-mode-btn' + (mode === 'pct' ? ' on' : '') + '" data-econ-area-mode="pct">' + L('econ.areaMode.pct') + '</button>' +
+      '<button type="button" class="econ-area-mode-btn' + (mode === 'sqm' ? ' on' : '') + '" data-econ-area-mode="sqm">' + L('econ.areaMode.sqm') + '</button>' +
+      '</div>';
+  }
+
+  function updateCulturesTotalLine(totalEl){
+    if (!totalEl) return;
+    const mode = econAreaMode();
+    const pa = plantingAreaVal();
+    let cls = 'ok';
+    let msg = '';
+    if (mode === 'sqm'){
+      const total = deps.econCulturesTotalSqm ? deps.econCulturesTotalSqm(pa) : 0;
+      msg = '<strong>' + tFmt('econ.area.sum', { total: deps.r1(total), planting: deps.r1(pa) }) + '</strong>';
+      if (total > pa && pa > 0){ cls = 'bad'; msg += L('econ.area.over'); }
+      else if (total > 0 && total < pa){ cls = 'warn'; msg += tFmt('econ.area.free', { free: deps.r1(pa - total) }); }
+    } else {
+      const total = deps.econCulturesTotalPct();
+      msg = '<strong>' + tFmt('econ.share.sum', { total: deps.r1(total) }) + '</strong>';
+      if (total > 100){ cls = 'bad'; msg += L('econ.share.over'); }
+      else if (total < 100){ cls = 'warn'; msg += tFmt('econ.share.free', { free: deps.r1(100 - total) }); }
+    }
+    totalEl.className = 'econ-cultures-total ' + cls;
+    totalEl.innerHTML = msg + tFmt('econ.rows', { n: st().econ.cultures.length, max: ECON_MAX_CULTURES });
+  }
+
   function renderEconomicsCultures(){
     deps.ensureEconCultures();
     deps.migrateEconCultureRows();
     deps.dedupeEconCultures();
+    if (!st().econ.areaMode) st().econ.areaMode = 'pct';
+    renderEconAreaModeBar();
     const list = deps.$('econ-cultures-list');
     const totalEl = deps.$('econ-cultures-total');
     if (!list) return;
+    const mode = econAreaMode();
+    const pa = plantingAreaVal();
 
     let html = '';
     st().econ.cultures.forEach((row, i) => {
-      const norm = deps.normalizeEconCultureRow(row);
+      let norm = deps.normalizeEconCultureRow(row);
+      if (deps.syncEconCultureAreaFields) norm = deps.syncEconCultureAreaFields(norm, pa);
       st().econ.cultures[i] = norm;
       const pct = norm.pct != null ? norm.pct : 0;
+      const areaSqm = norm.areaSqm != null ? norm.areaSqm : 0;
       const sp = norm.salePrice > 0 ? norm.salePrice : '';
       const bio = deps.econCultureBio(norm);
       const cv = typeof deps.findCvById === 'function' ? deps.findCvById(norm.cvId) : null;
@@ -701,7 +748,9 @@
       html += '<div class="econ-culture-card" data-econ-culture-idx="' + i + '">' +
         '<div class="econ-culture-head">' +
         '<div class="econ-field"><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i) + '</select></div>' +
-        '<div class="econ-field"><label>' + L('econ.cult.share') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-pct="' + i + '" value="' + deps.formatInputValue(pct, 1) + '"></div>' +
+        (mode === 'sqm'
+          ? '<div class="econ-field"><label>' + L('econ.cult.areaSqm') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-sqm="' + i + '" value="' + deps.formatInputValue(areaSqm, 1) + '"></div>'
+          : '<div class="econ-field"><label>' + L('econ.cult.share') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-pct="' + i + '" value="' + deps.formatInputValue(pct, 1) + '"></div>') +
         '<div class="econ-field"><label>' + L('econ.cult.price') + ', ' + moneySym() + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" placeholder="—" data-econ-culture-price="' + i + '" value="' + (sp ? fmtMoneyInp(sp, 0) : '') + '"></div>' +
         '<button type="button" class="econ-rm" data-econ-culture-rm="' + i + '" title="' + L('econ.btn.remove') + '" aria-label="' + L('econ.btn.remove') + '">×</button>' +
         '</div>' +
@@ -722,16 +771,7 @@
         '</div>';
     });
     list.innerHTML = html;
-
-    const total = deps.econCulturesTotalPct();
-    if (totalEl){
-      let cls = 'ok';
-      let msg = '<strong>' + tFmt('econ.share.sum', { total: deps.r1(total) }) + '</strong>';
-      if (total > 100){ cls = 'bad'; msg += L('econ.share.over'); }
-      else if (total < 100) { cls = 'warn'; msg += tFmt('econ.share.free', { free: deps.r1(100 - total) }); }
-      totalEl.className = 'econ-cultures-total ' + cls;
-      totalEl.innerHTML = msg + tFmt('econ.rows', { n: st().econ.cultures.length, max: ECON_MAX_CULTURES });
-    }
+    updateCulturesTotalLine(totalEl);
     const addBtn = deps.$('econ-add-culture');
     if (addBtn){
       addBtn.disabled = !deps.canAddEconCulture();
@@ -739,7 +779,21 @@
     }
   }
 
+  function bindEconomicsAreaMode(){
+    const wrap = deps.$('econ-area-mode-wrap');
+    if (!wrap || wrap.dataset.econAreaModeBound) return;
+    wrap.dataset.econAreaModeBound = '1';
+    wrap.addEventListener('click', function(e){
+      const btn = e.target.closest('[data-econ-area-mode]');
+      if (!btn || !deps.setEconAreaMode) return;
+      deps.setEconAreaMode(btn.dataset.econAreaMode);
+      deps.saveEconStore();
+      renderEconomics();
+    });
+  }
+
   function bindEconomicsCultures(){
+    bindEconomicsAreaMode();
     const list = deps.$('econ-cultures-list');
     if (!list || list.dataset.econCulturesBound) return;
     list.dataset.econCulturesBound = '1';
@@ -747,6 +801,7 @@
     list.addEventListener('change', e => {
       const cvSel = e.target.dataset.econCultureCv;
       const pctInp = e.target.dataset.econCulturePct;
+      const sqmInp = e.target.dataset.econCultureSqm;
       const priceInp = e.target.dataset.econCulturePrice;
       const mixIncl = e.target.dataset.econMixIncl;
       const mixPctRow = e.target.dataset.econMixPctRow;
@@ -799,6 +854,20 @@
         const i = parseInt(pctInp, 10);
         deps.ensureEconCultures();
         st().econ.cultures[i].pct = deps.clamp(deps.parseNumInput(e.target.value) || 0, 0, 100);
+        if (deps.syncEconCultureAreaFields) {
+          st().econ.cultures[i] = deps.syncEconCultureAreaFields(st().econ.cultures[i], plantingAreaVal());
+        }
+        deps.saveEconStore();
+        renderEconomics();
+        return;
+      }
+      if (sqmInp != null){
+        const iSqm = parseInt(sqmInp, 10);
+        deps.ensureEconCultures();
+        st().econ.cultures[iSqm].areaSqm = Math.max(0, deps.parseNumInput(e.target.value) || 0);
+        if (deps.syncEconCultureAreaFields) {
+          st().econ.cultures[iSqm] = deps.syncEconCultureAreaFields(st().econ.cultures[iSqm], plantingAreaVal());
+        }
         deps.saveEconStore();
         renderEconomics();
         return;
@@ -839,23 +908,30 @@
         renderEconomics();
         return;
       }
+      if (e.target.dataset.econCultureSqm != null){
+        const iSqmInp = parseInt(e.target.dataset.econCultureSqm, 10);
+        deps.ensureEconCultures();
+        st().econ.cultures[iSqmInp].areaSqm = Math.max(0, deps.parseNumInput(e.target.value) || 0);
+        if (deps.syncEconCultureAreaFields) {
+          st().econ.cultures[iSqmInp] = deps.syncEconCultureAreaFields(st().econ.cultures[iSqmInp], plantingAreaVal());
+        }
+        deps.saveEconStore();
+        updateCulturesTotalLine(deps.$('econ-cultures-total'));
+        return;
+      }
       if (e.target.dataset.econCulturePct == null && e.target.dataset.econCulturePrice == null) return;
       const i = parseInt(e.target.dataset.econCulturePct != null ? e.target.dataset.econCulturePct : e.target.dataset.econCulturePrice, 10);
       deps.ensureEconCultures();
       if (e.target.dataset.econCulturePct != null){
         st().econ.cultures[i].pct = deps.parseNumInput(e.target.value) || 0;
+        if (deps.syncEconCultureAreaFields) {
+          st().econ.cultures[i] = deps.syncEconCultureAreaFields(st().econ.cultures[i], plantingAreaVal());
+        }
       } else {
         st().econ.cultures[i].salePrice = parseMoney(e.target.value) || 0;
       }
       deps.saveEconStore();
-      const totalEl = deps.$('econ-cultures-total');
-      const total = deps.econCulturesTotalPct();
-      if (totalEl){
-        let cls = total > 100 ? 'bad' : (total < 100 ? 'warn' : 'ok');
-        totalEl.className = 'econ-cultures-total ' + cls;
-        totalEl.innerHTML = '<strong>' + tFmt('econ.share.sum', { total: deps.r1(total) }) + '</strong>' +
-          (total > 100 ? L('econ.share.overShort') : (total < 100 ? tFmt('econ.share.freeShort', { free: deps.r1(100 - total) }) : ''));
-      }
+      updateCulturesTotalLine(deps.$('econ-cultures-total'));
     });
 
     list.addEventListener('click', e => {
