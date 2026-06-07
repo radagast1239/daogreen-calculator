@@ -815,10 +815,13 @@
     });
     if (!Array.isArray(e.payrollCustom)) e.payrollCustom = [];
     e.payrollCustom = e.payrollCustom.map(function(row){
+      var unit = row.periodUnit === 'day' || row.periodUnit === 'week' ? row.periodUnit : 'month';
       return {
         id: row.id || newEconRowId('pc'),
         label: row.label != null ? String(row.label) : '',
-        amount: parseFloat(row.amount) || 0
+        amount: parseFloat(row.amount) || 0,
+        period: Math.max(1, parseFloat(row.period) || 1),
+        periodUnit: unit
       };
     });
     if (e.accountingMonth == null || isNaN(parseFloat(e.accountingMonth))) e.accountingMonth = 15000;
@@ -897,6 +900,19 @@
     return rows;
   }
 
+  function payrollCustomPeriodUnit(u){
+    return u === 'day' || u === 'week' ? u : 'month';
+  }
+
+  function payrollCustomMonthlyAmount(row){
+    const amt = Math.max(0, parseFloat(row.amount) || 0);
+    const period = Math.max(1, parseFloat(row.period) || 1);
+    const unit = payrollCustomPeriodUnit(row.periodUnit);
+    if (unit === 'day') return amt * (ECON_MONTH_DAYS / period);
+    if (unit === 'week') return amt * (ECON_MONTH_DAYS / (period * 7));
+    return amt / period;
+  }
+
   function calcPayrollMonthly(e){
     migrateEconPayroll(e);
     const gross = (e.staffLines || []).reduce(function(s, row){
@@ -904,7 +920,7 @@
     }, 0);
     const payrollTax = e.payrollTax ? gross * 0.425 : 0;
     const custom = (e.payrollCustom || []).reduce(function(s, row){
-      return s + Math.max(0, parseFloat(row.amount) || 0);
+      return s + payrollCustomMonthlyAmount(row);
     }, 0);
     const accounting = Math.max(0, parseFloat(e.accountingMonth) || 0);
     return {

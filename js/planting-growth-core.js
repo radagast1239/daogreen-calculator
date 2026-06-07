@@ -98,8 +98,17 @@
       return isPlantingYieldView();
     }
 
+    function vfEnvGrowthFactor() {
+      var GLM = glm();
+      var state = st();
+      if (!GLM || !GLM.vfTempResponseFactor) return 1;
+      return GLM.vfTempResponseFactor(state.temp) *
+        (GLM.vfRhGrowthFactor ? GLM.vfRhGrowthFactor(state.rh) : 1);
+    }
+
     function effectiveTempFactor(cv) {
       cv = cv || deps.getCv();
+      if (deps.isVF && deps.isVF()) return vfEnvGrowthFactor();
       var state = st();
       var georgyMode = georgyModeRef();
       if (georgyMode) {

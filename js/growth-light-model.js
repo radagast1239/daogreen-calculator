@@ -128,6 +128,30 @@
       tempResponseFactor(temp, cv);
   }
 
+  /** VF: оптимум 20–24 °C; ниже и выше — замедление роста и урожая. */
+  function vfTempResponseFactor(temp){
+    var tLo = 20;
+    var tHi = 24;
+    var tMin = 8;
+    var tMax = 32;
+    var fMin = 0.35;
+    temp = parseFloat(temp);
+    if (isNaN(temp)) return 1;
+    if (temp >= tLo && temp <= tHi) return 1;
+    if (temp < tLo) return clamp(fMin + (1 - fMin) * (temp - tMin) / (tLo - tMin), fMin, 1);
+    return clamp(fMin + (1 - fMin) * (tMax - temp) / (tMax - tHi), fMin, 1);
+  }
+
+  /** VF: ниже 60% RH — замедление роста и усвоения питательных веществ. */
+  function vfRhGrowthFactor(rh){
+    var ideal = 60;
+    var fMin = 0.5;
+    rh = parseFloat(rh);
+    if (isNaN(rh)) return 1;
+    if (rh >= ideal) return 1;
+    return clamp(fMin + (1 - fMin) * rh / ideal, fMin, 1);
+  }
+
   global.DG_growthLightModel = {
     DLI_OPT: DLI_OPT,
     PHOTO_OPT_H: PHOTO_OPT_H,
@@ -143,6 +167,8 @@
     canopyMassExponent: canopyMassExponent,
     canopyFromMass: canopyFromMass,
     logisticMass: logisticMass,
-    envGrowthMultiplier: envGrowthMultiplier
+    envGrowthMultiplier: envGrowthMultiplier,
+    vfTempResponseFactor: vfTempResponseFactor,
+    vfRhGrowthFactor: vfRhGrowthFactor
   };
 })(typeof window !== 'undefined' ? window : global);

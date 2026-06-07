@@ -277,7 +277,9 @@ function vfEffectiveMass(cv, massAuto){
   cv = cv || deps.getVfCv();
   if (stateRef().useManualMass) return deps.manualHarvestMass(massAuto);
   if (vfSheetMassLocked(cv) && stateRef().multicut && deps.supportsMulticut && deps.supportsMulticut(cv)) {
-    return Math.round(cv.yieldPerCutG) || massAuto;
+    var sheetMass = Math.round(cv.yieldPerCutG) || massAuto;
+    if (deps.effectiveTempFactor) sheetMass = Math.max(1, Math.round(sheetMass * deps.effectiveTempFactor(cv)));
+    return sheetMass;
   }
   return massAuto;
 }
@@ -310,9 +312,46 @@ function syncCutMassUI(){
     }
   }
 }
+function syncVfCutModeUI(){
+  if (!deps.isVF()) return;
+  const isMc = !!stateRef().multicut;
+  const dayCtrl = deps.$('ctrl-day');
+  const dayYieldHint = deps.$('channel-day-yield-hint');
+  const vfGrowthHint = deps.$('vf-growth-slider-hint');
+  const autoDayRow = document.querySelector('#block-grow-time-body .grow-auto-day-row');
+  const cutIntervalCtrl = deps.$('ctrl-cut-interval');
+  const multicutDetail = deps.$('multicut-detail');
+  const mcToggleWrap = document.querySelector('#block-panel-multicut .toggle-wrap');
+
+  if (dayCtrl) dayCtrl.classList.toggle('env-block-hidden', isMc);
+  if (dayYieldHint) dayYieldHint.classList.toggle('env-block-hidden', isMc);
+  if (vfGrowthHint) vfGrowthHint.classList.toggle('env-block-hidden', isMc);
+  if (autoDayRow) autoDayRow.classList.toggle('env-block-hidden', isMc);
+  if (cutIntervalCtrl) cutIntervalCtrl.classList.toggle('env-block-hidden', !isMc);
+  if (multicutDetail) multicutDetail.classList.toggle('env-block-hidden', !isMc);
+
+  const dayLbl = dayCtrl && dayCtrl.querySelector('.ctrl-label');
+  if (dayLbl && !isMc){
+    const badge = dayLbl.querySelector('.vf-sheet-badge');
+    dayLbl.textContent = deps.ui('vf.day.singleCut');
+    if (badge) dayLbl.appendChild(badge);
+  }
+  const intervalLbl = cutIntervalCtrl && cutIntervalCtrl.querySelector('.ctrl-label');
+  if (intervalLbl){
+    const badge = intervalLbl.querySelector('.vf-sheet-badge');
+    intervalLbl.textContent = deps.ui('vf.day.multicutInterval');
+    if (badge) intervalLbl.appendChild(badge);
+  }
+  const mcHead = document.querySelector('#block-panel-multicut .multicut-cycle-head');
+  if (mcHead) mcHead.textContent = deps.ui('vf.cutMode.title');
+  const mcToggleLbl = mcToggleWrap && mcToggleWrap.querySelector('.toggle-label');
+  if (mcToggleLbl) mcToggleLbl.textContent = deps.ui('vf.cutMode.toggle');
+}
+
 function syncMulticutDetailUI(){
+  syncVfCutModeUI();
   const detail = deps.$('multicut-detail');
-  if (detail) detail.classList.toggle('env-block-hidden', !stateRef().multicut);
+  if (detail && !deps.isVF()) detail.classList.toggle('env-block-hidden', !stateRef().multicut);
   const cv = deps.getActiveCv();
   if (cv && deps.supportsMulticut(cv)) deps.syncCutIntervalSlider(cv);
   if (cv && (cv.cutInterval > 0 || cv.cutNote)) {
@@ -557,6 +596,7 @@ function calcFromVfSheet(cv){
       vfEffectiveMass: vfEffectiveMass,
       syncCutMassUI: syncCutMassUI,
       syncMulticutDetailUI: syncMulticutDetailUI,
+      syncVfCutModeUI: syncVfCutModeUI,
       applyCutStandardsFromSheet: applyCutStandardsFromSheet,
       syncVfStdControls: syncVfStdControls,
       updateVfCvHint: updateVfCvHint,

@@ -43,7 +43,8 @@
       var diag = Math.sqrt(offMm * offMm + b * b);
       var nearest = state.offset === 0 ? Math.min(a, b) : Math.min(a, diag);
       var alongOne = Math.max(1, Math.floor((Lmm - 2 * margin) / a) + 1);
-      var twoRow = deps.georgyChannelTwoRows && deps.georgyChannelTwoRows();
+      var twoRow = (deps.isVF && deps.isVF()) ||
+        (deps.georgyChannelTwoRows && deps.georgyChannelTwoRows());
       var perRow = alongOne;
       var perChan = twoRow ? alongOne * 2 : alongOne;
       var total = perChan * state.nch;

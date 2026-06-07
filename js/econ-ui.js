@@ -338,11 +338,29 @@
       '<button type="button" class="econ-rm" data-econ-staff-rm="' + row.id + '" title="' + L('econ.btn.remove') + '">×</button></div>';
   }
 
+  function renderPayrollCustomHead(){
+    return '<div class="econ-payroll-row econ-payroll-row--head econ-payroll-row--custom">' +
+      '<span>' + L('econ.staff.role') + '</span>' +
+      '<span>' + moneySym() + '</span>' +
+      '<span>' + L('econ.payroll.periodHead') + '</span>' +
+      '<span></span></div>';
+  }
+
   function renderPayrollCustomRow(row){
     const amt = parseFloat(row.amount) || 0;
+    const period = Math.max(1, parseFloat(row.period) || 1);
+    const unit = row.periodUnit === 'day' || row.periodUnit === 'week' ? row.periodUnit : 'month';
     return '<div class="econ-payroll-row econ-payroll-row--custom" data-econ-pc-id="' + row.id + '">' +
       '<input type="text" class="econ-payroll-label-inp" data-econ-pc-label="' + row.id + '" value="' + econEscAttr(row.label || '') + '" placeholder="' + L('econ.payroll.customPh') + '">' +
       '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-payroll-custom="' + row.id + '" value="' + deps.formatInputValue(amt, 0) + '">' +
+      '<div class="econ-payroll-period">' +
+      '<span>' + L('econ.payroll.periodEvery') + '</span>' +
+      '<input type="number" class="econ-payroll-period-inp" min="1" step="1" data-econ-pc-period="' + row.id + '" value="' + period + '">' +
+      '<select class="econ-payroll-period-unit" data-econ-pc-unit="' + row.id + '">' +
+      '<option value="day"' + (unit === 'day' ? ' selected' : '') + '>' + L('econ.payroll.periodDay') + '</option>' +
+      '<option value="week"' + (unit === 'week' ? ' selected' : '') + '>' + L('econ.payroll.periodWeek') + '</option>' +
+      '<option value="month"' + (unit === 'month' ? ' selected' : '') + '>' + L('econ.payroll.periodMonth') + '</option>' +
+      '</select></div>' +
       '<button type="button" class="econ-rm" data-econ-pc-rm="' + row.id + '" title="' + L('econ.btn.remove') + '">×</button></div>';
   }
 
@@ -354,7 +372,7 @@
     let staffHtml = head;
     (st().econ.staffLines || []).forEach(function(row){ staffHtml += renderPayrollStaffRow(row); });
     let customHtml = '';
-    if ((st().econ.payrollCustom || []).length) customHtml += head;
+    if ((st().econ.payrollCustom || []).length) customHtml += renderPayrollCustomHead();
     (st().econ.payrollCustom || []).forEach(function(row){ customHtml += renderPayrollCustomRow(row); });
     wrap.innerHTML =
       '<div class="econ-payroll-block"><h4 class="econ-payroll-h4">' + L('econ.section.staff') + '</h4>' +
@@ -421,12 +439,12 @@
       }
       if (e.target.id === 'econ-payroll-custom-add'){
         deps.migrateEconOtherElectricity(st().econ);
-        st().econ.payrollCustom.push({ id: 'pc_' + Math.random().toString(36).slice(2, 10), label: '', amount: 0 });
+        st().econ.payrollCustom.push({ id: 'pc_' + Math.random().toString(36).slice(2, 10), label: '', amount: 0, period: 1, periodUnit: 'month' });
         deps.saveEconStore();
         const list = deps.$('econ-payroll-custom-list');
         if (list){
-          if (!list.querySelector('.econ-payroll-row--head')){
-            list.innerHTML = '<div class="econ-payroll-row econ-payroll-row--head"><span>' + L('econ.staff.role') + '</span><span>' + moneySym() + '</span><span></span></div>';
+          if (!list.querySelector('.econ-payroll-row--head.econ-payroll-row--custom')){
+            list.innerHTML = renderPayrollCustomHead();
           }
           list.insertAdjacentHTML('beforeend', renderPayrollCustomRow(st().econ.payrollCustom[st().econ.payrollCustom.length - 1]));
         }
@@ -480,6 +498,24 @@
       if (pcl){
         const row = (st().econ.payrollCustom || []).find(function(x){ return x.id === pcl; });
         if (row){ row.label = t.value; deps.saveEconStore(); }
+        return;
+      }
+      const pper = t.dataset.econPcPeriod;
+      if (pper){
+        const row = (st().econ.payrollCustom || []).find(function(x){ return x.id === pper; });
+        if (row){ row.period = Math.max(1, parseInt(t.value, 10) || 1); deps.saveEconStore(); renderEconomics(); }
+        return;
+      }
+    });
+    root.addEventListener('change', function(e){
+      const t = e.target;
+      const punit = t.dataset && t.dataset.econPcUnit;
+      if (!punit) return;
+      const row = (st().econ.payrollCustom || []).find(function(x){ return x.id === punit; });
+      if (row){
+        row.periodUnit = t.value === 'day' || t.value === 'week' ? t.value : 'month';
+        deps.saveEconStore();
+        renderEconomics();
       }
     });
   }

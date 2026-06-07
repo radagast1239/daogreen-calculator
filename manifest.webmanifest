@@ -4,7 +4,7 @@
   "description": "Planting calculator: NFT channels, pallets, vertical farms, farm economics. Калькулятор посадки и экономики.",
   "lang": "ru",
   "dir": "ltr",
-  "start_url": "./calculator-110x55_12.html?v=2026-06-06-econ-area-mode",
+  "start_url": "./calculator-110x55_12.html?v=2026-06-06-vf-planting",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",

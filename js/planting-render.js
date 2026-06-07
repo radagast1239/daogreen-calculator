@@ -260,8 +260,8 @@
         '<td><span class="compare-chip-dot" style="background:' + cvColor(row.cv.id) + ';display:inline-block;vertical-align:middle;margin-right:6px"></span>' +
         row.cv.name + '</td>' +
         '<td>' + round(row.mass) + ' ' + massU + '</td>' +
-        (showRhoRec ? '<td>' + (row.rhoRec != null ? Math.round(row.rhoRec) : '—') + ' ' + pm('ui.unit.pcsSqm') + '</td>' : '') +
-        '<td>' + Math.round(row.rhoA) + ' ' + pm('ui.unit.pcsSqm') + '</td>' +
+        (showRhoRec ? '<td>' + (row.rhoRec != null ? Math.round(row.rhoRec) : '—') + ' ' + pm('u.pcsSqm') + '</td>' : '') +
+        '<td>' + Math.round(row.rhoA) + ' ' + pm('u.pcsSqm') + '</td>' +
         '<td>' + ghYieldWithMargin(row.kgSqmYear, 1) + ' ' + sqmU + '</td>' +
         '<td>' + ghYieldWithMargin(row.kgSqmMo, 1) + ' ' + sqmU + '</td>' +
         '<td>' + ghYieldWithMargin(row.kgFarmMo, 1) + ' ' + farmYieldMoUnit(hyR) + '</td>' +
@@ -384,6 +384,7 @@
     const savedFitted = st().georgyDensityFitted;
     try {
       if (isPalletView()) st().palletCv = cv.id;
+      else if (isVF()) st().vfCv = cv.id;
       else st().cv = cv.id;
       var ghCh = deps.getGhChannelSimple ? deps.getGhChannelSimple() : null;
       if (ghCh && ghCh.isEnabled && ghCh.isEnabled()) ghCh.applyDensityFitForCompare(cv);
@@ -574,9 +575,9 @@
           : r1(v) + ' ' + sqmU;
       }
       case 'rhoA':
-        return Math.round(r.rhoA || 0) + ' ' + pm('ui.unit.pcsSqm');
+        return Math.round(r.rhoA || 0) + ' ' + pm('u.pcsSqm');
       case 'rhoRec':
-        return col.rhoRec != null ? Math.round(col.rhoRec) + ' ' + pm('ui.unit.pcsSqm') : '—';
+        return col.rhoRec != null ? Math.round(col.rhoRec) + ' ' + pm('u.pcsSqm') : '—';
       case 'leafGap':
         return fmtCompareRange(r.leafGap, function(v){ return Math.max(1, Math.abs(v) * st().errorPct / 100); }, pm('unit.mm'));
       case 'cyclesYear':
@@ -1631,11 +1632,13 @@
       if (mcHint) mcHint.classList.add('env-block-hidden');
       return;
     }
-    if (isVF() && !supportsMulticut(cv)){
-      panel.classList.add('env-block-hidden');
-      return;
-    }
     panel.classList.remove('env-block-hidden');
+    if (isVF() && !supportsMulticut(cv) && st().multicut){
+      if (mcHint){
+        mcHint.textContent = ui('vf.cutMode.unsupported');
+        mcHint.classList.remove('env-block-hidden');
+      }
+    }
     syncMulticutDetailUI();
 
     var mcYieldHint = $('multicut-yield-only-hint');
@@ -2128,7 +2131,24 @@
     const effPh = effectivePhotoperiod();
     const monthName = monthLabel(st().month);
 
-    if (isVF() || isPalletView()){
+    if (isVF()){
+      const vfGrowPct = r1(effectiveTempFactor(r.cv) * 100);
+      if (st().temp >= 20 && st().temp <= 24){
+        push('check', 'check', pr('rec.vf.temp.ok', { temp: r1(st().temp), growth: vfGrowPct }));
+      } else if (st().temp < 20){
+        push('warn', 'warn', pr('rec.vf.temp.low', { temp: r1(st().temp), growth: vfGrowPct }));
+      } else {
+        push('warn', 'warn', pr('rec.vf.temp.high', { temp: r1(st().temp), growth: vfGrowPct }));
+      }
+      if (st().rh < 60){
+        push('warn', 'warn', pr('rec.vf.rh.growthLow', { rh: st().rh, growth: vfGrowPct }));
+      } else if (st().rh > 75){
+        push('warn', 'warn', pr('rec.vf.rh.warn', { rh: st().rh, dli: r1(eff) }));
+      }
+      if (st().temp > 26){
+        push('warn', 'warn', pr('rec.closed.temp.mold', { temp: r1(st().temp) }));
+      }
+    } else if (isPalletView()){
       if (st().rh > 75){
         push('warn', 'warn', pr('rec.vf.rh.warn', { rh: st().rh, dli: r1(eff) }));
       } else if (st().rh < 50){

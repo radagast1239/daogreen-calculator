@@ -498,6 +498,61 @@ dialog::backdrop {
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
+/* —— Visit history —— */
+.visit-history-dialog {
+  max-width: min(480px, calc(100vw - 24px));
+}
+.visit-history-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.visit-history-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.visit-history-scroll {
+  max-height: min(50vh, 320px);
+  overflow-y: auto;
+  margin: 4px 0;
+  padding: 2px 0;
+}
+.visit-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.visit-history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius, 10px);
+  background: var(--bg-soft, rgba(0, 0, 0, 0.03));
+}
+.visit-history-when {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.visit-history-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.visit-history-empty {
+  margin: 8px 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
 /* —— Tour —— */
 .tour-pop {
   border-radius: var(--radius-xl);

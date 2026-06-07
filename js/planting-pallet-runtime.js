@@ -285,6 +285,7 @@
   function schemaCanopyMm(r){
     if (!r || !r.cv) return 0;
     if (st().useManualCanopy) return clamp(st().manualCanopy, 20, 600);
+    if (r.canopy > 0) return clamp(r.canopy, 20, 600);
     const massBase = r.massAuto != null ? r.massAuto : r.mass;
     const base = modelCanopyFromMass(r.cv, massBase);
     const pct = clamp(st().canopyPct || 100, 100, 130);
@@ -298,8 +299,10 @@
     const leg = document.querySelector('.schema-canopy-legend');
     const pct = clamp(st().canopyPct || 100, 100, 130);
     if (leg){
+      var manualTag = st().useManualCanopy ? ' <span class="schema-canopy-pct-tag">(' + ui('ui.schema.canopyManual') + ')</span>' : '';
       leg.innerHTML = '<span class="schema-canopy-swatch"></span>' + ui('ui.schema.canopyLegend', { val: val }) +
-        (pct !== 100 ? ' <span class="schema-canopy-pct-tag">(' + pct + '%)</span>' : '');
+        manualTag +
+        (!st().useManualCanopy && pct !== 100 ? ' <span class="schema-canopy-pct-tag">(' + pct + '%)</span>' : '');
     }
   }
   function cassetteCoordsEven(n, span){
