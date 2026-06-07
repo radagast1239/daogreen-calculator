@@ -28,6 +28,7 @@
       getPlantingStd: deps.getPlantingStd,
       getGhCutMass: deps.getGhCutMass,
       envMultiplier: deps.envMultiplier,
+      effectiveTempFactor: deps.effectiveTempFactor,
       vfEffectiveDay: deps.vfEffectiveDay,
       harvestChannel: deps.harvestChannel,
       boltChannel: deps.boltChannel,

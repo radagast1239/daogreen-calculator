@@ -1132,9 +1132,12 @@
     function pct(f){ return r1((f - 1) * 100); }
     function sign(p){ return p >= 0 ? '+' : ''; }
     function dliPill(f){ return '<span class="env-pill ' + pillClass(f) + '">DLI ' + sign(pct(f)) + pct(f) + '%</span>'; }
+    function envFactorPill(lbl, f){
+      return '<span class="env-pill ' + pillClass(f) + '">' + lbl + ' ' + sign(pct(f)) + pct(f) + '%</span>';
+    }
     function tempPill(f){
       const lbl = (isVF() || isPalletView()) ? 'T' : ui('ui.env.temp');
-      return '<span class="env-pill ' + pillClass(f) + '">' + lbl + ' ' + sign(pct(f)) + pct(f) + '%</span>';
+      return envFactorPill(lbl, f);
     }
 
     let row1, row2;
@@ -1147,9 +1150,15 @@
         '<span class="env-pill ok">' + ui('ui.env.ledPill', { eff: r1(ledEfficacy()) }) + '</span>' +
         '<span style="opacity:0.8">' + ui('ui.env.kwhApprox', { val: r1(kwhDay), unit: ui('ui.env.kwhDay') }) + '</span></div>' +
         '<div class="env-row env-row--hint"><span style="opacity:0.85;font-size:12.5px">' + ui('ui.env.idealLightNote') + '</span></div>';
+      const GLM = global.DG_growthLightModel;
+      const vfTempF = (isVF() && GLM && GLM.vfTempResponseFactor) ? GLM.vfTempResponseFactor(st().temp) : tF;
+      const vfRhF = (isVF() && GLM && GLM.vfRhGrowthFactor) ? GLM.vfRhGrowthFactor(st().rh) : 1;
+      const envPills = isVF() && GLM && GLM.vfTempResponseFactor
+        ? envFactorPill('T', vfTempF) + (vfRhF < 0.999 ? envFactorPill('RH', vfRhF) : '')
+        : tempPill(tF);
       row2 = '<div class="env-row">' +
         '<span>' + ui('ui.env.growthRate') + '</span><strong>×' + r2(mult) + '</strong>' +
-        dliPill(dliF) + tempPill(tF) +
+        dliPill(dliF) + envPills +
         '<span style="opacity:0.75">' + ui('ui.env.rhTopt', { rh: st().rh, t: r.cv.t_opt }) + '</span>';
       if (st().temp > 26){
         row2 += '<span class="env-pill bad">' + ui('ui.env.tempMoldHint', { temp: r1(st().temp) }) + '</span>';
@@ -2467,11 +2476,15 @@
     hero.classList.remove('env-block-hidden');
     var pallet = showAsPalletCalc(r);
     var outUnit = r.countUnit === 'шт' ? pm('u.pcs') : pm('unit.g');
-    var massLabel = countIsPieces(r.cv) ? pm('m.massPcsCut') : (pallet || isVF() || r.vfSheet ? pm('m.massCut') : pm('m.massHead'));
-    var massVal = st().showRange
-      ? round(r.mass - rangeMass(r.mass)) + '–' + round(r.mass + rangeMass(r.mass))
-      : String(round(r.mass));
     var hy = plantingHarvestYieldParams ? plantingHarvestYieldParams(r.cv, r) : null;
+    var heroMass = (hy && hy.harvestYieldPerCut != null) ? hy.harvestYieldPerCut : r.mass;
+    var heroUnit = (hy && hy.yieldUnit === 'шт') ? pm('u.pcs') : outUnit;
+    var massLabel = (hy && hy.multicutHarvest)
+      ? (countIsPieces(r.cv) ? pm('m.massPcsCut') : pm('m.cutMass'))
+      : (countIsPieces(r.cv) ? pm('m.massPcsCut') : (pallet || isVF() || r.vfSheet ? pm('m.massCut') : pm('m.massHead')));
+    var massVal = st().showRange
+      ? round(heroMass - rangeMass(heroMass)) + '–' + round(heroMass + rangeMass(heroMass))
+      : String(round(heroMass));
     var sqmU = areaYieldSqmUnit(r.cv, hy);
     var pcsSqm = countIsPieces(r.cv) || (hy && hy.unitIsPieces);
     var sqmMoVal = hy
@@ -2479,7 +2492,7 @@
       : (pcsSqm ? r1((r.yieldPerSqmYear || 0) / 12) : r2((r.yieldPerSqmYear || 0) / 12));
     var trayLot = !!(r.trayLot) || (global.DG_isTrayLotCrop && global.DG_isTrayLotCrop(r.cv));
     var tiles = [
-      { l: massLabel, v: massVal, u: outUnit, cls: 'hl' },
+      { l: massLabel, v: massVal, u: heroUnit, cls: 'hl' },
       { l: pcsSqm ? pm('m.pcsSqmMo') : pm('m.kgSqmMo'), v: sqmMoVal, u: sqmU, cls: 'hl' },
       { l: trayLot ? pm('m.cycle') : pm('m.totalAge'), v: String(round(trayLot ? (r.totalCycleDays || r.t_total) : r.t_total)), u: pm('unit.days') },
       { l: trayLot ? pm('m.densityTrayLot') : pm('m.density'), v: String(round(r.rhoA || 0)), u: pm('u.pcsSqm') },

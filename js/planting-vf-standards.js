@@ -140,7 +140,11 @@ function syncVegPeriodTotal(){
   const nursery = stateRef().nursery;
   const day = stateRef().day;
   const sum = germ + nursery + day;
-  el.textContent = deps.ui('ui.veg.periodTotal', { germ: germ, nursery: nursery, day: day, sum: sum, dUnit: deps.pt('unit.days') });
+  var ctx;
+  if (deps.isPalletView && deps.isPalletView()) ctx = deps.ui('ui.veg.pallet');
+  else if (deps.isVF && deps.isVF()) ctx = deps.ui('ui.veg.vf');
+  else ctx = deps.ui('ui.veg.ch');
+  el.textContent = deps.ui('ui.veg.periodTotal', { germ: germ, nursery: nursery, day: day, sum: sum, dUnit: deps.pt('unit.days'), ctx: ctx });
   if (deps.syncYieldTurnoverHint) deps.syncYieldTurnoverHint();
 }
 function syncVfStdBadges(){

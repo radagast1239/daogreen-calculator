@@ -82,6 +82,15 @@
       };
     }
 
+    /** VF: эталон с листа × фактор T/RH (как vfEffectiveMass). */
+    function vfSheetCutMassG(cv, rawG){
+      if (!rawG || rawG <= 0) return rawG;
+      if (deps.isVF && deps.isVF() && deps.effectiveTempFactor) {
+        return Math.max(1, Math.round(rawG * deps.effectiveTempFactor(cv)));
+      }
+      return rawG;
+    }
+
     function cutMassPerPlant(cv, cutIndex, opts){
       opts = opts || {};
       cv = cv || deps.getActiveCv();
@@ -91,7 +100,7 @@
       if (!deps.isVF() && !deps.isPalletView() && state.multicut && cutIndex != null) val = deps.getGhCutMass(cutIndex);
       else if (state.useManualCutMass) val = deps.clamp(state.manualCutMass, 1, 500);
       else if (deps.isPalletView() && deps.isPalletSheetCv(cv) && cv.yieldPerCutG > 0) val = cv.yieldPerCutG;
-      else if (deps.usePlantingSheet() && deps.isSheetCv(cv) && deps.getPlantingStd().cutMass && cv.yieldPerCutG > 0) val = cv.yieldPerCutG;
+      else if (deps.usePlantingSheet() && deps.isSheetCv(cv) && deps.getPlantingStd().cutMass && cv.yieldPerCutG > 0) val = vfSheetCutMassG(cv, cv.yieldPerCutG);
       else val = Math.round((cv.M_max / 2) * deps.envMultiplier(cv));
       if (!opts.skipIntervalMassF && state.multicut && supportsMulticut(cv)) val *= cutIntervalMods(cv).massF;
       return { val: Math.round(val), unit: u };

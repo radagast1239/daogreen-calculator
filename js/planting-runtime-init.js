@@ -599,6 +599,7 @@
     getPlantingStd: getPlantingStd,
     getGhCutMass: getGhCutMass,
     envMultiplier: envMultiplier,
+    effectiveTempFactor: effectiveTempFactor,
     vfEffectiveDay: vfEffectiveDay,
     harvestChannel: harvestChannel,
     boltChannel: boltChannel,
