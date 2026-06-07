@@ -322,8 +322,22 @@ function syncVfCutModeUI(){
   const cutIntervalCtrl = deps.$('ctrl-cut-interval');
   const multicutDetail = deps.$('multicut-detail');
   const mcToggleWrap = document.querySelector('#block-panel-multicut .toggle-wrap');
+  const vegAnchor = deps.$('nursery-yield-hint');
 
-  if (dayCtrl) dayCtrl.classList.toggle('env-block-hidden', isMc);
+  if (dayCtrl && multicutDetail && cutIntervalCtrl) {
+    if (isMc) {
+      if (dayCtrl.parentElement !== multicutDetail) {
+        multicutDetail.insertBefore(dayCtrl, cutIntervalCtrl);
+      }
+      dayCtrl.classList.remove('env-block-hidden');
+    } else if (vegAnchor) {
+      if (dayCtrl.parentElement !== vegAnchor.parentElement ||
+          dayCtrl.previousElementSibling !== vegAnchor) {
+        vegAnchor.insertAdjacentElement('afterend', dayCtrl);
+      }
+      dayCtrl.classList.remove('env-block-hidden');
+    }
+  }
   if (dayYieldHint) dayYieldHint.classList.toggle('env-block-hidden', isMc);
   if (vfGrowthHint) vfGrowthHint.classList.toggle('env-block-hidden', isMc);
   if (autoDayRow) autoDayRow.classList.toggle('env-block-hidden', isMc);
@@ -331,9 +345,9 @@ function syncVfCutModeUI(){
   if (multicutDetail) multicutDetail.classList.toggle('env-block-hidden', !isMc);
 
   const dayLbl = dayCtrl && dayCtrl.querySelector('.ctrl-label');
-  if (dayLbl && !isMc){
+  if (dayLbl){
     const badge = dayLbl.querySelector('.vf-sheet-badge');
-    dayLbl.textContent = deps.ui('vf.day.singleCut');
+    dayLbl.textContent = deps.ui(isMc ? 'vf.day.firstCut' : 'vf.day.singleCut');
     if (badge) dayLbl.appendChild(badge);
   }
   const intervalLbl = cutIntervalCtrl && cutIntervalCtrl.querySelector('.ctrl-label');

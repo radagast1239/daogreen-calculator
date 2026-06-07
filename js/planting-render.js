@@ -1098,6 +1098,13 @@
   }
 
   /* ---- Render: env summary ---- */
+  function showEnvBoltPill(cv) {
+    if (isVF() || isPalletView() || !isChannelGreenhouse()) return false;
+    var gm = georgyModeRef();
+    if (!(gm && gm.isHeadLettuceChannel && gm.isHeadLettuceChannel(cv))) return false;
+    return boltShift(cv) > 0;
+  }
+
   function renderEnvSummary(r){
     const nat = naturalDLI();
     const eff = effectiveDLI();
@@ -1147,10 +1154,6 @@
       if (st().temp > 26){
         row2 += '<span class="env-pill bad">' + ui('ui.env.tempMoldHint', { temp: r1(st().temp) }) + '</span>';
       }
-      if (boltShift(r.cv) > 0){
-        row2 += '<span class="env-pill ' + (boltShift(r.cv) > 5 ? 'bad' : 'warn') + '">' +
-          ui('ui.env.boltMinus') + ' ' + r1(boltShift(r.cv)) + ' ' + dUnit + '</span>';
-      }
       row2 += '</div>';
     } else {
       row1 = '<div class="env-row">' +
@@ -1180,9 +1183,10 @@
         dliPill(dliF) + tempPill(tF) +
         (phF > 1.01 ? '<span class="env-pill ok">' + ui('ui.env.eveGrowthPill', { pct: sign(pct(phF)) + pct(phF) }) + '</span>' : '') +
         '<span style="opacity:0.75">' + ui('ui.env.cultOpt') + ' ' + r.cv.t_opt + '°C</span>';
-      if (boltShift(r.cv) > 0){
-        row2 += '<span class="env-pill ' + (boltShift(r.cv) > 5 ? 'bad' : 'warn') + '">' +
-          ui('ui.env.boltEarly') + ' ' + r1(boltShift(r.cv)) + ' ' + dUnit + '</span>';
+      if (showEnvBoltPill(r.cv)){
+        const shift = boltShift(r.cv);
+        row2 += '<span class="env-pill ' + (shift > 5 ? 'bad' : 'warn') + '">' +
+          ui('ui.env.boltEarly') + ' ' + r1(shift) + ' ' + dUnit + '</span>';
       }
       row2 += '</div>';
     }
@@ -2568,6 +2572,7 @@
     if (isPlantingView() && cvPanelRefreshNeeded()) renderCultivars();
     if (typeof DG_applyUiI18n === 'function') DG_applyUiI18n();
     else if (typeof DG_applyPlantingI18n === 'function') DG_applyPlantingI18n();
+    syncMulticutDetailUI();
     syncGhYieldControls(r);
     syncHarvestBlockUI(r);
     syncVfStdControls();

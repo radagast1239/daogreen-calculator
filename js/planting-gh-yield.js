@@ -114,7 +114,9 @@
       }
 
       if (showCycle && cycleEl) {
-        if (mcOn) {
+        if (isVF() && state.multicut) {
+          hideEl(cycleEl);
+        } else if (mcOn) {
           cycleEl.classList.remove('env-block-hidden');
           cycleEl.innerHTML = ui('cycle.yield.turnoverMulticut', { interval: interval, cutsMo: cutsMo });
         } else if (channelDays > 0) {

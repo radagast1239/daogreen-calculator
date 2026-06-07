@@ -520,7 +520,7 @@
     document.querySelectorAll('.pallet-mount-btn[data-mount="cassette"]').forEach(function(b){ b.textContent = uiT('ui.pal.mount.cassette'); });
     document.querySelectorAll('.pallet-mount-btn[data-mount="lid"]').forEach(function(b){ b.textContent = uiT('ui.pal.mount.lid'); });
     /* collapse hints — режим подставляется в syncVfStdBadges */
-    document.querySelectorAll('.veg-period-head').forEach(function(el){
+    document.querySelectorAll('.veg-period-head:not(.multicut-cycle-head)').forEach(function(el){
       var tot = el.querySelector('.veg-period-total');
       var totHtml = tot ? tot.outerHTML : '';
       el.innerHTML = uiT('ui.veg.head') + ' ' + totHtml;
