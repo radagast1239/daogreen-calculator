@@ -50,6 +50,13 @@
       return deps.georgyMode;
     }
 
+    function growCtxParams() {
+      if (deps.vegContextLabel) {
+        return { ctx: deps.vegContextLabel(true), ctxLong: deps.vegContextLabel(false) };
+      }
+      return { ctx: ui('ui.veg.ch'), ctxLong: ui('ui.veg.chLong') };
+    }
+
     var HMD = deps.HARVEST_MONTH_DAYS || 30.5;
 
     function isHeadHallSingleCut(cv, state, gm) {
@@ -92,19 +99,20 @@
         ? r1(r.harvestCyclesPerMonth)
         : r1(HMD / (mcOn ? interval : channelDays));
 
+      var ctxP = growCtxParams();
       var showGh = isGreenhousePlanting() && !isPalletView();
-      var showCycle = (isChannelGreenhouse() || isVF()) && !isPalletView();
+      var showCycle = isChannelGreenhouse() || isVF() || isPalletView();
 
       if (showGh && ghEl) {
         if (mcOn) {
           ghEl.classList.remove('env-block-hidden');
-          ghEl.innerHTML = ui('gh.yield.turnoverMulticut', { interval: interval, cutsMo: cutsMo });
+          ghEl.innerHTML = ui('gh.yield.turnoverMulticut', Object.assign({ interval: interval, cutsMo: cutsMo }, ctxP));
         } else if (headSingle || (r && r.usefulAreaBasis === 'main_hall' && channelDays > 0)) {
           ghEl.classList.remove('env-block-hidden');
           ghEl.innerHTML = ui('gh.yield.turnoverChannel', { days: channelDays, cutsMo: cutsMo });
           if (state.multicut && supportsMulticut(cv)) {
             ghEl.innerHTML += ' <span class="yield-turnover-sub">' +
-              ui('gh.yield.turnoverHeadIgnoreMulticut') + '</span>';
+              ui('gh.yield.turnoverHeadIgnoreMulticut', ctxP) + '</span>';
           }
         } else {
           hideEl(ghEl);
@@ -114,17 +122,17 @@
       }
 
       if (showCycle && cycleEl) {
-        if (isVF() && state.multicut) {
+        if ((isVF() || isPalletView()) && state.multicut) {
           hideEl(cycleEl);
         } else if (mcOn) {
           cycleEl.classList.remove('env-block-hidden');
           cycleEl.innerHTML = ui('cycle.yield.turnoverMulticut', { interval: interval, cutsMo: cutsMo });
         } else if (channelDays > 0) {
           cycleEl.classList.remove('env-block-hidden');
-          cycleEl.innerHTML = ui('cycle.yield.turnoverChannel', { days: channelDays, cutsMo: cutsMo });
+          cycleEl.innerHTML = ui('cycle.yield.turnoverChannel', Object.assign({ days: channelDays, cutsMo: cutsMo }, ctxP));
           if (headSingle && state.multicut) {
             cycleEl.innerHTML += ' <span class="yield-turnover-sub">' +
-              ui('gh.yield.turnoverHeadIgnoreMulticut') + '</span>';
+              ui('gh.yield.turnoverHeadIgnoreMulticut', ctxP) + '</span>';
           }
         } else {
           hideEl(cycleEl);

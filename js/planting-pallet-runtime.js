@@ -269,7 +269,7 @@
     if (dayLbl){
       const badge = dayLbl.querySelector('.vf-sheet-badge');
       if (tray) dayLbl.textContent = ui('ui.grow.trayHarvestDays');
-      else if (isPalletView()) dayLbl.textContent = st().multicut ? ui('vf.day.firstCut') : ui('ui.grow.channelDays');
+      else if (isPalletView()) dayLbl.textContent = st().multicut ? ui('vf.day.firstCut') : ui('vf.day.singleCut');
       else if (isVF()) dayLbl.textContent = st().multicut ? ui('vf.day.firstCut') : ui('vf.day.singleCut');
       else dayLbl.textContent = ui('ui.grow.channelDays');
       if (badge) dayLbl.appendChild(badge);

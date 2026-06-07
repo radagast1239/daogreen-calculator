@@ -111,7 +111,26 @@
     function buildDefaultGhStandards(cv) { return deps.buildDefaultGhStandards(cv); }
     function envBolt(cv) { return deps.envBolt(cv); }
     function harvestTotal(cv) { return deps.harvestTotal(cv); }
-    function vegContextLabel() { return deps.vegContextLabel(); }
+    function vegContextLabel(short) { return deps.vegContextLabel(short); }
+    function growCtxParams() {
+      return { ctx: vegContextLabel(true), ctxLong: vegContextLabel(false) };
+    }
+    function syncGrowContextHints(r) {
+      var p = growCtxParams();
+      var cv = r && r.cv ? r.cv : getActiveCv();
+      var dayYield = $('channel-day-yield-hint');
+      var hideDayYield = !!(st().multicut && cv && supportsMulticut(cv) && (isVF() || isPalletView()));
+      if (dayYield) {
+        dayYield.classList.toggle('env-block-hidden', hideDayYield);
+        if (!hideDayYield) dayYield.textContent = ui('grow.channelYieldHint', p);
+      }
+      var autoDay = $('auto-day-hint');
+      if (autoDay) autoDay.textContent = ui('grow.autoDayHint', p);
+      var mcHint = $('multicut-enable-hint');
+      if (mcHint && !st().multicut && cv && supportsMulticut(cv)) {
+        mcHint.textContent = ui('multicut.enableHintOff', p);
+      }
+    }
     function showAsPalletCalc(r) { return deps.showAsPalletCalc(r); }
     function syncMulticutBabyUi(cv) { return deps.syncMulticutBabyUi(cv); }
     function calcScenario(o) { return deps.calcScenario(o); }
@@ -1271,7 +1290,7 @@
         var germ = Math.round(st().germination);
         var nursery = Math.round(st().nursery);
         var channel = Math.round(r.t_ch);
-        var sub = tr('m.totalAgeBreakdown', { germ: germ, nursery: nursery, channel: channel });
+        var sub = tr('m.totalAgeBreakdown', Object.assign({ germ: germ, nursery: nursery, channel: channel }, growCtxParams()));
         if (!sub || sub === 'm.totalAgeBreakdown') {
           sub = germ + '+' + nursery + '+' + channel;
         }
@@ -1662,7 +1681,7 @@
       if (cutEl) cutEl.innerHTML = '';
       setCutScheduleVisible(false);
       if (mcHint){
-        mcHint.textContent = ui('multicut.enableHintOff');
+        mcHint.textContent = ui('multicut.enableHintOff', growCtxParams());
         mcHint.classList.remove('env-block-hidden');
       }
       return;
@@ -2576,6 +2595,7 @@
     if (deps.getFarmCalibration) deps.getFarmCalibration().renderPanel(r);
     renderChart(r);
     renderMulticut(r);
+    syncGrowContextHints(r);
     renderSchema(r);
     renderScenarios();
     renderRecs(r);

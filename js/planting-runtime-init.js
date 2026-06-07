@@ -485,7 +485,8 @@
     getGeorgyMode: function(){ return deps.getGeorgyMode(); },
     georgyMode: deps.getGeorgyMode(),
     HARVEST_MONTH_DAYS: HARVEST_MONTH_DAYS,
-    plantingHarvestYieldParams: function(cv, r){ return typeof plantingHarvestYieldParams === "function" ? plantingHarvestYieldParams(cv, r) : null; }
+    plantingHarvestYieldParams: function(cv, r){ return typeof plantingHarvestYieldParams === "function" ? plantingHarvestYieldParams(cv, r) : null; },
+    vegContextLabel: vegContextLabel
   });
 
   const GH_STANDARDS_STORAGE = global.DG_GH_STANDARDS_STORAGE || 'calc-gh-user-standards';
