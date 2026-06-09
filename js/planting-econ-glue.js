@@ -235,7 +235,7 @@
       getState: function(){ return st(); },
       $: $,
       ECON_MONTH_DAYS: ECON_MONTH_DAYS,
-      ECON_ELEC_CAT_IDS: (global.DG_ECON && global.DG_ECON.ECON_ELEC_CAT_IDS) || ['pumps', 'fans', 'heating', 'equipment', 'misc'],
+      ECON_ELEC_CAT_IDS: (global.DG_ECON && global.DG_ECON.ECON_ELEC_CAT_IDS) || ['pumps', 'fans', 'heating', 'equipment', 'refrigeration', 'packaging', 'misc'],
       ECON_MAX_CULTURES: ECON_MAX_CULTURES,
       ECON_SALAD_MIX_ID: ECON_SALAD_MIX_ID,
       ECON_SALAD_MIX_CV_IDS: ECON_SALAD_MIX_CV_IDS,

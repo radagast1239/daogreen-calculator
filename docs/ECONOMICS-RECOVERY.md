@@ -131,7 +131,7 @@ flowchart LR
 | `accountingMonth` | Бухгалтерия |
 | `logisticsMonth` | Логистика |
 | `otherMonth` | Прочие |
-| `elecCats` | `{ pumps, fans, heating, equipment, misc }` → `{ kw, h }` |
+| `elecCats` | `{ pumps, fans, heating, equipment, refrigeration, packaging, misc }` → `{ kw, h }` |
 | `wastePct` | Потери после сбора, % |
 | `consumablesPerKg` | Устаревший глобальный ₽/кг (если нет per-pot) |
 | `usnTax`, `vatTax`, `profitTax` | Флаги налогов |

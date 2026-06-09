@@ -36,7 +36,7 @@
   ];
   var ECON_MONTH_DAYS = (global.DG_CUT && global.DG_CUT.HARVEST_MONTH_DAYS) || 30.5;
   const ECON_MAX_CULTURES = 12;
-  const ECON_ELEC_CAT_IDS = ['pumps', 'fans', 'heating', 'equipment', 'misc'];
+  const ECON_ELEC_CAT_IDS = ['pumps', 'fans', 'heating', 'equipment', 'refrigeration', 'packaging', 'misc'];
 
   const ECON_EQUIPMENT_GROUPS_RAW = [
     { titleKey: 'econ.eq.grp.prod', items: [
@@ -168,11 +168,13 @@
 
   function defaultElecCats(){
     return {
-      pumps: { kw: 0.35, h: 24 },
-      fans: { kw: 0.45, h: 24 },
-      heating: { kw: 0.25, h: 12 },
-      equipment: { kw: 0.15, h: 16 },
-      misc: { kw: 0.1, h: 24 }
+      pumps: { kw: 1, h: 4 },
+      fans: { kw: 1.2, h: 24 },
+      heating: { kw: 0, h: 12 },
+      equipment: { kw: 5, h: 16 },
+      refrigeration: { kw: 0, h: 24 },
+      packaging: { kw: 0, h: 24 },
+      misc: { kw: 0, h: 24 }
     };
   }
 

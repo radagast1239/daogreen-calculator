@@ -281,6 +281,16 @@
   min-width: 0;
 }
 
+#view-economics .econ-culture-card .econ-culture-param {
+  display: flex;
+  flex-direction: column;
+}
+
+#view-economics .econ-culture-card .econ-culture-param input {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
 #view-economics .econ-culture-card .econ-culture-head .econ-field:focus-within,
 #view-economics .econ-culture-card .econ-culture-param:focus-within {
   border-color: rgba(39, 109, 92, 0.45);

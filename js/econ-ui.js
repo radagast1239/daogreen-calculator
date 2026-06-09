@@ -46,7 +46,7 @@
       return L(baseKey) + ', ' + moneySym() + L(perKey);
     }
     var ECON_MONTH_DAYS = deps.ECON_MONTH_DAYS;
-    var ECON_ELEC_CAT_IDS = deps.ECON_ELEC_CAT_IDS || ['pumps', 'fans', 'heating', 'equipment', 'misc'];
+    var ECON_ELEC_CAT_IDS = deps.ECON_ELEC_CAT_IDS || ['pumps', 'fans', 'heating', 'equipment', 'refrigeration', 'packaging', 'misc'];
     var ECON_MAX_CULTURES = deps.ECON_MAX_CULTURES;
     var ECON_SALAD_MIX_ID = deps.ECON_SALAD_MIX_ID;
     var ECON_SALAD_MIX_CV_IDS = deps.ECON_SALAD_MIX_CV_IDS;
