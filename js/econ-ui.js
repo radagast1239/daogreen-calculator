@@ -305,6 +305,12 @@
     return hint !== hintKey ? hint : '';
   }
 
+  function renderEquipLabelCell(k, label, hint){
+    let html = '<div class="econ-equip-label-cell"><label for="econ-eq-' + k + '">' + label + '</label>';
+    if (hint) html += '<span class="econ-equip-hint">' + econEscAttr(hint) + '</span>';
+    return html + '</div>';
+  }
+
   function startupRunwayMonthsVal(){
     return Math.max(1, parseFloat(st().econ.startupRunwayMonths) || 3);
   }
@@ -384,13 +390,13 @@
   function renderEquipItemRow(k, label, opts){
     const val = st().econ.equipment[k] || 0;
     const hint = equipItemHint(k);
-    const title = hint ? ' title="' + econEscAttr(hint) + '"' : '';
+    const labelCell = renderEquipLabelCell(k, label, hint);
     const monthly = opts && opts.monthly;
     const runway = opts && opts.runway;
     if (monthly && runway){
       const total = equipLineTotal(k, val, null, opts);
       return '<div class="econ-equip-row econ-equip-row--monthly econ-equip-row--runway">' +
-        '<label for="econ-eq-' + k + '"' + title + '>' + label + '</label>' +
+        labelCell +
         '<input type="text" id="econ-eq-' + k + '" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-eq="' + k + '" value="' + deps.formatInputValue(val, 0) + '">' +
         '<span class="econ-equip-runway-mo" data-econ-runway-mo-label>' + tFmt('econ.runway.timesMonths', { months: deps.fmtNum(startupRunwayMonthsVal()) }) + '</span>' +
         '<span class="econ-equip-line-total" data-econ-eq-total="' + k + '">' + moneyFmt(total) + '</span>' +
@@ -400,13 +406,13 @@
       const months = Math.max(1, parseFloat((st().econ.equipmentMonths || {})[k]) || (opts.defaultMonths || 1));
       const total = equipLineTotal(k, val, months, opts);
       return '<div class="econ-equip-row econ-equip-row--monthly">' +
-        '<label for="econ-eq-' + k + '"' + title + '>' + label + '</label>' +
+        labelCell +
         '<input type="text" id="econ-eq-' + k + '" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-eq="' + k + '" value="' + deps.formatInputValue(val, 0) + '">' +
         '<input type="text" inputmode="numeric" class="econ-num-fmt econ-equip-months-inp" data-econ-decimals="0" data-econ-eq-months="' + k + '" value="' + deps.formatInputValue(months, 0) + '" aria-label="' + econEscAttr(L('econ.equip.months')) + '">' +
         '<span class="econ-equip-line-total" data-econ-eq-total="' + k + '">' + moneyFmt(total) + '</span>' +
         '<span></span></div>';
     }
-    return '<div class="econ-equip-row"><label for="econ-eq-' + k + '"' + title + '>' + label + '</label>' +
+    return '<div class="econ-equip-row">' + labelCell +
       '<input type="text" id="econ-eq-' + k + '" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-eq="' + k + '" value="' + deps.formatInputValue(val, 0) + '">' +
       '<span></span></div>';
   }

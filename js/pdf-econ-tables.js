@@ -213,17 +213,36 @@
     return out;
   }
 
-  function parseEquipGroups(root){
+  function equipRowLabelHint(row){
+    var labelEl = row.querySelector('.econ-equip-label-cell label') || row.querySelector('label');
+    var hintEl = row.querySelector('.econ-equip-hint');
+    return {
+      label: labelEl ? plainCellText(labelEl) : '',
+      hint: hintEl ? plainCellText(hintEl.textContent) : ''
+    };
+  }
+
+  function equipPdfColWidths(contentW){
+    return [contentW * 0.22, contentW * 0.5, contentW * 0.28];
+  }
+
+  function parseEquipGroups(root, contentW){
     if (!root) return [];
     var out = [];
+    var headers = [pdfT('pdf.vec.equipItem'), pdfT('pdf.vec.equipDesc'), pdfT('pdf.vec.value')];
+    var colWidths = contentW ? equipPdfColWidths(contentW) : null;
     root.querySelectorAll('.econ-equip-group').forEach(function(group){
       var h4 = group.querySelector('h4');
       var title = h4 ? plainCellText(h4) : '';
       var rows = [];
+      var footnote = null;
+      var runwayHint = group.querySelector('.econ-runway-hint');
+      if (runwayHint) footnote = plainCellText(runwayHint.textContent);
       group.querySelectorAll('.econ-equip-row:not(.econ-equip-row--head):not(.econ-equip-row--custom)').forEach(function(row){
-        var label = row.querySelector('label');
-        var k = label ? plainCellText(label) : '';
+        var parts = equipRowLabelHint(row);
+        var k = parts.label;
         if (!k) return;
+        var desc = parts.hint || '—';
         if (row.classList.contains('econ-equip-row--monthly')){
           var amtInp = row.querySelector('[data-econ-eq]');
           var moInp = row.querySelector('[data-econ-eq-months]');
@@ -234,20 +253,30 @@
           var mo = moLbl ? plainCellText(moLbl.textContent).replace(/[×\s]/g, '').replace(/мес\.?/i, '').trim()
             : (moInp ? plainCellText(moInp.value) : (runwayInp ? plainCellText(runwayInp.value) : '1'));
           var total = totalEl ? plainCellText(totalEl.textContent) : amt;
-          rows.push([k, amt + ' × ' + mo + ' ' + pdfT('econ.equip.months') + ' = ' + total]);
+          rows.push([k, desc, amt + ' × ' + mo + ' ' + pdfT('econ.equip.months') + ' = ' + total]);
           return;
         }
         var inp = row.querySelector('input');
         var v = inp ? plainCellText(inp.value) : fieldValue(row);
-        rows.push([k, v]);
+        rows.push([k, desc, v]);
       });
       group.querySelectorAll('.econ-equip-row--custom').forEach(function(row){
         var inputs = row.querySelectorAll('input');
         var k = inputs[0] ? plainCellText(inputs[0].value) : '';
         var v = inputs[1] ? plainCellText(inputs[1].value) : '';
-        if (k || v) rows.push([k || '—', v || '—']);
+        if (k || v) rows.push([k || '—', '—', v || '—']);
       });
-      if (rows.length) out.push({ title: title, data: { headers: [pdfT('pdf.vec.indicator'), pdfT('pdf.vec.value')], rows: rows } });
+      if (rows.length){
+        out.push({
+          title: title,
+          data: {
+            headers: headers,
+            rows: rows,
+            colWidths: colWidths,
+            footnote: footnote
+          }
+        });
+      }
     });
     return out;
   }
@@ -642,7 +671,7 @@
     pdf.text(pdfT('pdf.closing.note'), cx, pageH - margin - 4, { align: 'center' });
   }
 
-  function collectTablesForSection(sectionId, exportOpts){
+  function collectTablesForSection(sectionId, exportOpts, ctx){
     var spec = vectorSections()[sectionId];
     if (!spec) return [];
     var out = [];
@@ -657,7 +686,7 @@
         return;
       }
       if (item.mode === 'equip-groups'){
-        parseEquipGroups(el).forEach(function(t){
+        parseEquipGroups(el, ctx && ctx.contentW).forEach(function(t){
           out.push({ title: t.title, data: t.data });
         });
         return;
@@ -686,7 +715,7 @@
   }
 
   function renderVectorEconSection(pdf, ctx, sectionId, sectionTitle, exportOpts){
-    var tables = collectTablesForSection(sectionId, exportOpts);
+    var tables = collectTablesForSection(sectionId, exportOpts, ctx);
     if (!tables.length) return Promise.resolve(ctx);
     drawSectionTitle(pdf, ctx, sectionTitle);
     var multi = tables.length > 1;
@@ -694,7 +723,8 @@
       drawPdfTable(pdf, ctx, t.data, {
         title: multi && t.title ? t.title : null,
         skipTitleIf: sectionTitle,
-        footnote: t.data.footnote || null
+        footnote: t.data.footnote || null,
+        colWidths: t.data.colWidths || null
       });
     });
     return Promise.resolve(ctx);
