@@ -1115,15 +1115,14 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   background: var(--brand-pale); color: var(--brand-text);
   font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
   border-bottom: 2px solid rgba(39, 109, 92, 0.2);
-  text-align: center;
+  text-align: right;
   white-space: normal;
   line-height: 1.25;
   word-break: break-word;
   hyphens: auto;
 }
-.econ-breakdown td {
-  text-align: left;
-}
+.econ-breakdown th:first-child,
+.econ-breakdown td:first-child { text-align: left; }
 .econ-breakdown td:not(:first-child) {
   text-align: right;
   font-variant-numeric: tabular-nums;

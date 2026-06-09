@@ -556,21 +556,94 @@
   border: none;
 }
 
+#view-economics .econ-breakdown {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#view-economics .econ-breakdown th,
+#view-economics .econ-breakdown td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(39, 109, 92, 0.11);
+  border-right: 1px solid rgba(39, 109, 92, 0.09);
+  vertical-align: middle;
+}
+
+#view-economics .econ-breakdown th:last-child,
+#view-economics .econ-breakdown td:last-child {
+  border-right: none;
+}
+
+[data-theme="dark"] #view-economics .econ-breakdown th,
+[data-theme="dark"] #view-economics .econ-breakdown td {
+  border-bottom-color: rgba(159, 212, 196, 0.1);
+  border-right-color: rgba(159, 212, 196, 0.08);
+}
+
 #view-economics .econ-breakdown th {
   background: var(--brand-pale);
   color: var(--brand-text);
-  border-bottom: 2px solid rgba(39, 109, 92, 0.22);
-  text-align: center;
+  border-bottom: 2px solid rgba(39, 109, 92, 0.2);
+  text-align: right;
   white-space: normal;
   line-height: 1.25;
-  vertical-align: middle;
   word-break: break-word;
   hyphens: auto;
+}
+
+#view-economics .econ-breakdown th:first-child,
+#view-economics .econ-breakdown td:first-child {
+  text-align: left;
+  white-space: normal;
 }
 
 #view-economics .econ-breakdown td:not(:first-child) {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Таблица по культурам: % и м² по центру, остальное — вправо */
+#view-economics .econ-cultures-table th:nth-child(2),
+#view-economics .econ-cultures-table th:nth-child(3),
+#view-economics .econ-cultures-table td:nth-child(2),
+#view-economics .econ-cultures-table td:nth-child(3) {
+  text-align: center;
+  white-space: nowrap;
+}
+
+#view-economics .econ-cultures-table th:nth-child(1),
+#view-economics .econ-cultures-table td:nth-child(1) { width: 13%; }
+#view-economics .econ-cultures-table th:nth-child(2),
+#view-economics .econ-cultures-table td:nth-child(2) { width: 6%; }
+#view-economics .econ-cultures-table th:nth-child(3),
+#view-economics .econ-cultures-table td:nth-child(3) { width: 6%; }
+#view-economics .econ-cultures-table th:nth-child(4),
+#view-economics .econ-cultures-table td:nth-child(4) { width: 15%; }
+#view-economics .econ-cultures-table th:nth-child(5),
+#view-economics .econ-cultures-table td:nth-child(5) { width: 11%; }
+#view-economics .econ-cultures-table th:nth-child(6),
+#view-economics .econ-cultures-table td:nth-child(6) { width: 10%; }
+#view-economics .econ-cultures-table th:nth-child(7),
+#view-economics .econ-cultures-table td:nth-child(7) { width: 19%; }
+#view-economics .econ-cultures-table th:nth-child(8),
+#view-economics .econ-cultures-table td:nth-child(8) { width: 20%; }
+
+/* Трёхколоночные таблицы: статья | число | сумма */
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) th:nth-child(1),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) td:nth-child(1) {
+  width: 48%;
+}
+
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) th:nth-child(2),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) td:nth-child(2) {
+  width: 22%;
+}
+
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) th:nth-child(3),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) td:nth-child(3) {
+  width: 30%;
 }
 
 #view-economics .econ-breakdown-note {

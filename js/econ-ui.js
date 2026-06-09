@@ -784,7 +784,7 @@
   function renderEconomicsForm(){
     const gen = deps.$('econ-inputs-general');
     var ft = formToken();
-    const genToken = ft + '-farm-v3';
+    const genToken = ft + '-farm-v4';
     if (!gen){
       ensureEconSubPanels(ft);
       return;
@@ -805,7 +805,6 @@
       econNumInput('floorArea', L('econ.floorArea'), { step: 1 }) +
       econNumInput('plantingArea', L('econ.plantingArea'), { step: 1 }) +
       econNumInput('wastePct', L('econ.wastePct'), { step: 1, hint: L('econ.wastePct.hint') }) +
-      '<p class="econ-hint econ-waste-note">' + L('econ.wastePct.note') + '</p>' +
       econNumInput('kwhPerM2Hour', L('econ.kwhPerM2Hour'), { step: 0.001, hint: L('econ.kwhPerM2Hour.hint') }) +
       econNumInput('lightHoursDay', L('econ.lightHoursDay'), { step: 0.5, hint: L('econ.lightHoursDay.hint') }) +
       econNumInput('amortMonths', L('econ.amortMonths'), { step: 1 });
@@ -1402,6 +1401,7 @@
         breakdown += unitCostBreakdownLine(L('econ.metrics.unitCostFot'), sl.unitCostStaff, u) +
           unitCostBreakdownLine(L('econ.metrics.unitCostRent'), sl.unitCostRent, u) +
           unitCostBreakdownLine(L('econ.metrics.unitCostLog'), sl.unitCostLogistics, u) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostWater'), sl.unitCostWater, u) +
           unitCostBreakdownLine(L('econ.metrics.unitCostOther'), sl.unitCostOther, u) +
           unitCostBreakdownLine(L('econ.metrics.unitCostAmort'), sl.unitCostAmort, u);
         if (sl.unitCostPackaging > 0){
@@ -1468,8 +1468,7 @@
     renderElecCharts(res);
 
     const wasteRow = res.wastePct > 0
-      ? '<tr><td>' + L('econ.bd.waste') + '</td><td colspan="2">' + deps.r1(res.wastePct) + '%</td></tr>' +
-        '<tr class="econ-bd-note-row"><td colspan="3" class="econ-bd-note">' + L('econ.wastePct.note') + '</td></tr>'
+      ? '<tr><td>' + L('econ.bd.waste') + '</td><td colspan="2">' + deps.r1(res.wastePct) + '%</td></tr>'
       : '';
     let bd =
       '<tr><td>' + L('econ.bd.rent') + '</td><td>—</td><td>' + moneyFmt(res.rent) + '</td></tr>' +
