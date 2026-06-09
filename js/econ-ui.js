@@ -203,7 +203,7 @@
       const amort = inCalc && raw > 0 ? raw / months : 0;
       let txt = L('econ.equip.totalTxt');
       if (raw > 0 && inCalc){
-        txt += ' · ≈ ' + moneyPer(amort, 'econ.perMonth') + ' · ' + deps.fmtNum(months) + ' mo';
+        txt += ' · ≈ ' + moneyPer(amort, 'econ.perMonth') + ' · ' + tFmt('econ.equip.amortOver', { months: deps.fmtNum(months) });
       } else if (raw > 0 && !inCalc){
         txt += L('econ.equip.notInCost');
       }

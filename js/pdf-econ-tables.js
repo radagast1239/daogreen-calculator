@@ -226,6 +226,19 @@
     return [contentW * 0.22, contentW * 0.5, contentW * 0.28];
   }
 
+  function equipHintForPdf(key, domHint){
+    var k = 'econ.eq.hintPdf.' + key;
+    var t = pdfT(k);
+    if (t !== k) return t;
+    if (!domHint) return '—';
+    return domHint
+      .replace(/\s*₽\/мес[^.]*\.?/gi, '')
+      .replace(/[«""]Подставить[^.]*\.?/gi, '')
+      .replace(/\s*“Fill from calc”[^.]*\.?/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim() || '—';
+  }
+
   function parseEquipGroups(root, contentW){
     if (!root) return [];
     var out = [];
@@ -236,13 +249,14 @@
       var title = h4 ? plainCellText(h4) : '';
       var rows = [];
       var footnote = null;
-      var runwayHint = group.querySelector('.econ-runway-hint');
-      if (runwayHint) footnote = plainCellText(runwayHint.textContent);
+      if (group.querySelector('.econ-runway-hint')) footnote = pdfT('econ.runway.introPdf');
       group.querySelectorAll('.econ-equip-row:not(.econ-equip-row--head):not(.econ-equip-row--custom)').forEach(function(row){
         var parts = equipRowLabelHint(row);
         var k = parts.label;
         if (!k) return;
-        var desc = parts.hint || '—';
+        var eqInp = row.querySelector('[data-econ-eq]');
+        var eqKey = eqInp && eqInp.dataset.econEq ? eqInp.dataset.econEq : '';
+        var desc = eqKey ? equipHintForPdf(eqKey, parts.hint) : (parts.hint || '—');
         if (row.classList.contains('econ-equip-row--monthly')){
           var amtInp = row.querySelector('[data-econ-eq]');
           var moInp = row.querySelector('[data-econ-eq-months]');

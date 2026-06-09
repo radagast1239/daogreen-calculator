@@ -489,6 +489,9 @@
       root.querySelectorAll('.econ-preset-bar, .econ-intro, .econ-elec-cats-intro, .planting-econ-bridge').forEach(function(el){
         el.style.display = 'none';
       });
+      root.querySelectorAll('#econ-area-mode-wrap').forEach(function(el){
+        el.style.display = 'none';
+      });
       root.querySelectorAll('#econ-panel-cultures > p[style]').forEach(function(el){
         el.style.display = 'none';
       });
