@@ -462,7 +462,7 @@
       return '<div class="econ-equip-row econ-equip-row--monthly econ-equip-row--runway">' +
         labelCell +
         '<input type="text" id="econ-eq-' + k + '" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-eq="' + k + '" value="' + deps.formatInputValue(val, 0) + '">' +
-        '<span class="econ-equip-runway-mo" data-econ-runway-mo-label>' + (k === 'runwayElec' ? runwayElecRampLabel(startupRunwayMonthsVal()) : tFmt('econ.runway.timesMonths', { months: deps.fmtNum(startupRunwayMonthsVal()) })) + '</span>' +
+        '<span class="econ-equip-runway-mo' + (k === 'runwayElec' ? ' econ-equip-runway-mo--elec' : '') + '" data-econ-runway-mo-label>' + (k === 'runwayElec' ? runwayElecRampLabel(startupRunwayMonthsVal()) : tFmt('econ.runway.timesMonths', { months: deps.fmtNum(startupRunwayMonthsVal()) })) + '</span>' +
         '<span class="econ-equip-line-total" data-econ-eq-total="' + k + '">' + moneyFmt(total) + '</span>' +
         '<span></span></div>';
     }

@@ -10,9 +10,11 @@
   var PDF_THEME = {
     brand: [39, 109, 92],
     brandLight: [244, 250, 248],
-    zebra: [248, 249, 244],
-    border: [220, 224, 210],
+    zebra: [241, 246, 238],
+    border: [198, 206, 188],
     headerBorder: [180, 200, 192],
+    grid: [214, 220, 204],
+    headerGrid: [200, 228, 216],
     inkMuted: [102, 102, 102],
     inkSoft: [70, 75, 65]
   };
@@ -44,10 +46,33 @@
     return /\d/.test(t);
   }
 
-  function cellAlign(ci, cell, cols){
+  function isDashCell(text){
+    var t = plainCellText(text);
+    return !t || t === '—' || t === '-' || t === '–';
+  }
+
+  function cellAlign(ci, cell, cols, tableKind){
     if (ci === 0) return 'left';
+    if (cols === 2) return 'right';
+    if (tableKind === 'cost-breakdown'){
+      if (ci === 1) return isDashCell(cell) ? 'center' : 'right';
+      return 'right';
+    }
+    if (tableKind === 'yield' || tableKind === 'cultures-breakdown' || tableKind === 'elec-cost') return 'right';
     if (ci === cols - 1 && looksNumericCell(cell)) return 'right';
     if (ci > 0 && looksNumericCell(cell)) return 'right';
+    return 'left';
+  }
+
+  function headerAlign(ci, cols, tableKind){
+    if (ci === 0) return 'left';
+    if (cols === 2) return 'right';
+    if (tableKind === 'cost-breakdown'){
+      if (ci === 1) return 'center';
+      return 'right';
+    }
+    if (tableKind === 'yield' || tableKind === 'cultures-breakdown' || tableKind === 'elec-cost') return 'right';
+    if (ci > 0) return 'right';
     return 'left';
   }
 
@@ -81,7 +106,6 @@
         { selector: '#econ-equipment-total', mode: 'equip-total' }
       ],
       'econ-results': [
-        { titleKey: 'pdf.vec.cultMetrics', selector: '#econ-results-metrics .econ-results-per-culture', mode: 'culture-metrics' },
         { titleKey: 'pdf.vec.byCult', selector: '#econ-cultures-breakdown' },
         { titleKey: 'pdf.vec.costsMargin', selector: '#econ-breakdown-table' }
       ],
@@ -188,25 +212,47 @@
     } : null;
   }
 
+  function filterElecZeroRows(data){
+    if (!data || !data.rows) return data;
+    var rows = [];
+    var flags = [];
+    data.rows.forEach(function(r, ri){
+      var isTotal = data.rowFlags && data.rowFlags[ri];
+      if (isTotal){
+        rows.push(r);
+        flags.push(true);
+        return;
+      }
+      var kwh = parseFloat(String(r[1] || '').replace(/\s/g, '').replace(',', '.')) || 0;
+      var rub = parseFloat(String(r[2] || '').replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
+      if (kwh > 0 || rub > 0){
+        rows.push(r);
+        flags.push(false);
+      }
+    });
+    data.rows = rows;
+    data.rowFlags = flags;
+    return data;
+  }
+
   function normalizePdfTableHeaders(data, item){
     if (!data || !data.headers || !data.headers.length) return data;
-    if (item.mode === 'culture-metrics'){
-      data.headers = [pdfT('pdf.vec.culture'), pdfT('pdf.vec.indicator'), pdfT('pdf.vec.value')];
-      return data;
-    }
     if (item.selector === 'table.econ-elec-total' || (item.selector && String(item.selector).indexOf('econ-elec-total') >= 0)){
       if (data.headers.length >= 3){
         data.headers = [pdfT('pdf.vec.elecCat'), pdfT('pdf.vec.elecKwhMo'), pdfT('pdf.vec.rubMo')];
+        data.tableKind = 'elec-cost';
+        filterElecZeroRows(data);
       }
       return data;
     }
     if (item.selector === '#econ-breakdown-table'){
       if (data.headers.length >= 3){
         data.headers = [pdfT('pdf.vec.article'), pdfT('pdf.vec.elecKwhMo'), pdfT('pdf.vec.rubMo')];
+        data.tableKind = 'cost-breakdown';
       }
       return data;
     }
-    if (item.selector === '#econ-cultures-breakdown' && data.headers.length >= 8){
+    if (item.selector === '#econ-cultures-breakdown' && data.headers.length >= 7){
       data.headers = [
         pdfT('pdf.vec.culture'),
         pdfT('pdf.vec.sharePct'),
@@ -216,15 +262,26 @@
         pdfT('pdf.vec.consPerSqm'),
         pdfT('pdf.vec.revMo'),
         pdfT('pdf.vec.marginMo')
-      ];
+      ].slice(0, data.headers.length);
+      data.tableKind = 'cultures-breakdown';
       return data;
     }
-    if (item.titleKey === 'pdf.vec.yieldByCult' && data.headers.length >= 2){
-      data.headers = data.headers.map(function(h, i){
-        if (i === 0) return pdfT('pdf.vec.culture');
-        if (i === 1) return pdfT('pdf.vec.outputMo');
-        return h;
-      });
+    if (item.titleKey === 'pdf.vec.yieldByCult' && data.headers.length >= 8){
+      data.headers = [
+        pdfT('pdf.vec.culture'),
+        pdfT('pdf.vec.outputMo'),
+        pdfT('econ.derived.cut'),
+        pdfT('econ.derived.interval'),
+        pdfT('econ.derived.cutsMo'),
+        pdfT('pdf.vec.yieldSqm'),
+        pdfT('econ.derived.kwh'),
+        pdfT('econ.derived.lightH')
+      ];
+      data.tableKind = 'yield';
+      return data;
+    }
+    if (item.mode === 'econ-grid' && data.headers.length === 2){
+      data.tableKind = 'kv';
     }
     return data;
   }
@@ -405,6 +462,24 @@
     return rows.length ? { headers: [pdfT('pdf.vec.indicator'), pdfT('pdf.vec.value')], rows: rows } : null;
   }
 
+  function cellsFromTr(tr){
+    var cells = [];
+    tr.querySelectorAll('th, td').forEach(function(c){
+      var span = parseInt(c.getAttribute('colspan') || '1', 10);
+      if (isNaN(span) || span < 1) span = 1;
+      cells.push(plainCellText(c));
+      for (var i = 1; i < span; i++) cells.push('');
+    });
+    return cells;
+  }
+
+  function padRowToCols(cells, colCount){
+    var out = cells.slice();
+    while (out.length < colCount) out.push('');
+    if (out.length > colCount) out = out.slice(0, colCount);
+    return out;
+  }
+
   function parseHtmlTable(table){
     if (!table || table.tagName !== 'TABLE') return null;
     var headers = [];
@@ -412,21 +487,25 @@
     var rowFlags = [];
     var trs = table.querySelectorAll('tr');
     trs.forEach(function(tr, ri){
-      var cells = [];
-      tr.querySelectorAll('th, td').forEach(function(c){
-        cells.push(plainCellText(c));
-      });
+      var cells = cellsFromTr(tr);
       if (!cells.length) return;
       if (ri === 0 && tr.querySelector('th')) headers = cells;
       else {
         rows.push(cells);
-        rowFlags.push(tr.classList.contains('econ-total-row') || !!tr.querySelector('strong'));
+        rowFlags.push(
+          tr.classList.contains('econ-total-row') ||
+          tr.classList.contains('econ-row-total') ||
+          !!tr.querySelector('strong')
+        );
       }
     });
     if (!headers.length && rows.length){
       headers = rows[0].map(function(_, i){ return 'Col ' + (i + 1); });
       rowFlags = rowFlags.slice(1);
       rows = rows.slice(1);
+    }
+    if (headers.length){
+      rows = rows.map(function(r){ return padRowToCols(r, headers.length); });
     }
     return { headers: headers, rows: rows, rowFlags: rowFlags };
   }
@@ -485,11 +564,29 @@
     return rows.length ? { headers: [pdfT('pdf.vec.note')], rows: rows } : null;
   }
 
-  function colWidthsForTable(table, contentW){
+  function colWidthsForTable(table, contentW, tableKind){
     var cols = table.headers.length;
+    var kind = tableKind || table.tableKind;
     if (cols === 1) return [contentW];
-    if (cols === 2) return [contentW * 0.56, contentW * 0.44];
-    if (cols === 3) return [contentW * 0.2, contentW * 0.38, contentW * 0.42];
+    if (cols === 2) return [contentW * 0.58, contentW * 0.42];
+    if (cols === 3 && kind === 'cost-breakdown') return [contentW * 0.52, contentW * 0.16, contentW * 0.32];
+    if (cols === 3 && kind === 'elec-cost') return [contentW * 0.50, contentW * 0.24, contentW * 0.26];
+    if (cols === 3) return [contentW * 0.44, contentW * 0.28, contentW * 0.28];
+    if (cols === 8 && kind === 'yield'){
+      return [
+        contentW * 0.17, contentW * 0.10, contentW * 0.09, contentW * 0.10,
+        contentW * 0.11, contentW * 0.16, contentW * 0.12, contentW * 0.15
+      ];
+    }
+    if (kind === 'cultures-breakdown'){
+      if (cols === 8) return [0.13, 0.07, 0.07, 0.20, 0.13, 0.11, 0.13, 0.16].map(function(p){ return contentW * p; });
+      if (cols === 7) return [0.14, 0.07, 0.08, 0.22, 0.14, 0.15, 0.20].map(function(p){ return contentW * p; });
+    }
+    if (cols >= 6){
+      var first = contentW * 0.22;
+      var rest = (contentW - first) / (cols - 1);
+      return [first].concat(table.headers.slice(1).map(function(){ return rest; }));
+    }
     var w = contentW / cols;
     return table.headers.map(function(){ return w; });
   }
@@ -498,6 +595,36 @@
     var x = margin;
     for (var j = 0; j < ci; j++) x += colWidths[j];
     return x;
+  }
+
+  function drawTableColumnGrid(pdf, margin, y0, h, colWidths, isHeader){
+    if (colWidths.length < 2) return;
+    var grid = isHeader ? PDF_THEME.headerGrid : PDF_THEME.grid;
+    pdf.setDrawColor(grid[0], grid[1], grid[2]);
+    pdf.setLineWidth(isHeader ? 0.16 : 0.13);
+    var x = margin;
+    for (var i = 0; i < colWidths.length - 1; i++){
+      x += colWidths[i];
+      pdf.line(x, y0, x, y0 + h);
+    }
+  }
+
+  function compactPdfCultureOutput(cell){
+    return String(cell || '')
+      .replace(/\s*→\s*/g, '→')
+      .replace(/\s*->\s*/g, '→')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function drawPdfCellText(pdf, lines, align, xLeft, xRight, colW, yStart, lineH){
+    var xCenter = xLeft + colW / 2;
+    lines.forEach(function(ln, li){
+      var yLine = yStart + li * lineH;
+      if (align === 'right') pdf.text(ln, xRight, yLine, { align: 'right' });
+      else if (align === 'center') pdf.text(ln, xCenter, yLine, { align: 'center' });
+      else pdf.text(ln, xLeft, yLine);
+    });
   }
 
   function loadFontBinary(){
@@ -577,7 +704,8 @@
     var headerSize = opts.headerSize || (cols > 6 ? 6.5 : COMPACT.headerSize);
     var pad = opts.pad != null ? opts.pad : COMPACT.pad;
     var lineH = fontSize * COMPACT.lineHMul;
-    var colWidths = opts.colWidths || colWidthsForTable(table, contentW);
+    var tableKind = table.tableKind || opts.tableKind;
+    var colWidths = opts.colWidths || colWidthsForTable(table, contentW, tableKind);
 
     ensureSpace(ctx, 8);
     if (opts.title){
@@ -622,17 +750,18 @@
     pdf.setFillColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
     pdf.setDrawColor(PDF_THEME.headerBorder[0], PDF_THEME.headerBorder[1], PDF_THEME.headerBorder[2]);
     pdf.rect(margin, y0, contentW, headerH, 'FD');
+    drawTableColumnGrid(pdf, margin, y0, headerH, colWidths, true);
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(headerSize);
     table.headers.forEach(function(h, ci){
       var cellW = colWidths[ci] - pad * 2;
       var lines = splitLines(pdf, h, cellW, headerSize);
-      var cx = colX(margin, colWidths, ci) + colWidths[ci] / 2;
+      var hAlign = headerAlign(ci, cols, tableKind);
+      var xLeft = colX(margin, colWidths, ci) + pad;
+      var xRight = colX(margin, colWidths, ci) + colWidths[ci] - pad;
       var blockH = lines.length * lineH;
       var yText = y0 + (headerH - blockH) / 2 + lineH * 0.85;
-      lines.forEach(function(ln, li){
-        pdf.text(ln, cx, yText + li * lineH, { align: 'center' });
-      });
+      drawPdfCellText(pdf, lines, hAlign, xLeft, xRight, cellW, yText, lineH);
     });
     ctx.y = y0 + headerH;
 
@@ -648,19 +777,17 @@
       pdf.rect(margin, y0, contentW, rh, 'F');
       pdf.setDrawColor(PDF_THEME.border[0], PDF_THEME.border[1], PDF_THEME.border[2]);
       pdf.rect(margin, y0, contentW, rh, 'S');
+      drawTableColumnGrid(pdf, margin, y0, rh, colWidths, false);
       pdf.setFontSize(isTotal ? fontSize + 0.3 : fontSize);
       if (isTotal) pdf.setTextColor(20, 55, 45);
       row.forEach(function(cell, ci){
-        var align = cellAlign(ci, cell, cols);
+        if (ci >= cols) return;
+        var align = cellAlign(ci, cell, cols, tableKind);
         var cellW = colWidths[ci] - pad * 2;
         var lines = splitLines(pdf, cell, cellW, isTotal ? fontSize + 0.3 : fontSize);
         var xLeft = colX(margin, colWidths, ci) + pad;
         var xRight = colX(margin, colWidths, ci) + colWidths[ci] - pad;
-        lines.forEach(function(ln, li){
-          var yLine = y0 + pad + 2.8 + li * lineH;
-          if (align === 'right') pdf.text(ln, xRight, yLine, { align: 'right' });
-          else pdf.text(ln, xLeft, yLine);
-        });
+        drawPdfCellText(pdf, lines, align, xLeft, xRight, cellW, y0 + pad + 2.8, lineH);
       });
       pdf.setTextColor(0, 0, 0);
       ctx.y = y0 + rh;
@@ -867,6 +994,13 @@
       if (data) data = normalizePdfTableHeaders(data, item);
       if (data && item.selector === '#econ-cultures-breakdown') {
         data = dropTableCols(data, [5]);
+        if (data.rows && data.rows.length){
+          data.rows = data.rows.map(function(r){
+            return r.map(function(cell, ci){
+              return ci === 3 ? compactPdfCultureOutput(cell) : cell;
+            });
+          });
+        }
         var noteEl = document.getElementById('econ-cultures-breakdown-note');
         if (noteEl && !noteEl.hidden && noteEl.textContent.trim()){
           data.footnote = plainCellText(noteEl.textContent);

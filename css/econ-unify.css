@@ -608,7 +608,30 @@
   font-weight: 500;
   font-size: 10.5px;
   color: var(--ink-faint);
-  white-space: nowrap;
+  white-space: normal;
+}
+
+#view-economics .econ-uc-breakdown .line--sub {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px 0;
+  align-items: start;
+  margin-top: 6px;
+}
+
+#view-economics .econ-uc-breakdown .line--sub span {
+  flex: none;
+  padding-left: 0;
+  line-height: 1.35;
+}
+
+#view-economics .econ-uc-breakdown .line--sub strong {
+  flex: none;
+  text-align: left;
+  font-weight: 600;
+  line-height: 1.4;
+  max-width: 100%;
+  word-break: break-word;
 }
 
 #view-economics #econ-inputs-general .econ-calc-opt {
@@ -738,7 +761,7 @@
 
 #view-economics .econ-equip-runway-mo {
   display: block;
-  padding: 8px 4px;
+  padding: 6px 4px;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
@@ -746,8 +769,25 @@
   white-space: nowrap;
 }
 
+#view-economics .econ-equip-runway-mo--elec {
+  font-size: 10.5px;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 #view-economics .econ-equip-row--monthly {
   grid-template-columns: 1fr minmax(88px, 108px) minmax(48px, 56px) minmax(88px, 108px) 28px;
+}
+
+#view-economics .econ-equip-row--runway {
+  grid-template-columns: minmax(160px, 1.2fr) minmax(80px, 96px) minmax(148px, 1fr) minmax(96px, 112px) 28px;
+  align-items: start;
+}
+
+#view-economics .econ-equip-row--runway > * {
+  min-width: 0;
 }
 
 #view-economics .econ-equip-row--monthly .econ-equip-months-inp {

@@ -786,16 +786,28 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 .econ-runway-months-inp { width: 72px; text-align: center; }
 .econ-equip-runway-mo {
   display: block;
-  padding: 8px 4px;
+  padding: 6px 4px;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
   color: var(--ink-soft);
   white-space: nowrap;
 }
+.econ-equip-runway-mo--elec {
+  font-size: 10.5px;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .econ-equip-row--monthly {
   grid-template-columns: 1fr minmax(88px, 108px) minmax(48px, 56px) minmax(88px, 108px) 28px;
 }
+.econ-equip-row--runway {
+  grid-template-columns: minmax(160px, 1.2fr) minmax(80px, 96px) minmax(148px, 1fr) minmax(96px, 112px) 28px;
+  align-items: start;
+}
+.econ-equip-row--runway > * { min-width: 0; }
 .econ-equip-row--monthly .econ-equip-months-inp {
   text-align: center;
 }
@@ -1096,6 +1108,21 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 }
 .econ-culture-metric .line--sub span { padding-left: 4px; color: var(--ink-faint); font-size: 11px; }
 .econ-culture-metric .line--sub strong { font-size: 11px; font-weight: 600; }
+.econ-uc-breakdown .line--sub {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px 0;
+  align-items: start;
+  margin-top: 6px;
+}
+.econ-uc-breakdown .line--sub span { padding-left: 0; line-height: 1.35; }
+.econ-uc-breakdown .line--sub strong {
+  text-align: left;
+  line-height: 1.4;
+  max-width: 100%;
+  word-break: break-word;
+}
+.econ-uc-breakdown .econ-uc-mo { white-space: normal; }
 .econ-uc-extra { margin-top: 2px; padding-top: 6px; border-top: 1px dashed var(--rule); }
 .econ-uc-extra .line:first-child { margin-top: 0; }
 .auto-btn:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -2528,6 +2555,16 @@ html.tray-lot-active .ctrl:has(#pallet-mount) { display: none !important; }
 }
 .pdf-staging--econ .pdf-econ-cult-detail .econ-uc-breakdown-title { font-size: 8px; margin-bottom: 2px; }
 .pdf-staging--econ .pdf-econ-cult-detail .line--sub { font-size: 8px; }
+.pdf-staging--econ .pdf-econ-cult-detail .econ-uc-breakdown .line--sub {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px 0;
+  margin-top: 3px;
+}
+.pdf-staging--econ .pdf-econ-cult-detail .econ-uc-breakdown .line--sub strong {
+  text-align: left;
+  word-break: break-word;
+}
 .pdf-staging--econ .pdf-econ-cult-detail .econ-breakdown-note { font-size: 8px; margin: 8px 0 4px; }
 .pdf-staging--econ .pdf-econ-cult-detail .econ-table-scroll { margin-top: 10px; }
 .planting-econ-bridge {
