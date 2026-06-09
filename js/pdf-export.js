@@ -931,7 +931,6 @@
           pdfPlantingToken = deps.preparePlantingForPdfExport(selectedIds);
         }
         if (needPlanting && deps.renderAll) deps.renderAll();
-        if (needEcon && deps.syncEconFromPlanting) deps.syncEconFromPlanting();
         if (needEcon && deps.renderEconomics) deps.renderEconomics();
 
         if (needEcon && global.DG_collectCalcIssues && deps.getState && deps.calcFarmEconomics){
