@@ -118,10 +118,48 @@
     return '—';
   }
 
+  function domFieldVisible(el){
+    while (el){
+      if (el.hidden) return false;
+      try {
+        var cs = window.getComputedStyle(el);
+        if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+      } catch (err) { /* ignore */ }
+      el = el.parentElement;
+    }
+    return true;
+  }
+
+  function econTaxToggleChecked(id){
+    var el = document.getElementById(id);
+    return !!(el && el.checked);
+  }
+
+  function includeEconGridField(field){
+    if (!domFieldVisible(field)) return false;
+    var keyInp = field.querySelector('[data-econ-key]');
+    if (!keyInp || !keyInp.dataset.econKey) return true;
+    if (keyInp.dataset.econKey === 'vatPct') return econTaxToggleChecked('econ-vat-tax');
+    if (keyInp.dataset.econKey === 'profitTaxPct') return econTaxToggleChecked('econ-profit-tax');
+    return true;
+  }
+
   function parseEconGrid(root){
     if (!root) return null;
     var rows = [];
-    root.querySelectorAll('.econ-field').forEach(function(field){
+    root.querySelectorAll('.econ-field, .econ-tax-block .econ-toggle-row').forEach(function(field){
+      if (!domFieldVisible(field)) return;
+      if (field.classList.contains('econ-toggle-row')){
+        var cb = field.querySelector('input[type="checkbox"]');
+        var lbl = field.querySelector('.toggle-label');
+        if (!lbl) return;
+        rows.push([
+          plainCellText(lbl),
+          cb && cb.checked ? pdfT('pdf.vec.yes') : pdfT('pdf.vec.no')
+        ]);
+        return;
+      }
+      if (!includeEconGridField(field)) return;
       var label = field.querySelector('label');
       if (!label) return;
       var k = plainCellText(label);
