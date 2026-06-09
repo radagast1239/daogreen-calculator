@@ -397,8 +397,32 @@
       trimEconBreakdownTableForPdf(root.querySelector('#econ-cultures-breakdown'));
     }
 
+    function maskEconTaxDomForPdf(root){
+      var vatTog = root.querySelector('#econ-vat-tax');
+      if (vatTog && !vatTog.checked){
+        var vatGroup = vatTog.closest('.econ-tax-group');
+        if (vatGroup){
+          vatGroup.querySelectorAll('.econ-tax-nested, .econ-tax-hint').forEach(function(el){
+            el.style.display = 'none';
+          });
+          var vatInc = vatGroup.querySelector('#econ-vat-inclusive');
+          var vatIncRow = vatInc && vatInc.closest('.econ-toggle-row');
+          if (vatIncRow) vatIncRow.style.display = 'none';
+        }
+      }
+      var profitTog = root.querySelector('#econ-profit-tax');
+      if (profitTog && !profitTog.checked){
+        var profitGroup = profitTog.closest('.econ-tax-group');
+        if (profitGroup){
+          var nested = profitGroup.querySelector('.econ-tax-nested');
+          if (nested) nested.style.display = 'none';
+        }
+      }
+    }
+
     function prepareClone(root, sec){
       var isPlanting = sec && sec.group === 'planting';
+      maskEconTaxDomForPdf(root);
       root.style.background = isPlanting ? 'transparent' : '#fff';
       root.style.color = isPlanting ? '' : '#111';
       root.querySelectorAll('#block-econ-mix, .econ-mix-fold').forEach(function(el){

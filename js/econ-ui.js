@@ -240,6 +240,27 @@
       '<span class="toggle-label">' + label + '</span></label>';
   }
 
+  function syncEconTaxNestedUi(){
+    const e = st().econ;
+    const vatTax = deps.$('econ-vat-tax');
+    const vatGroup = vatTax && vatTax.closest('.econ-tax-group');
+    if (vatGroup){
+      const showVat = !!e.vatTax;
+      const vatIncRow = vatGroup.querySelector('#econ-vat-inclusive')?.closest('.econ-toggle-row');
+      const nested = vatGroup.querySelector('.econ-tax-nested');
+      const hint = vatGroup.querySelector('.econ-tax-hint');
+      if (vatIncRow) vatIncRow.style.display = showVat ? '' : 'none';
+      if (nested) nested.style.display = showVat ? '' : 'none';
+      if (hint) hint.style.display = showVat ? '' : 'none';
+    }
+    const profitTax = deps.$('econ-profit-tax');
+    const profitGroup = profitTax && profitTax.closest('.econ-tax-group');
+    if (profitGroup){
+      const nested = profitGroup.querySelector('.econ-tax-nested');
+      if (nested) nested.style.display = e.profitTax ? '' : 'none';
+    }
+  }
+
   function econTaxBlockHtml(){
     const e = st().econ;
     return '<div class="econ-tax-block">' +
@@ -1096,6 +1117,7 @@
 
   function renderEconomics(){
     renderEconomicsForm();
+    syncEconTaxNestedUi();
     renderEconomicsCultures();
     syncEconInputsFromState();
     syncEconEquipmentPanel();
