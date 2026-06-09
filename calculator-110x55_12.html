@@ -2520,6 +2520,14 @@ html.tray-lot-active .ctrl:has(#pallet-mount) { display: none !important; }
 .pdf-staging--econ .econ-equip-hint { font-size: 9px; margin-top: 2px; line-height: 1.35; color: var(--ink-soft); }
 .pdf-staging--econ .econ-equip-total { margin-top: 4px; padding: 4px 6px; }
 .pdf-staging--econ .econ-results-per-culture { gap: 4px 6px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.pdf-staging--econ .pdf-econ-cult-page-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px 6px;
+  align-items: start;
+  width: 100%;
+}
+.pdf-staging--econ .pdf-econ-cult-page-grid .econ-culture-metric { height: auto; align-self: start; }
 .pdf-staging--econ .econ-culture-metric { padding: 4px 5px; }
 .pdf-staging--econ .econ-culture-metric .name { font-size: 9px; margin-bottom: 3px; }
 .pdf-staging--econ .econ-culture-metric .line { font-size: 8.5px; margin-top: 2px; }

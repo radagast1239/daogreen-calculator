@@ -54,6 +54,9 @@
   function cellAlign(ci, cell, cols, tableKind){
     if (ci === 0) return 'left';
     if (cols === 2) return 'right';
+    if (tableKind === 'equip'){
+      return ci >= 2 ? 'right' : 'left';
+    }
     if (tableKind === 'cost-breakdown'){
       if (ci === 1) return isDashCell(cell) ? 'center' : 'right';
       return 'right';
@@ -67,6 +70,9 @@
   function headerAlign(ci, cols, tableKind){
     if (ci === 0) return 'left';
     if (cols === 2) return 'right';
+    if (tableKind === 'equip'){
+      return ci >= 2 ? 'right' : 'left';
+    }
     if (tableKind === 'cost-breakdown'){
       if (ci === 1) return 'center';
       return 'right';
@@ -78,6 +84,17 @@
 
   function pdfT(k){
     return (global.DG_t && global.DG_t(k)) || k;
+  }
+
+  function pdfTFmt(k, vars){
+    if (global.DG_tFmt) return global.DG_tFmt(k, vars || {});
+    var s = pdfT(k);
+    if (vars){
+      Object.keys(vars).forEach(function(key){
+        s = s.replace(new RegExp('\\{' + key + '\\}', 'g'), String(vars[key]));
+      });
+    }
+    return s;
   }
 
   function vectorSections(){
@@ -344,7 +361,7 @@
   }
 
   function equipPdfColWidths(contentW){
-    return [contentW * 0.22, contentW * 0.5, contentW * 0.28];
+    return [contentW * 0.20, contentW * 0.44, contentW * 0.36];
   }
 
   function equipHintForPdf(key, domHint){
@@ -390,7 +407,8 @@
           var total = totalEl ? plainCellText(totalEl.textContent) : amt;
           if (eqKey === 'runwayElec'){
             var rampStr = runwayElecRampStrFromGroup(group, mo);
-            rows.push([k, desc, amt + ' ' + pdfT('pdf.vec.perMonth') + ' × ' + pdfT('econ.runway.elecRamp', { loads: rampStr }) + ' = ' + total]);
+            var rampNote = pdfTFmt('econ.runway.elecRampPdfNote', { amt: amt, loads: rampStr });
+            rows.push([k, desc === '—' ? rampNote : (desc + '. ' + rampNote), total]);
           } else {
             rows.push([k, desc, amt + ' ' + pdfT('pdf.vec.perMonth') + ' × ' + mo + ' ' + pdfT('econ.equip.months') + ' = ' + total]);
           }
@@ -412,6 +430,7 @@
           data: {
             headers: headers,
             rows: rows,
+            tableKind: 'equip',
             colWidths: colWidths,
             footnote: footnote
           }
@@ -1039,13 +1058,32 @@
     return !!vectorSections()[id];
   }
 
-  function appendCanvasAt(pdf, ctx, canvas, margin, contentW){
-    var pageH = pdf.internal.pageSize.getHeight();
+  function pdfUsableHeightMm(ctx, margin){
+    var pageH = ctx.pdf.internal.pageSize.getHeight();
     var top = ctx.contentTop != null ? ctx.contentTop : margin;
-    var usableH = pageH - top - margin;
+    return pageH - top - margin;
+  }
+
+  function appendCanvasAt(pdf, ctx, canvas, margin, contentW, opts){
+    opts = opts || {};
+    var top = ctx.contentTop != null ? ctx.contentTop : margin;
+    var usableH = pdfUsableHeightMm(ctx, margin);
     var pxPerMm = canvas.width / contentW;
     var slicePx = Math.floor(usableH * pxPerMm);
     if (slicePx < 1) slicePx = canvas.height;
+    var blockHmm = canvas.height / pxPerMm;
+
+    if (opts.atomic && blockHmm <= usableH + 0.5){
+      var spaceLeft = usableH - (ctx.y - top);
+      if (blockHmm > spaceLeft + 0.5){
+        pdf.addPage();
+        ctx.y = top;
+      }
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, ctx.y, contentW, blockHmm);
+      ctx.y += blockHmm + 1;
+      ctx.firstContent = false;
+      return ctx;
+    }
 
     var yPx = 0;
     while (yPx < canvas.height){

@@ -1601,7 +1601,7 @@
       (res.accountingMonth > 0 ? '<tr><td>' + L('econ.bd.accounting') + '</td><td>—</td><td>' + moneyFmt(res.accountingMonth) + '</td></tr>' : '') +
       '<tr><td>' + L('econ.bd.staff') + '</td><td>—</td><td>' + moneyFmt(res.staffTotal) + '</td></tr>' +
       '<tr><td>' + L('econ.bd.logistics') + '</td><td>—</td><td>' + moneyFmt(res.logistics) + '</td></tr>' +
-      (res.waterEnabled !== false && res.waterCost > 0 ? '<tr><td>' + L('econ.bd.water') + '</td><td>' + deps.r1(res.waterM3Month) + '</td><td>' + moneyFmt(res.waterCost) + '</td></tr>' : '');
+      (res.waterEnabled !== false && res.waterCost > 0 ? '<tr><td>' + tFmt('econ.bd.waterWithVol', { vol: deps.r1(res.waterM3Month) }) + '</td><td>—</td><td>' + moneyFmt(res.waterCost) + '</td></tr>' : '');
     (res.elecBreakdown || []).forEach(function(row){
       const lbl = row.id === 'light' ? L('econ.bd.light') : (L('econ.bd.elecPrefix') + ' ' + elecCatLabel(row.id));
       bd += '<tr><td>' + lbl + '</td><td>' + deps.fmtNum(row.kwh || 0) + '</td><td>' + moneyFmt(row.cost) + '</td></tr>';
