@@ -3808,6 +3808,15 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <p class="econ-intro" id="econ-intro" data-i18n="econ.intro">Экономика считается <strong>отдельно от вкладки «Посадка»</strong>: плотность, урожай, свет и затраты вводите сами или подставляете кнопкой «Импорт из посадки». Выбор сорта в списке <strong>не меняет</strong> числа автоматически.</p>
     <ul class="econ-warnings" id="econ-warnings" hidden></ul>
     <div class="econ-planting-sync" id="econ-planting-sync" hidden></div>
+      <div class="econ-preset-bar" id="econ-preset-bar">
+        <span class="econ-preset-label" data-i18n="econ.preset.bar">Сценарии:</span>
+        <button type="button" class="auto-btn econ-preset-btn econ-preset-btn--scenario" data-econ-preset="micro150" title="econ.preset.full.micro150" data-i18n-title="econ.preset.full.micro150">150 м²</button>
+        <button type="button" class="auto-btn econ-preset-btn econ-preset-btn--scenario" data-econ-preset="vf300" title="econ.preset.full.vf300" data-i18n-title="econ.preset.full.vf300">VF 300 м²</button>
+        <button type="button" class="auto-btn econ-preset-btn econ-preset-btn--scenario" data-econ-preset="greenhouse500" title="econ.preset.full.greenhouse500" data-i18n-title="econ.preset.full.greenhouse500">Теплица 500 м²</button>
+        <span class="econ-preset-sep" aria-hidden="true">·</span>
+        <button type="button" class="auto-btn econ-preset-btn econ-preset-btn--scenario" data-econ-preset="baseScenario" title="econ.preset.full.baseScenario" data-i18n-title="econ.preset.full.baseScenario" data-i18n="econ.preset.baseScenario">Базовый ассортимент</button>
+        <button type="button" class="auto-btn econ-preset-btn econ-preset-btn--scenario" data-econ-preset="newbieScenario" title="econ.preset.full.newbieScenario" data-i18n-title="econ.preset.full.newbieScenario" data-i18n="econ.preset.newbieScenario">Для новичков</button>
+      </div>
       <div class="econ-toolbar">
         <div class="econ-actions">
           <button type="button" class="auto-btn auto-btn--primary" id="econ-sync-planting" data-i18n="econ.sync" data-readonly-allow>Импорт из посадки (все культуры)</button>
@@ -3830,7 +3839,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <p class="econ-cultures-intro econ-lead" data-i18n="econ.cultures.intro">До 12 культур. Доли площади — не больше 100%. Расходники на посев: шт/м² × цена за горшок (семена, горшок, субстрат) — ориентир 3–6 за горшок, по умолчанию 4; сумма ÷ срок урожая с посева → в месяц на м². Урожай и свет — вручную или «Импорт из посадки» (в т.ч. культуры поддонов <code>pl-*</code>).</p>
       <div class="econ-area-mode-wrap" id="econ-area-mode-wrap"></div>
       <p class="econ-cultures-total" id="econ-cultures-total"></p>
-      <div class="collapse-block econ-mix-fold" id="block-econ-mix">
+      <div class="collapse-block econ-mix-fold" id="block-econ-mix" hidden>
         <div class="collapse-head">
           <span data-i18n="econ.mix.panel">Настройки микса</span>
           <span class="collapse-chev" aria-hidden="true">▶</span>
@@ -3944,7 +3953,9 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       <p class="pdf-export-lead">Отметьте разделы для файла. Печать не используется.</p>
       <div class="pdf-export-toolbar">
         <button type="button" class="auto-btn" id="pdf-preset-planting">Посадка</button>
-        <button type="button" class="auto-btn" id="pdf-preset-econ">Экономика</button>
+        <button type="button" class="auto-btn" id="pdf-preset-econ-brief">Краткая</button>
+        <button type="button" class="auto-btn" id="pdf-preset-econ">Полная</button>
+        <button type="button" class="auto-btn" id="pdf-preset-econ-client">Для клиента</button>
         <button type="button" class="auto-btn" id="pdf-preset-full">Полный</button>
         <button type="button" class="auto-btn" id="pdf-select-all">Все</button>
         <button type="button" class="auto-btn" id="pdf-select-none">Снять</button>

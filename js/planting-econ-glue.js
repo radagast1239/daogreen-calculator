@@ -52,7 +52,7 @@
     var round = depCall('round', 0);
 
     var defaultEconState, defaultEconEquipment, defaultEconEquipmentMonths, defaultEconCultureRow, defaultEconCultures;
-    var getEquipmentGroups, getEquipItemMeta, econEquipEffectiveAmount;
+    var getEquipmentGroups, getEquipItemMeta, econEquipEffectiveAmount, runwayElecEffectiveAmount, runwayElecRampLoads, normalizeRunwayElecRampPct, migrateEconRunwayElecRamp;
     var econCvDisplayName, econGhYieldPerCutFromStd, econCvTotalCycleDays, econSheetCutIntervalDays, econSheetYieldPerCut;
     var econYieldParamsForCvId, econCatalogDefaultsForCvId, normalizeEconCultureRow, parsePotHarvestMonthsFromCv, migrateEconCultureRows;
     var econCultureBio, formatEconCultureHint, calcCultureConsumables, econApplyCultureSelect, importEconRowFromPlanting, importAllEconFromPlanting;
@@ -68,7 +68,9 @@
         kwhPerM2Hour: 0.12, lightHoursDay: 16, consumablesPerPot: 4, potHarvestMonths: 3, unitIsPieces: false }],
       salePrice: 800, kwhPerM2Hour: 0.12, lightHoursDay: 16, elecCats: {},
       otherMonth: 15000, waterM3Month: 0, waterPriceM3: 0, waterFertPerM3: 0,
-      consumablesPerKg: 0, consumablesPerPcs: 0, wastePct: 0, usnTax: false, vatTax: false, vatPct: 12,
+      consumablesPerKg: 0, consumablesPerPcs: 0, wastePct: 0, wasteEnabled: true, waterEnabled: true,
+      payrollTaxPct: 30, payrollStaffCostPct: 0,
+      usnTax: false, vatTax: false, vatPct: 12,
       profitTax: false, profitTaxPct: 15, amortMonths: 60,
       equipmentEnabled: true, equipment: {}, equipmentCustom: []
     };
@@ -125,8 +127,11 @@
     else st().econ.equipmentMonths = Object.assign(defaultMonths, st().econ.equipmentMonths);
     if (!Array.isArray(st().econ.equipmentCustom)) st().econ.equipmentCustom = [];
     if (st().econ.equipmentEnabled == null) st().econ.equipmentEnabled = true;
+    if (st().econ.waterEnabled == null) st().econ.waterEnabled = true;
+    if (st().econ.wasteEnabled == null) st().econ.wasteEnabled = true;
     const runwayMo = parseFloat(st().econ.startupRunwayMonths);
     if (!Number.isFinite(runwayMo) || runwayMo < 1) st().econ.startupRunwayMonths = 3;
+    if (typeof migrateEconRunwayElecRamp === 'function') migrateEconRunwayElecRamp(st().econ);
   }
 
   function econEquipmentGroups(){
@@ -188,6 +193,10 @@
     defaultEconEquipment = ec.defaultEconEquipment;
     defaultEconEquipmentMonths = ec.defaultEconEquipmentMonths;
     econEquipEffectiveAmount = ec.econEquipEffectiveAmount;
+    runwayElecEffectiveAmount = ec.runwayElecEffectiveAmount;
+    runwayElecRampLoads = ec.runwayElecRampLoads;
+    normalizeRunwayElecRampPct = ec.normalizeRunwayElecRampPct;
+    migrateEconRunwayElecRamp = ec.migrateEconRunwayElecRamp;
     getEquipItemMeta = ec.getEquipItemMeta;
     defaultEconCultureRow = ec.defaultEconCultureRow;
     defaultEconCultures = ec.defaultEconCultures;
@@ -243,6 +252,10 @@
       ECON_CONSUMABLES_PER_POT_HINT: ECON_CONSUMABLES_PER_POT_HINT,
       getEquipmentGroups: econEquipmentGroups,
       getEquipItemMeta: getEquipItemMeta,
+      runwayElecEffectiveAmount: runwayElecEffectiveAmount,
+      runwayElecRampLoads: runwayElecRampLoads,
+      normalizeRunwayElecRampPct: normalizeRunwayElecRampPct,
+      migrateEconRunwayElecRamp: migrateEconRunwayElecRamp,
       ECON_EQUIPMENT_GROUPS: ECON_EQUIPMENT_GROUPS_FALLBACK,
       VF_CULTIVARS: VF_CULTIVARS,
       CULTIVARS: CULTIVARS,

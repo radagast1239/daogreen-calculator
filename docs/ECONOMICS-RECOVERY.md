@@ -105,7 +105,7 @@ flowchart LR
 
 ### 3.2. Культуры — массив `cultures[]`
 
-До **6** строк. Каждая строка (`normalizeEconCultureRow`):
+До **12** строк. Каждая строка (`normalizeEconCultureRow`):
 
 | Поле | Смысл |
 |------|--------|
@@ -130,9 +130,14 @@ flowchart LR
 | `payrollTax` | Начислять ~30% на ФОТ |
 | `accountingMonth` | Бухгалтерия |
 | `logisticsMonth` | Логистика |
+| `waterM3Month`, `waterPriceM3`, `waterFertPerM3` | Вода и удобрения (OPEX) |
+| `waterEnabled` | Учитывать воду в себестоимости (false → cost=0) |
 | `otherMonth` | Прочие |
 | `elecCats` | `{ pumps, fans, heating, equipment, refrigeration, packaging, misc }` → `{ kw, h }` |
-| `wastePct` | Потери после сбора, % |
+| `wastePct` | Брак и возврат урожая, % |
+| `wasteEnabled` | Учитывать брак (false → wastePct не влияет) |
+| `payrollTaxPct` | Ставка отчислений работодателя, % (при `payrollTax`) |
+| `payrollStaffCostPct` | Налог/расходы на сотрудника, % от gross |
 | `consumablesPerKg` | Устаревший глобальный ₽/кг (если нет per-pot) |
 | `usnTax`, `vatTax`, `profitTax` | Флаги налогов |
 | `vatPct`, `profitTaxPct` | Ставки |
@@ -288,9 +293,13 @@ consumablesCost = f(consumablesPerPot, pots, potHarvestMonths, …)
 ### 6.3. Фиксированные OPEX
 
 ```text
-payroll = staffLines + налог 30% + accounting + custom
-equipAmort = sum(equipment) / amortMonths   // если equipmentEnabled
-fixedOpex = rent + payroll + logistics + other + otherElec + equipAmort
+gross = sum(staffLines[].salary)
+payrollTax = payrollTax ? gross × (payrollTaxPct/100) : 0
+payrollStaffCost = gross × (payrollStaffCostPct/100)   // если > 0
+payroll = gross + payrollTax + payrollStaffCost + accounting + custom
+equipAmort = sum(equipment) / amortMonths   // если equipmentEnabled (в glue)
+waterCost = waterEnabled ? m³×(цена+удобр/м³) : 0
+fixedOpex = rent + payroll + logistics + other + waterCost + otherElec + equipAmort
 ```
 
 `otherElec` — из `elecCats` (кВт × ч × 30.5 × priceKwh по категориям).
@@ -298,11 +307,14 @@ fixedOpex = rent + payroll + logistics + other + otherElec + equipAmort
 ### 6.4. Итог
 
 ```text
-revenue = (revKg + revPcs) * (1 - wastePct/100)
+wasteFactor = wasteEnabled ? (1 - clamp(wastePct,0,50)/100) : 1
+revenue = (revKg + revPcs) после wasteFactor
 monthlyOpex = fixedOpex + sum(lightCost) + sum(consumablesCost)
-налоги: УСН 6%, НДС, налог на прибыль — по флагам
+налоги: УСН 6% с выручки, НДС (вкл./искл.), налог на прибыль — по флагам
 margin = profitBeforeTax - profitTax
 ```
+
+Фиксированные статьи (аренда, вода, ФОТ, логистика…) на культуру — **по доле площади**; ₽/кг = доля ÷ выпуск культуры.
 
 Разделение себестоимости на кг и шт — пропорционально `areaKg` / `areaPcs`.
 

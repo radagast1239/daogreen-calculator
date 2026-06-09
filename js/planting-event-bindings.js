@@ -795,9 +795,11 @@ const dlg = $('cv-add-dialog');
         const farm = calcFarmEconomics(state.econ);
         const cv = getActiveCv();
         const slug = (cv && cv.name) ? String(cv.name).replace(/[^a-zA-ZЀ-ӿ0-9]+/g, '-').slice(0, 20) : 'econ';
-        window.DG_exportEconCsv(farm, {
+        var loc = (typeof DG_getLocale === 'function') ? DG_getLocale() : 'ru';
+        var dl = window.DG_downloadEconCsv || window.DG_exportEconCsv;
+        dl(farm, {
           build: CALC_BUILD,
-          date: new Date().toLocaleDateString('ru-RU'),
+          date: new Date().toLocaleDateString(loc === 'en' ? 'en-GB' : 'ru-RU'),
           filename: 'daogreen-econ-' + slug + '-' + new Date().toISOString().slice(0, 10)
         });
       } catch (e){

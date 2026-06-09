@@ -81,7 +81,9 @@
         var st = deps.getState();
         if (!st.econ) return;
         deps.migrateEconOtherElectricity(st.econ);
-        global.DG_exportEconCsv(deps.calcFarmEconomics(st.econ), { build: deps.CALC_BUILD });
+        var farm = deps.calcFarmEconomics(st.econ);
+        var dl = global.DG_downloadEconCsv || global.DG_exportEconCsv;
+        dl(farm, { build: deps.CALC_BUILD, filename: 'daogreen-econ-' + new Date().toISOString().slice(0, 10) });
       },
       diagnose: function () {
         var st = deps.getState();

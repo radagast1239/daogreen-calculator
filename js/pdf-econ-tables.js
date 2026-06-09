@@ -57,6 +57,9 @@
 
   function vectorSections(){
     return {
+      'econ-farm-final': [
+        { selector: '#econ-results-final-cards .econ-results', mode: 'metric-cards-kpi' }
+      ],
       'econ-yield-summary': [
         { titleKey: 'pdf.vec.yieldByCult', selector: '#econ-derived-panel table.econ-breakdown' }
       ],
@@ -67,7 +70,8 @@
         { selector: '#econ-inputs-costs', mode: 'econ-grid' }
       ],
       'econ-elec': [
-        { titleKey: 'pdf.vec.electricity', selector: '#econ-elec-cats-inputs .econ-elec-cats-grid', mode: 'elec-cats' }
+        { titleKey: 'pdf.vec.electricityInputs', selector: '#econ-elec-cats-inputs .econ-elec-cats-grid', mode: 'elec-cats' },
+        { titleKey: 'pdf.vec.electricityCost', selector: 'table.econ-elec-total', mode: 'table' }
       ],
       'econ-payroll': [
         { selector: '#econ-payroll-body', mode: 'payroll-blocks' }
@@ -77,7 +81,7 @@
         { selector: '#econ-equipment-total', mode: 'equip-total' }
       ],
       'econ-results': [
-        { titleKey: 'pdf.vec.farmTotals', selector: '#econ-results-final-cards .econ-results', mode: 'metric-cards' },
+        { titleKey: 'pdf.vec.cultMetrics', selector: '#econ-results-metrics .econ-results-per-culture', mode: 'culture-metrics' },
         { titleKey: 'pdf.vec.byCult', selector: '#econ-cultures-breakdown' },
         { titleKey: 'pdf.vec.costsMargin', selector: '#econ-breakdown-table' }
       ],
@@ -184,6 +188,47 @@
     } : null;
   }
 
+  function normalizePdfTableHeaders(data, item){
+    if (!data || !data.headers || !data.headers.length) return data;
+    if (item.mode === 'culture-metrics'){
+      data.headers = [pdfT('pdf.vec.culture'), pdfT('pdf.vec.indicator'), pdfT('pdf.vec.value')];
+      return data;
+    }
+    if (item.selector === 'table.econ-elec-total' || (item.selector && String(item.selector).indexOf('econ-elec-total') >= 0)){
+      if (data.headers.length >= 3){
+        data.headers = [pdfT('pdf.vec.elecCat'), pdfT('pdf.vec.elecKwhMo'), pdfT('pdf.vec.rubMo')];
+      }
+      return data;
+    }
+    if (item.selector === '#econ-breakdown-table'){
+      if (data.headers.length >= 3){
+        data.headers = [pdfT('pdf.vec.article'), pdfT('pdf.vec.elecKwhMo'), pdfT('pdf.vec.rubMo')];
+      }
+      return data;
+    }
+    if (item.selector === '#econ-cultures-breakdown' && data.headers.length >= 8){
+      data.headers = [
+        pdfT('pdf.vec.culture'),
+        pdfT('pdf.vec.sharePct'),
+        pdfT('pdf.vec.areaSqm'),
+        pdfT('pdf.vec.outputMo'),
+        pdfT('pdf.vec.unitCost'),
+        pdfT('pdf.vec.consPerSqm'),
+        pdfT('pdf.vec.revMo'),
+        pdfT('pdf.vec.marginMo')
+      ];
+      return data;
+    }
+    if (item.titleKey === 'pdf.vec.yieldByCult' && data.headers.length >= 2){
+      data.headers = data.headers.map(function(h, i){
+        if (i === 0) return pdfT('pdf.vec.culture');
+        if (i === 1) return pdfT('pdf.vec.outputMo');
+        return h;
+      });
+    }
+    return data;
+  }
+
   function parsePayrollBlocks(root){
     if (!root) return [];
     var out = [];
@@ -220,6 +265,25 @@
       label: labelEl ? plainCellText(labelEl) : '',
       hint: hintEl ? plainCellText(hintEl.textContent) : ''
     };
+  }
+
+  function runwayElecRampStrFromGroup(group, mo){
+    var inps = group ? group.querySelectorAll('[data-econ-runway-elec-ramp]') : [];
+    if (inps.length){
+      var cum = 0;
+      var parts = [];
+      inps.forEach(function(inp){
+        cum += (parseFloat(plainCellText(inp.value)) || 0) / 100;
+        if (cum > 1) cum = 1;
+        parts.push(Math.round(cum * 100) + '%');
+      });
+      return parts.join('→');
+    }
+    if (global.DG_ECON && global.DG_ECON.runwayElecRampLoads){
+      var loads = global.DG_ECON.runwayElecRampLoads(mo);
+      return loads.map(function(l){ return Math.round(l * 100) + '%'; }).join('→');
+    }
+    return String(mo);
   }
 
   function equipPdfColWidths(contentW){
@@ -267,7 +331,12 @@
           var mo = moLbl ? plainCellText(moLbl.textContent).replace(/[×\s]/g, '').replace(/мес\.?/i, '').trim()
             : (moInp ? plainCellText(moInp.value) : (runwayInp ? plainCellText(runwayInp.value) : '1'));
           var total = totalEl ? plainCellText(totalEl.textContent) : amt;
-          rows.push([k, desc, amt + ' × ' + mo + ' ' + pdfT('econ.equip.months') + ' = ' + total]);
+          if (eqKey === 'runwayElec'){
+            var rampStr = runwayElecRampStrFromGroup(group, mo);
+            rows.push([k, desc, amt + ' ' + pdfT('pdf.vec.perMonth') + ' × ' + pdfT('econ.runway.elecRamp', { loads: rampStr }) + ' = ' + total]);
+          } else {
+            rows.push([k, desc, amt + ' ' + pdfT('pdf.vec.perMonth') + ' × ' + mo + ' ' + pdfT('econ.equip.months') + ' = ' + total]);
+          }
           return;
         }
         var inp = row.querySelector('input');
@@ -601,6 +670,58 @@
     return ctx.y;
   }
 
+  function drawPdfMetricCardsKpi(pdf, ctx, root){
+    if (!root) return ctx.y;
+    var cards = [];
+    root.querySelectorAll('.m').forEach(function(m){
+      var label = m.querySelector('.m-label');
+      var val = m.querySelector('.m-val');
+      var sub = m.querySelector('.m-sub');
+      if (label) cards.push({ label: plainCellText(label), val: plainCellText(val), sub: plainCellText(sub) });
+    });
+    if (!cards.length) return ctx.y;
+
+    var cols = Math.min(3, cards.length);
+    var gap = 3.5;
+    var cardW = (ctx.contentW - gap * (cols - 1)) / cols;
+    var cardH = 24;
+    var col = 0;
+    var rowY = ctx.y;
+
+    ensureSpace(ctx, cardH + 4);
+    cards.forEach(function(card, idx){
+      if (idx > 0 && col === 0){
+        rowY += cardH + gap;
+        ensureSpace(ctx, cardH + gap);
+      }
+      var x = ctx.margin + col * (cardW + gap);
+      pdf.setFillColor(PDF_THEME.brandLight[0], PDF_THEME.brandLight[1], PDF_THEME.brandLight[2]);
+      pdf.setDrawColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+      pdf.setLineWidth(0.35);
+      pdf.rect(x, rowY, cardW, cardH, 'FD');
+      pdf.setFillColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+      pdf.rect(x, rowY, cardW, 1.4, 'F');
+      pdf.setFontSize(7);
+      pdf.setTextColor(PDF_THEME.inkMuted[0], PDF_THEME.inkMuted[1], PDF_THEME.inkMuted[2]);
+      splitLines(pdf, card.label, cardW - 5, 7).slice(0, 2).forEach(function(ln, li){
+        pdf.text(ln, x + 2.5, rowY + 5.5 + li * 3.4);
+      });
+      pdf.setFontSize(15);
+      pdf.setTextColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+      var valLines = splitLines(pdf, card.val || '—', cardW - 5, 15);
+      pdf.text(valLines[0], x + 2.5, rowY + 15.5);
+      if (card.sub){
+        pdf.setFontSize(6.5);
+        pdf.setTextColor(PDF_THEME.inkSoft[0], PDF_THEME.inkSoft[1], PDF_THEME.inkSoft[2]);
+        pdf.text(card.sub, x + 2.5, rowY + 21);
+      }
+      col++;
+      if (col >= cols){ col = 0; }
+    });
+    ctx.y = rowY + cardH + COMPACT.tableGap + 2;
+    return ctx.y;
+  }
+
   function drawSectionTitle(pdf, ctx, title){
     ensureSpace(ctx, 16);
     if (!ctx.firstContent) ctx.y += COMPACT.sectionBlockGap;
@@ -634,9 +755,8 @@
     pdf.setLineWidth(0.35);
     pdf.line(margin, y, margin + contentW * 0.35, y);
     y += 7;
-    pdf.setFontSize(9);
-    pdf.setTextColor(30, 30, 30);
-    entries.forEach(function(entry){
+
+    function drawTocEntry(entry){
       if (y > pdf.internal.pageSize.getHeight() - margin - 8){
         pdf.addPage();
         y = top + 4;
@@ -648,12 +768,39 @@
       var titleMax = contentW - pdf.getTextWidth(pageStr) - 6;
       var lines = splitLines(pdf, title, titleMax, 9);
       lines.forEach(function(ln, li){
-        pdf.text(ln, margin, y + li * 4.2);
+        pdf.text(ln, margin + (entry.group ? 4 : 0), y + li * 4.2);
       });
       var lineY = y + (lines.length - 1) * 4.2;
       pdf.text(pageStr, pageW - margin, lineY, { align: 'right' });
       y += lines.length * 4.2 + 3.5;
-    });
+    }
+
+    var groupOrder = ['results', 'inputs', 'analysis'];
+    var groupLabels = {
+      results: pdfT('pdf.toc.group.results'),
+      inputs: pdfT('pdf.toc.group.inputs'),
+      analysis: pdfT('pdf.toc.group.analysis')
+    };
+    var hasGroups = entries.some(function(e){ return e.group; });
+    if (hasGroups){
+      groupOrder.forEach(function(g){
+        var items = entries.filter(function(e){ return e.group === g; });
+        if (!items.length) return;
+        if (y > pdf.internal.pageSize.getHeight() - margin - 12){
+          pdf.addPage();
+          y = top + 4;
+        }
+        pdf.setFontSize(10);
+        pdf.setTextColor(PDF_THEME.brand[0], PDF_THEME.brand[1], PDF_THEME.brand[2]);
+        pdf.text(groupLabels[g], margin, y);
+        y += 6;
+        items.forEach(drawTocEntry);
+        y += 2;
+      });
+      entries.filter(function(e){ return !e.group; }).forEach(drawTocEntry);
+    } else {
+      entries.forEach(drawTocEntry);
+    }
   }
 
   function drawPdfClosingPage(pdf, margin, opts){
@@ -714,8 +861,10 @@
       else if (item.mode === 'culture-metrics') data = parseCultureMetrics(el);
       else if (item.mode === 'metric-cards') data = parseMetricCards(el);
       else if (item.mode === 'equip-total') data = parseEquipTotal(el);
+      else if (item.mode === 'table' && el.tagName === 'TABLE') data = parseHtmlTable(el);
       else if (el.tagName === 'TABLE') data = parseHtmlTable(el);
       else data = parseHtmlTable(el.querySelector('table'));
+      if (data) data = normalizePdfTableHeaders(data, item);
       if (data && item.selector === '#econ-cultures-breakdown') {
         data = dropTableCols(data, [5]);
         var noteEl = document.getElementById('econ-cultures-breakdown-note');
@@ -729,10 +878,18 @@
   }
 
   function renderVectorEconSection(pdf, ctx, sectionId, sectionTitle, exportOpts){
+    var spec = vectorSections()[sectionId];
+    if (!spec) return Promise.resolve(ctx);
+    var hasKpi = spec.some(function(item){ return item.mode === 'metric-cards-kpi'; });
     var tables = collectTablesForSection(sectionId, exportOpts, ctx);
-    if (!tables.length) return Promise.resolve(ctx);
+    if (!tables.length && !hasKpi) return Promise.resolve(ctx);
     drawSectionTitle(pdf, ctx, sectionTitle);
     var multi = tables.length > 1;
+    spec.forEach(function(item){
+      if (item.mode !== 'metric-cards-kpi') return;
+      var el = document.querySelector(item.selector);
+      if (el) drawPdfMetricCardsKpi(pdf, ctx, el);
+    });
     tables.forEach(function(t){
       drawPdfTable(pdf, ctx, t.data, {
         title: multi && t.title ? t.title : null,

@@ -36,7 +36,7 @@
     { id: 'panel-pallet-guide', group: 'planting', selector: '#panel-pallet-guide' },
     { id: 'block-panel-standards', group: 'planting', selector: '#block-panel-standards' },
     { id: 'econ-cult-unit-cost', group: 'economics', kind: 'econ-cult-unit-cost', skipPdfWrapTitle: true },
-    { id: 'econ-farm-final', group: 'economics', selector: '#econ-results-final', skipPdfWrapTitle: true },
+    { id: 'econ-farm-final', group: 'economics', selector: '#econ-results-final', vectorId: 'econ-farm-final', skipPdfWrapTitle: true },
     { id: 'econ-warnings', group: 'economics', selector: '#econ-warnings' },
     { id: 'econ-general', group: 'economics', selector: '#econ-panel-general', vectorId: 'econ-general' },
     { id: 'econ-cultures', group: 'economics', selector: '#econ-panel-cultures' },
@@ -64,6 +64,20 @@
   var PDF_BRAND_TAGLINE = 'DAOGREEN проектирование и запуск вертикальных ферм';
   var PDF_SITE_LABEL = 'daogreen.ru';
 
+  var PDF_ECON_TOC_GROUPS = {
+    results: ['econ-farm-final', 'econ-warnings', 'econ-yield', 'econ-cult-unit-cost', 'econ-results'],
+    inputs: ['econ-general', 'econ-cultures', 'econ-elec', 'econ-payroll', 'econ-costs', 'econ-equipment'],
+    analysis: ['econ-advanced', 'econ-sensitivity', 'econ-payback']
+  };
+
+  function econTocGroupForId(id){
+    var g;
+    for (g in PDF_ECON_TOC_GROUPS){
+      if (PDF_ECON_TOC_GROUPS[g].indexOf(id) >= 0) return g;
+    }
+    return null;
+  }
+
   var PDF_PRESETS = {
     planting: [
       'cover', 'planting-facility-env', 'panel-cultivars', 'planting-hero', 'panel-culture', 'env-panel', 'panel-bio-margin',
@@ -71,10 +85,16 @@
       'panel-metrics', 'panel-schema', 'panel-planting-advanced', 'block-panel-recs',
       'econ-cult-unit-cost', 'econ-farm-final'
     ],
+    econBrief: [
+      'cover', 'econ-farm-final', 'econ-warnings', 'econ-yield', 'econ-cult-unit-cost', 'econ-results'
+    ],
     econ: [
-      'cover', 'econ-general', 'econ-yield',
-      'econ-elec', 'econ-payroll', 'econ-costs', 'econ-equipment', 'econ-results',
+      'cover', 'econ-farm-final', 'econ-warnings', 'econ-yield', 'econ-cult-unit-cost', 'econ-results',
+      'econ-general', 'econ-cultures', 'econ-elec', 'econ-payroll', 'econ-costs', 'econ-equipment',
       'econ-advanced', 'econ-sensitivity', 'econ-payback'
+    ],
+    econClient: [
+      'cover', 'econ-farm-final', 'econ-yield', 'econ-cult-unit-cost', 'econ-results', 'econ-payback'
     ],
     full: null
   };
@@ -209,6 +229,10 @@
     });
     if (presetPlanting) presetPlanting.addEventListener('click', function(){ applyPreset(PDF_PRESETS.planting); });
     if (presetEcon) presetEcon.addEventListener('click', function(){ applyPreset(PDF_PRESETS.econ); });
+    var presetEconBrief = document.getElementById('pdf-preset-econ-brief');
+    var presetEconClient = document.getElementById('pdf-preset-econ-client');
+    if (presetEconBrief) presetEconBrief.addEventListener('click', function(){ applyPreset(PDF_PRESETS.econBrief); });
+    if (presetEconClient) presetEconClient.addEventListener('click', function(){ applyPreset(PDF_PRESETS.econClient); });
     if (presetFull) presetFull.addEventListener('click', function(){
       applyPreset(SECTIONS.map(function(s){ return s.id; }));
     });
@@ -216,7 +240,7 @@
     btnOpen.addEventListener('click', function(){
       renderChecklist();
       if (deps.getState && deps.getState().appView === 'economics'){
-        applyPreset(PDF_PRESETS.econ);
+        applyPreset(PDF_PRESETS.econBrief);
       }
       dialog.returnValue = '';
       if (typeof dialog.showModal === 'function') dialog.showModal();
@@ -370,14 +394,6 @@
       }
     }
 
-    function trimEconBreakdownTableForPdf(tbl){
-      if (!tbl) return;
-      tbl.querySelectorAll('tr').forEach(function(tr){
-        var cells = tr.querySelectorAll('th, td');
-        if (cells.length > 5 && cells[5]) cells[5].remove();
-      });
-    }
-
     function maskEconDomForPdf(root){
       root.querySelectorAll('#block-econ-mix, .econ-mix-fold, .econ-mix-hint, .econ-mix-bd-hint, .econ-mix-inline').forEach(function(el){
         el.style.display = 'none';
@@ -394,7 +410,16 @@
       root.querySelectorAll('.econ-results-metrics .econ-results-section').forEach(function(sec){
         if (sec.querySelector('.econ-results-per-culture, .econ-results-farm')) sec.style.display = 'none';
       });
-      trimEconBreakdownTableForPdf(root.querySelector('#econ-cultures-breakdown'));
+      var waterOff = root.querySelector('#econ-water-enabled');
+      if (waterOff && !waterOff.checked){
+        var waterOpt = root.querySelector('#econ-water-opt');
+        if (waterOpt) waterOpt.style.display = 'none';
+      }
+      var wasteOff = root.querySelector('#econ-waste-enabled');
+      if (wasteOff && !wasteOff.checked){
+        var wasteOpt = root.querySelector('#econ-waste-opt');
+        if (wasteOpt) wasteOpt.style.display = 'none';
+      }
     }
 
     function maskEconTaxDomForPdf(root){
@@ -863,7 +888,12 @@
       function noteSectionStart(id){
         if (id === 'cover') return;
         secNum++;
-        tocEntries.push({ n: secNum, title: secLabel(id), page: pdf.internal.getNumberOfPages() });
+        tocEntries.push({
+          n: secNum,
+          title: secLabel(id),
+          page: pdf.internal.getNumberOfPages(),
+          group: econTocGroupForId(id)
+        });
       }
 
       for (var i = 0; i < orderedIds.length; i++){

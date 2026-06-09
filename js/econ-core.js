@@ -69,7 +69,62 @@
   ];
 
 
+  const RUNWAY_ELEC_RAMP_DEFAULTS_PCT = [25, 30, 30];
+
+  function normalizeRunwayElecRampPct(raw, months){
+    const defaults = RUNWAY_ELEC_RAMP_DEFAULTS_PCT;
+    const mo = Math.max(1, parseFloat(months) || 3);
+    let arr = Array.isArray(raw) ? raw.slice() : defaults.slice();
+    if (!arr.length) arr = defaults.slice();
+    arr = arr.map(function(v, i){
+      const n = parseFloat(v);
+      if (!Number.isFinite(n) || n < 0) return defaults[i] != null ? defaults[i] : defaults[defaults.length - 1];
+      return Math.min(100, n);
+    });
+    while (arr.length < mo){
+      arr.push(arr[arr.length - 1] != null ? arr[arr.length - 1] : defaults[defaults.length - 1]);
+    }
+    if (arr.length > mo) arr = arr.slice(0, mo);
+    return arr;
+  }
+
+  function runwayElecRampFractionsFromPct(pctArr, months){
+    return normalizeRunwayElecRampPct(pctArr, months).map(function(p){ return p / 100; });
+  }
+
+  function runwayElecCumulativeLoad(monthIndex, rampFractions){
+    const ramps = rampFractions && rampFractions.length ? rampFractions : runwayElecRampFractionsFromPct(null);
+    let load = 0;
+    for (let i = 0; i <= monthIndex; i++){
+      load += ramps[i] != null ? ramps[i] : ramps[ramps.length - 1];
+    }
+    return Math.min(load, 1);
+  }
+
+  function runwayElecEffectiveAmount(monthlyFull, startupRunwayMonths, rampFractions){
+    const mo = Math.max(1, parseFloat(startupRunwayMonths) || 3);
+    const ramps = rampFractions || runwayElecRampFractionsFromPct(null, mo);
+    const base = parseFloat(monthlyFull) || 0;
+    let total = 0;
+    for (let m = 0; m < mo; m++) total += base * runwayElecCumulativeLoad(m, ramps);
+    return total;
+  }
+
+  function runwayElecRampLoads(startupRunwayMonths, rampFractions){
+    const mo = Math.max(1, parseFloat(startupRunwayMonths) || 3);
+    const ramps = rampFractions || runwayElecRampFractionsFromPct(null, mo);
+    const loads = [];
+    for (let m = 0; m < mo; m++) loads.push(runwayElecCumulativeLoad(m, ramps));
+    return loads;
+  }
+
   global.DG_ECON = {
+    RUNWAY_ELEC_RAMP_DEFAULTS_PCT: RUNWAY_ELEC_RAMP_DEFAULTS_PCT,
+    normalizeRunwayElecRampPct: normalizeRunwayElecRampPct,
+    runwayElecRampFractionsFromPct: runwayElecRampFractionsFromPct,
+    runwayElecCumulativeLoad: runwayElecCumulativeLoad,
+    runwayElecEffectiveAmount: runwayElecEffectiveAmount,
+    runwayElecRampLoads: runwayElecRampLoads,
     ECON_DEFAULT_CONSUMABLES_PER_POT: ECON_DEFAULT_CONSUMABLES_PER_POT,
     ECON_DEFAULT_CONSUMABLES_PER_TRAY: ECON_DEFAULT_CONSUMABLES_PER_TRAY,
     ECON_DEFAULT_LOT_DENSITY: ECON_DEFAULT_LOT_DENSITY,
@@ -150,10 +205,23 @@
     return o;
   }
 
+  function getRunwayElecRampFractions(e){
+    e = e || (st().econ || {});
+    return runwayElecRampFractionsFromPct(e.startupRunwayElecRamp, e.startupRunwayMonths);
+  }
+
+  function migrateEconRunwayElecRamp(e){
+    if (!e) return;
+    e.startupRunwayElecRamp = normalizeRunwayElecRampPct(e.startupRunwayElecRamp, e.startupRunwayMonths);
+  }
+
   function econEquipEffectiveAmount(key, equipment, equipmentMonths, startupRunwayMonths){
     const amt = parseFloat(equipment && equipment[key]) || 0;
     const meta = getEquipItemMeta(key);
     if (!meta || !meta.monthly) return amt;
+    if (meta.runway && key === 'runwayElec'){
+      return runwayElecEffectiveAmount(amt, startupRunwayMonths, getRunwayElecRampFractions());
+    }
     let mo;
     if (meta.runway){
       mo = Math.max(1, parseFloat(startupRunwayMonths) || meta.defaultMonths || 3);
@@ -219,6 +287,8 @@
       priceKwh: 5,
       rentMonth: 0,
       payrollTax: true,
+      payrollTaxPct: 30,
+      payrollStaffCostPct: 0,
       staffLines: defaultStaffLines(),
       payrollCustom: [],
       accountingMonth: 15000,
@@ -238,6 +308,8 @@
       consumablesPerKg: 0,
       consumablesPerPcs: 0,
       wastePct: 0,
+      wasteEnabled: true,
+      waterEnabled: true,
       usnTax: false,
       vatTax: false,
       vatInclusive: false,
@@ -249,6 +321,7 @@
       equipment: defaultEconEquipment(),
       equipmentMonths: defaultEconEquipmentMonths(),
       startupRunwayMonths: 3,
+      startupRunwayElecRamp: RUNWAY_ELEC_RAMP_DEFAULTS_PCT.slice(),
       equipmentCustom: []
     };
   }
@@ -661,7 +734,7 @@
     const lotSale = !!(cv && cv.econLotSale);
     const potsPerSqm = bio.density;
     const perPot = bio.consumablesPerPot;
-    const wasteFactor = e ? (1 - deps.clamp(parseFloat(e.wastePct) || 0, 0, 50) / 100) : 1;
+    const wasteFactor = e ? econWasteFactor(e) : 1;
     const sellableOutput = monthlyOutput * wasteFactor;
     const harvestMonths = bio.potHarvestMonths;
     const pots = potsPerSqm * Math.max(0, area);
@@ -877,6 +950,10 @@
     if (e.vatTax == null) e.vatTax = false;
     if (e.vatInclusive == null) e.vatInclusive = false;
     if (e.profitTax == null) e.profitTax = false;
+    if (e.payrollTaxPct == null || isNaN(parseFloat(e.payrollTaxPct))){
+      e.payrollTaxPct = e.payrollTax !== false ? 42.5 : 30;
+    }
+    if (e.payrollStaffCostPct == null || isNaN(parseFloat(e.payrollStaffCostPct))) e.payrollStaffCostPct = 0;
   }
 
   function calcVatTaxAmt(revenue, e){
@@ -916,6 +993,19 @@
   function migrateEconOtherElectricity(e){
     migrateEconElecCats(e);
     migrateEconPayroll(e);
+  }
+
+  function econWaterInCalc(e){
+    return !e || e.waterEnabled !== false;
+  }
+
+  function econWasteInCalc(e){
+    return !e || e.wasteEnabled !== false;
+  }
+
+  function econWasteFactor(e){
+    if (!econWasteInCalc(e)) return 1;
+    return 1 - deps.clamp(parseFloat(e && e.wastePct) || 0, 0, 50) / 100;
   }
 
   function calcWaterMonthly(e){
@@ -974,7 +1064,10 @@
     const gross = (e.staffLines || []).reduce(function(s, row){
       return s + Math.max(0, parseFloat(row.salary) || 0);
     }, 0);
-    const payrollTax = e.payrollTax ? gross * 0.425 : 0;
+    const taxPct = deps.clamp(parseFloat(e.payrollTaxPct) || 0, 0, 100);
+    const staffCostPct = deps.clamp(parseFloat(e.payrollStaffCostPct) || 0, 0, 100);
+    const payrollTax = e.payrollTax ? gross * (taxPct / 100) : 0;
+    const payrollStaffCost = staffCostPct > 0 ? gross * (staffCostPct / 100) : 0;
     const custom = (e.payrollCustom || []).reduce(function(s, row){
       return s + payrollCustomMonthlyAmount(row);
     }, 0);
@@ -982,10 +1075,13 @@
     return {
       gross: gross,
       payrollTax: payrollTax,
+      payrollTaxPct: taxPct,
+      payrollStaffCost: payrollStaffCost,
+      payrollStaffCostPct: staffCostPct,
       custom: custom,
       accounting: accounting,
       headcount: (e.staffLines || []).length,
-      total: gross + payrollTax + custom + accounting
+      total: gross + payrollTax + payrollStaffCost + custom + accounting
     };
   }
 
@@ -1202,7 +1298,7 @@
       scale = totalPctRaw > 100 ? 100 / totalPctRaw : 1;
       totalPct = totalPctRaw;
     }
-    const wasteFactor = 1 - deps.clamp(parseFloat(e.wastePct) || 0, 0, 50) / 100;
+    const wasteFactor = econWasteFactor(e);
 
     const parts = st().econ.cultures.map(row => {
       const norm = normalizeEconCultureRow(row);
@@ -1216,7 +1312,8 @@
         pct = deps.clamp(parseFloat(norm.pct) || 0, 0, 100) * scale;
         area = plantingArea * pct / 100;
       }
-      const salePrice = parseFloat(norm.salePrice) || 0;
+      const defaultSalePrice = parseFloat(e.salePrice) || 0;
+      const salePrice = parseFloat(norm.salePrice) > 0 ? parseFloat(norm.salePrice) : defaultSalePrice;
       const slice = calcCultureSliceFromRow(norm, e, area, salePrice);
       return {
         cvId: norm.cvId || '',
@@ -1232,6 +1329,7 @@
     const payroll = calcPayrollMonthly(e);
     const staffGross = payroll.gross;
     const payrollTax = payroll.payrollTax;
+    const payrollStaffCost = payroll.payrollStaffCost;
     const payrollCustom = payroll.custom;
     const accountingMonth = payroll.accounting;
     const staffTotal = payroll.total;
@@ -1243,7 +1341,7 @@
     const logistics = parseFloat(e.logisticsMonth) || 0;
     const other = parseFloat(e.otherMonth) || 0;
     const water = calcWaterMonthly(e);
-    const waterCost = water.cost;
+    const waterCost = econWaterInCalc(e) ? water.cost : 0;
     const otherElec = calcOtherElecMonthly(e);
     const otherElecCost = otherElec.cost;
     const fixedOpex = rent + staffTotal + logistics + other + waterCost + otherElecCost + equipAmort;
@@ -1381,6 +1479,9 @@
       areaUsed: areaUsed,
       plantingArea: plantingArea,
       wastePct: parseFloat(e.wastePct) || 0,
+      wasteEnabled: econWasteInCalc(e),
+      waterEnabled: econWaterInCalc(e),
+      wasteFactor: wasteFactor,
       sellKg: sellKg,
       sellPcs: sellPcs,
       sellMicroBabyPcs: sellMicroBabyPcs,
@@ -1413,6 +1514,9 @@
       staffTotal: staffTotal,
       staffGross: staffGross,
       payrollTax: payrollTax,
+      payrollTaxPct: payroll.payrollTaxPct,
+      payrollStaffCost: payrollStaffCost,
+      payrollStaffCostPct: payroll.payrollStaffCostPct,
       payrollCustom: payrollCustom,
       accountingMonth: accountingMonth,
       payroll: payroll,
@@ -1456,6 +1560,14 @@
       defaultEconEquipment: defaultEconEquipment,
       defaultEconEquipmentMonths: defaultEconEquipmentMonths,
       econEquipEffectiveAmount: econEquipEffectiveAmount,
+      normalizeRunwayElecRampPct: normalizeRunwayElecRampPct,
+      migrateEconRunwayElecRamp: migrateEconRunwayElecRamp,
+      runwayElecEffectiveAmount: function(monthlyFull, mo){
+        return runwayElecEffectiveAmount(monthlyFull, mo, getRunwayElecRampFractions());
+      },
+      runwayElecRampLoads: function(mo){
+        return runwayElecRampLoads(mo, getRunwayElecRampFractions());
+      },
       getEquipItemMeta: getEquipItemMeta,
       defaultEconCultureRow: defaultEconCultureRow,
       defaultEconCultures: defaultEconCultures,
@@ -1484,6 +1596,9 @@
       migrateEconElecCats: migrateEconElecCats,
       migrateEconPayroll: migrateEconPayroll,
       migrateEconOtherElectricity: migrateEconOtherElectricity,
+      econWaterInCalc: econWaterInCalc,
+      econWasteInCalc: econWasteInCalc,
+      econWasteFactor: econWasteFactor,
       ECON_ELEC_CAT_IDS: ECON_ELEC_CAT_IDS,
       ensureEconCultures: ensureEconCultures,
       econGetAreaMode: econGetAreaMode,

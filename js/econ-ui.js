@@ -33,9 +33,11 @@
       if (!(val > 0)) return '—';
       return u === 'шт' ? moneyPer(val, 'econ.perPcs', { decimals: 2 }) : moneyPer(val, 'econ.perKg');
     }
-    function unitCostBreakdownLine(label, val, u){
+    function unitCostBreakdownLine(label, val, u, monthlyAlloc){
       if (!(val > 0)) return '';
-      return '<div class="line line--sub"><span>' + label + '</span><strong>' + fmtUnitCost(val, u) + '</strong></div>';
+      let amt = fmtUnitCost(val, u);
+      if (monthlyAlloc > 0) amt += '<span class="econ-uc-mo"> · ' + moneyFmt(monthlyAlloc) + L('econ.perMonth') + '</span>';
+      return '<div class="line line--sub"><span>' + label + '</span><strong>' + amt + '</strong></div>';
     }
     function parseMoney(v){ return deps.parseMoneyInput ? deps.parseMoneyInput(v) : deps.parseNumInput(v); }
     function fmtMoneyInp(rub, d){ return deps.formatMoneyInput ? deps.formatMoneyInput(rub, d) : deps.formatInputValue(rub, d); }
@@ -171,6 +173,35 @@
       const v = deps.parseNumInput(inp.value);
       inp.value = isNaN(v) ? '' : deps.formatInputValue(v, dec);
     });
+  }
+
+  function syncEconCalcOpts(){
+    const e = st().econ;
+    const waterOn = e.waterEnabled !== false;
+    const wasteOn = e.wasteEnabled !== false;
+    const waterChk = deps.$('econ-water-enabled');
+    const wasteChk = deps.$('econ-waste-enabled');
+    if (waterChk) waterChk.checked = waterOn;
+    if (wasteChk) wasteChk.checked = wasteOn;
+    const waterOpt = deps.$('econ-water-opt');
+    const wasteOpt = deps.$('econ-waste-opt');
+    if (waterOpt) waterOpt.classList.toggle('econ-calc-opt--off', !waterOn);
+    if (wasteOpt) wasteOpt.classList.toggle('econ-calc-opt--off', !wasteOn);
+    const waterHint = deps.$('econ-water-off-hint');
+    const wasteHint = deps.$('econ-waste-off-hint');
+    if (waterHint){
+      waterHint.hidden = waterOn;
+      if (!waterOn) waterHint.textContent = L('econ.waterOffHint');
+    }
+    if (wasteHint){
+      wasteHint.hidden = wasteOn;
+      if (!wasteOn) wasteHint.textContent = L('econ.wasteOffHint');
+    }
+    const payrollOpt = deps.$('econ-payroll-opt');
+    const payrollTaxOn = e.payrollTax !== false;
+    const payrollChk = deps.$('econ-payroll-tax');
+    if (payrollChk) payrollChk.checked = payrollTaxOn;
+    if (payrollOpt) payrollOpt.classList.toggle('econ-calc-opt--off', !payrollTaxOn);
   }
 
   function syncEconEquipmentPanel(){
@@ -315,9 +346,19 @@
     return Math.max(1, parseFloat(st().econ.startupRunwayMonths) || 3);
   }
 
+  function runwayElecRampLabel(months){
+    const loads = deps.runwayElecRampLoads ? deps.runwayElecRampLoads(months) : [];
+    if (!loads.length) return tFmt('econ.runway.timesMonths', { months: deps.fmtNum(months) });
+    const pct = loads.map(function(l){ return deps.r1(l * 100) + '%'; });
+    return tFmt('econ.runway.elecRamp', { loads: pct.join('→') });
+  }
+
   function equipLineTotal(key, monthlyAmt, months, opts){
     const meta = opts || (deps.getEquipItemMeta ? deps.getEquipItemMeta(key) : null);
     if (!meta || !meta.monthly) return parseFloat(monthlyAmt) || 0;
+    if (meta.runway && key === 'runwayElec' && deps.runwayElecEffectiveAmount){
+      return deps.runwayElecEffectiveAmount(monthlyAmt, startupRunwayMonthsVal());
+    }
     let mo;
     if (meta.runway) mo = startupRunwayMonthsVal();
     else mo = Math.max(1, parseFloat(months) || meta.defaultMonths || 1);
@@ -340,7 +381,10 @@
     if (!wrap) return;
     const runwayMo = startupRunwayMonthsVal();
     wrap.querySelectorAll('[data-econ-runway-mo-label]').forEach(function(el){
-      el.textContent = tFmt('econ.runway.timesMonths', { months: deps.fmtNum(runwayMo) });
+      const row = el.closest('.econ-equip-row');
+      const eqInp = row && row.querySelector('[data-econ-eq]');
+      const key = eqInp && eqInp.dataset.econEq;
+      el.textContent = key === 'runwayElec' ? runwayElecRampLabel(runwayMo) : tFmt('econ.runway.timesMonths', { months: deps.fmtNum(runwayMo) });
     });
     wrap.querySelectorAll('[data-econ-eq-total]').forEach(function(el){
       const key = el.dataset.econEqTotal;
@@ -357,6 +401,25 @@
     return grp.items.some(function(it){ return it[2] && it[2].runway; });
   }
 
+  function ensureRunwayElecRampState(){
+    const e = st().econ;
+    if (deps.migrateEconRunwayElecRamp) deps.migrateEconRunwayElecRamp(e);
+    else if (deps.normalizeRunwayElecRampPct){
+      e.startupRunwayElecRamp = deps.normalizeRunwayElecRampPct(e.startupRunwayElecRamp, e.startupRunwayMonths);
+    }
+  }
+
+  function renderRunwayElecRampInputs(){
+    ensureRunwayElecRampState();
+    const ramps = st().econ.startupRunwayElecRamp || [];
+    let html = '<div class="econ-runway-ramp-row"><span class="econ-runway-ramp-lbl">' + L('econ.runway.elecRampLabel') + '</span>';
+    ramps.forEach(function(v, i){
+      html += '<label class="econ-runway-ramp-cell">' + tFmt('econ.runway.elecRampMonth', { n: i + 1 }) +
+        '<input type="text" inputmode="decimal" class="econ-num-fmt econ-runway-ramp-inp" data-econ-decimals="0" data-econ-runway-elec-ramp="' + i + '" value="' + deps.formatInputValue(v, 0) + '" title="' + econEscAttr(L('econ.runway.elecRampHint')) + '"></label>';
+    });
+    return html + '<span class="econ-hint econ-runway-ramp-hint">' + L('econ.runway.elecRampHint') + '</span></div>';
+  }
+
   function renderRunwayIntro(){
     const mo = startupRunwayMonthsVal();
     return '<div class="econ-runway-intro">' +
@@ -365,7 +428,7 @@
       '<label class="econ-runway-months-lbl">' + L('econ.runway.monthsLabel') +
       '<input type="text" inputmode="numeric" class="econ-num-fmt econ-runway-months-inp" data-econ-decimals="0" data-econ-startup-runway-months value="' + deps.formatInputValue(mo, 0) + '"></label>' +
       '<button type="button" class="auto-btn econ-runway-sync-btn" data-econ-runway-sync>' + L('econ.runway.syncBtn') + '</button>' +
-      '</div></div>';
+      '</div>' + renderRunwayElecRampInputs() + '</div>';
   }
 
   function renderEquipHeadRow(hasMonthly, runway){
@@ -399,7 +462,7 @@
       return '<div class="econ-equip-row econ-equip-row--monthly econ-equip-row--runway">' +
         labelCell +
         '<input type="text" id="econ-eq-' + k + '" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-eq="' + k + '" value="' + deps.formatInputValue(val, 0) + '">' +
-        '<span class="econ-equip-runway-mo" data-econ-runway-mo-label>' + tFmt('econ.runway.timesMonths', { months: deps.fmtNum(startupRunwayMonthsVal()) }) + '</span>' +
+        '<span class="econ-equip-runway-mo" data-econ-runway-mo-label>' + (k === 'runwayElec' ? runwayElecRampLabel(startupRunwayMonthsVal()) : tFmt('econ.runway.timesMonths', { months: deps.fmtNum(startupRunwayMonthsVal()) })) + '</span>' +
         '<span class="econ-equip-line-total" data-econ-eq-total="' + k + '">' + moneyFmt(total) + '</span>' +
         '<span></span></div>';
     }
@@ -668,16 +731,23 @@
     if (!el) return;
     const rows = farm.elecBreakdown || [];
     const maxCost = Math.max.apply(null, rows.map(function(r){ return r.cost || 0; }).concat([1]));
-    let html = '<p class="econ-results-sub" style="margin-top:0">' + L('econ.elec.chartTitle') + '</p>';
+    let html = '<div class="econ-elec-chart-card">' +
+      '<div class="econ-elec-chart-top">' +
+      '<h4 class="econ-elec-chart-title">' + L('econ.elec.chartTitle') + '</h4>' +
+      '<div class="econ-elec-bar-cols" aria-hidden="true"><span></span><span></span><span>' + L('econ.tbl.kwh') + '</span><span>' + moneySym() + '</span></div>' +
+      '</div><div class="econ-elec-charts">';
     rows.forEach(function(row){
       const pct = maxCost > 0 ? Math.round((row.cost / maxCost) * 100) : 0;
       const lbl = row.id === 'light' ? L('econ.elec.cat.light') : elecCatLabel(row.id);
       const sub = row.kw != null ? tFmt('econ.elec.catSub', { kw: deps.r1(row.kw), h: deps.r1(row.h) }) : L('econ.elec.catLightSub');
-      html += '<div class="econ-elec-bar-row"><span class="econ-elec-bar-label">' + lbl + '<span class="econ-elec-bar-sub">' + sub + '</span></span>' +
+      const zero = !(row.cost > 0);
+      html += '<div class="econ-elec-bar-row' + (zero ? ' econ-elec-bar-row--zero' : '') + '">' +
+        '<span class="econ-elec-bar-label">' + lbl + '<span class="econ-elec-bar-sub">' + sub + '</span></span>' +
         '<div class="econ-elec-bar-track"><div class="econ-elec-bar-fill" style="width:' + pct + '%"></div></div>' +
         '<span class="econ-elec-bar-kwh">' + deps.fmtNum(row.kwh || 0) + '</span>' +
         '<span class="econ-elec-bar-cost">' + moneyFmt(row.cost) + '</span></div>';
     });
+    html += '</div></div>';
     el.innerHTML = html;
   }
 
@@ -739,10 +809,26 @@
       if (runwayMoInp != null){
         deps.ensureEconEquipment();
         st().econ.startupRunwayMonths = Math.max(1, deps.parseNumInput(t.value) || 1);
+        ensureRunwayElecRampState();
         deps.saveEconStore();
+        renderEconomicsEquipment();
         updateEconEquipLineTotals();
         updateEconEquipmentTotal();
         renderEconomics();
+        return;
+      }
+      const rampIdx = t.dataset.econRunwayElecRamp;
+      if (rampIdx != null){
+        deps.ensureEconEquipment();
+        ensureRunwayElecRampState();
+        const i = parseInt(rampIdx, 10);
+        if (i >= 0 && st().econ.startupRunwayElecRamp[i] != null){
+          st().econ.startupRunwayElecRamp[i] = Math.max(0, deps.parseNumInput(t.value) || 0);
+          deps.saveEconStore();
+          updateEconEquipLineTotals();
+          updateEconEquipmentTotal();
+          renderEconomics();
+        }
         return;
       }
       const eqMo = t.dataset.econEqMonths;
@@ -784,12 +870,13 @@
   function renderEconomicsForm(){
     const gen = deps.$('econ-inputs-general');
     var ft = formToken();
-    const genToken = ft + '-farm-v4';
+    const genToken = ft + '-farm-v6';
     if (!gen){
       ensureEconSubPanels(ft);
       return;
     }
     if (gen.dataset.built === genToken){
+      syncEconCalcOpts();
       ensureEconSubPanels(ft);
       return;
     }
@@ -797,14 +884,30 @@
     gen.innerHTML =
       econNumInput('priceKwh', moneyLabel('econ.priceKwh', 'econ.perKwh'), { step: 0.1 }) +
       econNumInput('rentMonth', moneyLabel('econ.rentMonth', 'econ.perMonth'), { step: 1000 }) +
+      '<div class="econ-calc-opt" id="econ-payroll-opt">' +
       econToggleHtml('econ-payroll-tax', L('econ.payrollTax'), st().econ.payrollTax) +
+      '<div class="econ-calc-opt-fields">' +
+      econNumInput('payrollTaxPct', L('econ.payrollTaxPct'), { step: 0.1, hint: L('econ.payrollTaxPct.hint') }) +
+      econNumInput('payrollStaffCostPct', L('econ.payrollStaffCostPct'), { step: 0.1, hint: L('econ.payrollStaffCostPct.hint') }) +
+      '</div></div>' +
+      econNumInput('salePrice', L('econ.salePrice'), { step: 1, hint: L('econ.salePrice.hint') }) +
       econNumInput('logisticsMonth', moneyLabel('econ.logisticsMonth', 'econ.perMonth'), { step: 1000 }) +
+      '<div class="econ-calc-opt" id="econ-water-opt">' +
+      econToggleHtml('econ-water-enabled', L('econ.waterInCalc'), st().econ.waterEnabled !== false) +
+      '<p class="econ-calc-opt-hint" id="econ-water-off-hint" hidden></p>' +
+      '<div class="econ-calc-opt-fields" id="econ-water-fields">' +
       econNumInput('waterM3Month', L('econ.waterM3Month'), { step: 0.1, decimals: 1, hint: L('econ.waterM3Month.hint') }) +
       econNumInput('waterPriceM3', moneyLabel('econ.waterPriceM3', 'econ.perM3'), { step: 1, hint: L('econ.waterPriceM3.hint') }) +
       econNumInput('waterFertPerM3', moneyLabel('econ.waterFertPerM3', 'econ.perM3'), { step: 1, hint: L('econ.waterFertPerM3.hint') }) +
+      '</div></div>' +
       econNumInput('floorArea', L('econ.floorArea'), { step: 1 }) +
       econNumInput('plantingArea', L('econ.plantingArea'), { step: 1 }) +
+      '<div class="econ-calc-opt" id="econ-waste-opt">' +
+      econToggleHtml('econ-waste-enabled', L('econ.wasteInCalc'), st().econ.wasteEnabled !== false) +
+      '<p class="econ-calc-opt-hint" id="econ-waste-off-hint" hidden></p>' +
+      '<div class="econ-calc-opt-fields" id="econ-waste-fields">' +
       econNumInput('wastePct', L('econ.wastePct'), { step: 1, hint: L('econ.wastePct.hint') }) +
+      '</div></div>' +
       econNumInput('kwhPerM2Hour', L('econ.kwhPerM2Hour'), { step: 0.001, hint: L('econ.kwhPerM2Hour.hint') }) +
       econNumInput('lightHoursDay', L('econ.lightHoursDay'), { step: 0.5, hint: L('econ.lightHoursDay.hint') }) +
       econNumInput('amortMonths', L('econ.amortMonths'), { step: 1 });
@@ -822,11 +925,31 @@
 
     ensureEconSubPanels(ft);
 
+    const waterEn = deps.$('econ-water-enabled');
+    if (waterEn){
+      waterEn.addEventListener('change', () => {
+        st().econ.waterEnabled = waterEn.checked;
+        deps.saveEconStore();
+        syncEconCalcOpts();
+        renderEconomics();
+      });
+    }
+    const wasteEn = deps.$('econ-waste-enabled');
+    if (wasteEn){
+      wasteEn.addEventListener('change', () => {
+        st().econ.wasteEnabled = wasteEn.checked;
+        deps.saveEconStore();
+        syncEconCalcOpts();
+        renderEconomics();
+      });
+    }
+    syncEconCalcOpts();
     const tax = deps.$('econ-payroll-tax');
     if (tax){
       tax.addEventListener('change', () => {
         st().econ.payrollTax = tax.checked;
         deps.saveEconStore();
+        syncEconCalcOpts();
         renderEconomics();
       });
     }
@@ -952,10 +1075,6 @@
       const yieldHint = isLot ? L('econ.cult.yieldCycleHint') : L('econ.cult.yieldHint');
       const consLbl = isLot ? (lotPot ? L('econ.cult.consPot') : L('econ.cult.consTray')) : L('econ.cult.consPot');
       const consPh = isLot ? '10' : String(ECON_CONSUMABLES_PER_POT_HINT);
-      const mixToggle = '<div class="econ-mix-inline">' +
-        '<label class="econ-mix-check"><input type="checkbox" data-econ-mix-incl="' + i + '"' + (norm.mixInMix ? ' checked' : '') + '> ' + L('econ.mix.use') + '</label>' +
-        (norm.mixInMix ? ('<label class="econ-mix-pct-lbl">' + L('econ.mix.pct') + ' <input type="text" inputmode="decimal" class="econ-mix-pct" data-econ-mix-pct-row="' + i + '" value="' + deps.formatInputValue(norm.mixPct || 0, 1) + '"></label>') : '') +
-        '</div>';
       html += '<div class="econ-culture-card" data-econ-culture-idx="' + i + '">' +
         '<div class="econ-culture-head">' +
         '<div class="econ-field"><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i) + '</select></div>' +
@@ -965,7 +1084,6 @@
         '<div class="econ-field"><label>' + L('econ.cult.price') + ', ' + moneySym() + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" placeholder="—" data-econ-culture-price="' + i + '" value="' + (sp ? fmtMoneyInp(sp, 0) : '') + '"></div>' +
         '<button type="button" class="econ-rm" data-econ-culture-rm="' + i + '" title="' + L('econ.btn.remove') + '" aria-label="' + L('econ.btn.remove') + '">×</button>' +
         '</div>' +
-        mixToggle +
         '<div class="econ-culture-params">' +
         econCultParamInput(i, 'density', L('econ.cult.density'), { step: 1 }) +
         econCultParamInput(i, 'yieldPerCut', yieldLbl, { step: isLot ? 1 : 0.1, decimals: isLot ? 0 : null, title: yieldHint }) +
@@ -1309,7 +1427,8 @@
     renderEconDerivedPanel();
 
     const res = farm;
-    const wasteFactor = 1 - deps.clamp(res.wastePct || 0, 0, 50) / 100;
+    const wasteActive = res.wasteEnabled !== false && (res.wastePct || 0) > 0;
+    const wasteFactor = res.wasteFactor != null ? res.wasteFactor : 1;
     const hasKg = res.sellKg > 0 || res.outKg > 0;
     const hasPcs = res.sellPcs > 0 || res.outPcs > 0;
     const mixed = hasKg && hasPcs;
@@ -1321,7 +1440,7 @@
       const pctShow = opts.pctShow;
       const farm = opts.farm;
       const res = opts.res;
-      const wasteSuffix = res.wastePct > 0 && !opts.skipWaste ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '';
+      const wasteSuffix = wasteActive && !opts.skipWaste ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '';
       const unit = opts.unit || uPcs();
       const valStr = opts.decimals != null ? deps.fmtNum(sellVal, { decimals: opts.decimals }) : deps.fmtNum(sellVal);
       return '<tr class="econ-total-row"><td><strong>' + label + '</strong></td><td>' + (mixed ? '—' : pctShow) + '</td><td>' + (mixed ? '—' : deps.r1(farm.areaUsed)) + '</td><td>' +
@@ -1331,7 +1450,7 @@
     const cultTbl = deps.$('econ-cultures-breakdown');
     const cultNote = deps.$('econ-cultures-breakdown-note');
     if (cultNote){
-      if (res.wastePct > 0 && parts.length){
+      if (wasteActive && parts.length){
         cultNote.textContent = tFmt('econ.tbl.outWasteNote', { pct: deps.r1(res.wastePct) });
         cultNote.hidden = false;
       } else {
@@ -1341,7 +1460,7 @@
     }
     if (cultTbl){
       if (parts.length){
-        const revHdr = res.wastePct > 0 ? L('econ.tbl.revNet') : L('econ.tbl.rev');
+        const revHdr = wasteActive ? L('econ.tbl.revNet') : L('econ.tbl.rev');
         let ch = '<tr><th>' + L('econ.cult.culture') + '</th><th>%</th><th>' + L('econ.unit.sqm') + '</th><th>' + L('econ.tbl.out') + '</th><th>' + L('econ.tbl.cost') + '</th><th>' + moneySym() + L('econ.perSqm') + '</th><th>' + revHdr + '</th><th>' + L('econ.tbl.margin') + '</th></tr>';
         parts.forEach(p => {
           const u = p.slice.outputUnit;
@@ -1352,7 +1471,7 @@
           if (gross > 0){
             const gStr = u === 'кг' ? deps.r1(gross) : deps.fmtNum(gross);
             const sStr = u === 'кг' ? deps.r1(sell) : deps.fmtNum(sell);
-            out = res.wastePct > 0 ? gStr + ' → ' + sStr + ' ' + uOut(u) : gStr + ' ' + uOut(u);
+            out = wasteActive ? gStr + ' → ' + sStr + ' ' + uOut(u) : gStr + ' ' + uOut(u);
           }
           const uc = p.slice.unitCostFull > 0 ? fmtUnitCost(p.slice.unitCostFull, u) : '—';
           const consSqm = p.slice.consumablesPerSqm > 0 ? moneyPer(p.slice.consumablesPerSqm, 'econ.perSqm') : '—';
@@ -1362,7 +1481,7 @@
         const totOpts = { mixed: mixed, pctShow: pctShow, farm: farm, res: res, skipWaste: mixed };
         if (hasKg){
           ch += '<tr class="econ-total-row"><td><strong>' + L('econ.tbl.totalKg') + '</strong></td><td>' + pctShow + '</td><td>' + deps.r1(farm.areaUsed) + '</td><td>' +
-            (res.sellKg > 0 ? deps.r1(res.sellKg) + ' ' + uKg() + (res.wastePct > 0 ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '') : '—') +
+            (res.sellKg > 0 ? deps.r1(res.sellKg) + ' ' + uKg() + (wasteActive ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '') : '—') +
             '</td><td><strong>' + (res.unitCostKg > 0 ? moneyFmt(res.unitCostKg) : '—') + '</strong></td><td>—</td><td><strong>' + moneyFmt(res.revKg) + '</strong></td><td><strong>' + moneyFmt(res.marginKg) + '</strong></td></tr>';
         }
         ch += outputTotalRow(L('econ.tbl.outMicroBaby'), res.sellMicroBabyPcs, totOpts);
@@ -1393,17 +1512,19 @@
         const consOnceArea = p.slice.consumablesOnce > 0 ? moneyFmt(p.slice.consumablesOnce) : '—';
         const ucFmt = fmtUnitCost(uc, u);
         const sl = p.slice;
-        let breakdown = unitCostBreakdownLine(L('econ.metrics.unitCostElecLight'), sl.unitCostLight, u) +
-          unitCostBreakdownLine(L('econ.metrics.unitCostElecInfra'), sl.unitCostElecOther, u);
+        const sellMo = sell;
+        const elecOtherMo = sl.unitCostElecOther > 0 && sellMo > 0 ? sl.unitCostElecOther * sellMo : 0;
+        let breakdown = unitCostBreakdownLine(L('econ.metrics.unitCostElecLight'), sl.unitCostLight, u, sl.lightCost || 0) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostElecInfra'), sl.unitCostElecOther, u, elecOtherMo);
         if (!breakdown && sl.unitCostElec > 0){
           breakdown = unitCostBreakdownLine(L('econ.metrics.unitCostElec'), sl.unitCostElec, u);
         }
-        breakdown += unitCostBreakdownLine(L('econ.metrics.unitCostFot'), sl.unitCostStaff, u) +
-          unitCostBreakdownLine(L('econ.metrics.unitCostRent'), sl.unitCostRent, u) +
-          unitCostBreakdownLine(L('econ.metrics.unitCostLog'), sl.unitCostLogistics, u) +
-          unitCostBreakdownLine(L('econ.metrics.unitCostWater'), sl.unitCostWater, u) +
-          unitCostBreakdownLine(L('econ.metrics.unitCostOther'), sl.unitCostOther, u) +
-          unitCostBreakdownLine(L('econ.metrics.unitCostAmort'), sl.unitCostAmort, u);
+        breakdown += unitCostBreakdownLine(L('econ.metrics.unitCostFot'), sl.unitCostStaff, u, sl.allocatedStaff || 0) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostRent'), sl.unitCostRent, u, sl.allocatedRent || 0) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostLog'), sl.unitCostLogistics, u, sl.allocatedLogistics || 0) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostWater'), sl.unitCostWater, u, sl.allocatedWater || 0) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostOther'), sl.unitCostOther, u, sl.allocatedOther || 0) +
+          unitCostBreakdownLine(L('econ.metrics.unitCostAmort'), sl.unitCostAmort, u, sl.allocatedAmort || 0);
         if (sl.unitCostPackaging > 0){
           breakdown += unitCostBreakdownLine(L('econ.metrics.unitCostCons'), sl.unitCostConsPot, u) +
             unitCostBreakdownLine(L('econ.metrics.unitCostPackaging'), sl.unitCostPackaging, u);
@@ -1412,7 +1533,8 @@
         }
         metrics += '<div class="econ-culture-metric"><div class="name">' + p.name + '</div>' +
           '<div class="line line--total"><span>' + L('econ.metrics.unitCost') + '</span><strong>' + ucFmt + '</strong></div>' +
-          (breakdown ? '<div class="econ-uc-breakdown"><div class="econ-uc-breakdown-title">' + L('econ.metrics.unitCostBreakdown') + '</div>' + breakdown + '</div>' : '') +
+          (breakdown ? '<div class="econ-uc-breakdown"><div class="econ-uc-breakdown-title">' + L('econ.metrics.unitCostBreakdown') + '</div>' +
+            '<p class="econ-uc-breakdown-hint">' + L('econ.metrics.unitCostBreakdownHint') + '</p>' + breakdown + '</div>' : '') +
           '<div class="econ-uc-extra">' +
           '<div class="line"><span>' + L('econ.metrics.sowOnce') + '</span><strong>' + consOnceSqm + '</strong> · ' + consOnceArea + '</div>' +
           '<div class="line"><span>' + L('econ.metrics.sowMo') + '</span><strong>' + consSqm + '</strong></div>' +
@@ -1427,14 +1549,14 @@
     }
 
     metrics += '<div class="econ-results-farm"><div id="econ-elec-charts" class="econ-elec-charts-wrap"></div>' +
-      '<p class="econ-results-sub">' + L('econ.metrics.elecMo') + '</p>' +
-      '<div class="econ-table-scroll"><table class="econ-breakdown econ-elec-total"><tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwh') + '</th><th>' + moneySym() + '</th></tr>';
+      '<div class="econ-elec-table-block"><p class="econ-elec-table-title">' + L('econ.metrics.elecMo') + '</p>' +
+      '<div class="econ-table-scroll econ-table-scroll--elec"><table class="econ-breakdown econ-elec-total"><tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwh') + '</th><th>' + moneySym() + '</th></tr>';
     (res.elecBreakdown || []).forEach(function(row){
       const lbl = row.id === 'light' ? L('econ.elec.cat.light') : elecCatLabel(row.id);
       const sub = row.kw != null ? ' <span class="econ-tbl-sub">(' + tFmt('econ.elec.catSub', { kw: deps.r1(row.kw), h: deps.r1(row.h) }) + ')</span>' : '';
       metrics += '<tr><td>' + lbl + sub + '</td><td>' + deps.fmtNum(row.kwh || 0) + '</td><td>' + moneyFmt(row.cost) + '</td></tr>';
     });
-    metrics += '<tr class="econ-row-total"><td><strong>' + L('econ.elec.total') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr></table></div></div>';
+    metrics += '<tr class="econ-row-total"><td><strong>' + L('econ.elec.total') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr></table></div></div></div>';
     deps.$('econ-results-metrics').innerHTML = metrics;
 
     let farmCards = '<div class="econ-results" style="margin-top:0">';
@@ -1467,18 +1589,19 @@
     if (farmCardsEl) farmCardsEl.innerHTML = farmCards;
     renderElecCharts(res);
 
-    const wasteRow = res.wastePct > 0
+    const wasteRow = wasteActive
       ? '<tr><td>' + L('econ.bd.waste') + '</td><td colspan="2">' + deps.r1(res.wastePct) + '%</td></tr>'
       : '';
     let bd =
       '<tr><td>' + L('econ.bd.rent') + '</td><td>—</td><td>' + moneyFmt(res.rent) + '</td></tr>' +
       '<tr><td>' + L('econ.bd.staffGross') + '</td><td>—</td><td>' + moneyFmt(res.staffGross) + '</td></tr>' +
-      (res.payrollTax > 0 ? '<tr><td>' + L('econ.bd.payrollTax') + '</td><td>—</td><td>' + moneyFmt(res.payrollTax) + '</td></tr>' : '') +
+      (res.payrollTax > 0 ? '<tr><td>' + L('econ.bd.payrollTax') + (res.payrollTaxPct > 0 ? ' (' + deps.r1(res.payrollTaxPct) + '%)' : '') + '</td><td>—</td><td>' + moneyFmt(res.payrollTax) + '</td></tr>' : '') +
+      (res.payrollStaffCost > 0 ? '<tr><td>' + L('econ.bd.payrollStaffCost') + (res.payrollStaffCostPct > 0 ? ' (' + deps.r1(res.payrollStaffCostPct) + '%)' : '') + '</td><td>—</td><td>' + moneyFmt(res.payrollStaffCost) + '</td></tr>' : '') +
       (res.payrollCustom > 0 ? '<tr><td>' + L('econ.bd.payrollCustom') + '</td><td>—</td><td>' + moneyFmt(res.payrollCustom) + '</td></tr>' : '') +
       (res.accountingMonth > 0 ? '<tr><td>' + L('econ.bd.accounting') + '</td><td>—</td><td>' + moneyFmt(res.accountingMonth) + '</td></tr>' : '') +
       '<tr><td>' + L('econ.bd.staff') + '</td><td>—</td><td>' + moneyFmt(res.staffTotal) + '</td></tr>' +
       '<tr><td>' + L('econ.bd.logistics') + '</td><td>—</td><td>' + moneyFmt(res.logistics) + '</td></tr>' +
-      (res.waterCost > 0 ? '<tr><td>' + L('econ.bd.water') + '</td><td>' + deps.r1(res.waterM3Month) + '</td><td>' + moneyFmt(res.waterCost) + '</td></tr>' : '');
+      (res.waterEnabled !== false && res.waterCost > 0 ? '<tr><td>' + L('econ.bd.water') + '</td><td>' + deps.r1(res.waterM3Month) + '</td><td>' + moneyFmt(res.waterCost) + '</td></tr>' : '');
     (res.elecBreakdown || []).forEach(function(row){
       const lbl = row.id === 'light' ? L('econ.bd.light') : (L('econ.bd.elecPrefix') + ' ' + elecCatLabel(row.id));
       bd += '<tr><td>' + lbl + '</td><td>' + deps.fmtNum(row.kwh || 0) + '</td><td>' + moneyFmt(row.cost) + '</td></tr>';

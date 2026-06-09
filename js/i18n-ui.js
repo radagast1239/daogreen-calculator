@@ -554,9 +554,9 @@
       var pl = pdfDlg.querySelector('.pdf-export-lead');
       if (pt) pt.textContent = gt('pdf.dialog.title');
       if (pl) pl.textContent = gt('pdf.dialog.lead');
-      ['#pdf-preset-planting', '#pdf-preset-econ', '#pdf-preset-full', '#pdf-select-all', '#pdf-select-none'].forEach(function(sel, i){
+      ['#pdf-preset-planting', '#pdf-preset-econ-brief', '#pdf-preset-econ', '#pdf-preset-econ-client', '#pdf-preset-full', '#pdf-select-all', '#pdf-select-none'].forEach(function(sel, i){
         var el = document.querySelector(sel);
-        var keys = ['pdf.preset.planting', 'pdf.preset.econ', 'pdf.preset.full', 'pdf.select.all', 'pdf.select.none'];
+        var keys = ['pdf.preset.planting', 'pdf.preset.econBrief', 'pdf.preset.econ', 'pdf.preset.econClient', 'pdf.preset.full', 'pdf.select.all', 'pdf.select.none'];
         if (el) el.textContent = gt(keys[i]);
       });
       var pdfCancel = pdfDlg.querySelector('[data-pdf-cancel]');

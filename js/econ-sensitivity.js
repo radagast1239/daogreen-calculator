@@ -43,6 +43,7 @@
     { id: 'crisis', labelKey: 'crisis', label: 'Кризис: цена −10% и урожай −15%', apply: function(e){ return scalePrices(scaleYields(e, -0.15), -0.1); } },
     { id: 'waste-p5', labelKey: 'wasteP5', label: 'Брак +5 п.п.', apply: function(e){
       var c = cloneEcon(e);
+      c.wasteEnabled = true;
       c.wastePct = Math.min(50, (parseFloat(c.wastePct) || 0) + 5);
       return c;
     }},
@@ -64,7 +65,10 @@
     var rent = parseFloat(adj.rentPct) || 0;
     if (price) c = scalePrices(c, price / 100);
     if (yieldF) c = scaleYields(c, yieldF / 100);
-    if (waste) c.wastePct = Math.min(50, (parseFloat(c.wastePct) || 0) + waste);
+    if (waste){
+      c.wasteEnabled = true;
+      c.wastePct = Math.min(50, (parseFloat(c.wastePct) || 0) + waste);
+    }
     if (kwh) c = patchNum(c, 'priceKwh', kwh / 100);
     if (area) c = patchNum(c, 'plantingArea', area / 100);
     if (rent) c = patchNum(c, 'rentMonth', rent / 100);
