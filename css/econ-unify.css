@@ -412,6 +412,65 @@
   border-color: rgba(39, 109, 92, 0.35);
 }
 
+#view-economics .econ-runway-intro {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--olive-pale);
+  border-left: 3px solid var(--brand);
+}
+
+#view-economics .econ-runway-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: flex-end;
+  margin-top: 8px;
+}
+
+#view-economics .econ-runway-months-lbl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+#view-economics .econ-runway-months-inp {
+  width: 72px;
+  text-align: center;
+}
+
+#view-economics .econ-equip-runway-mo {
+  display: block;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+#view-economics .econ-equip-row--monthly {
+  grid-template-columns: 1fr minmax(88px, 108px) minmax(48px, 56px) minmax(88px, 108px) 28px;
+}
+
+#view-economics .econ-equip-row--monthly .econ-equip-months-inp {
+  text-align: center;
+}
+
+#view-economics .econ-equip-line-total {
+  display: block;
+  padding: 8px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--brand-text);
+  white-space: nowrap;
+}
+
 #view-economics .econ-equip-total {
   border-radius: var(--radius-lg);
 }

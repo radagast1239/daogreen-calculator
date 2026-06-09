@@ -51,12 +51,14 @@
       ['commissioning', 'econ.eq.commissioning']
     ]},
     { titleKey: 'econ.eq.grp.extra', items: [
-      ['consumables', 'econ.eq.consumables'],
       ['auxEquip', 'econ.eq.auxEquip'],
       ['extraProd', 'econ.eq.extraProd']
     ]},
+    { titleKey: 'econ.eq.grp.runway', items: [
+      ['prepRent', 'econ.eq.prepRent', { monthly: true, runway: true, defaultMonths: 3 }],
+      ['consumables', 'econ.eq.consumables', { monthly: true, runway: true, defaultMonths: 3 }]
+    ]},
     { titleKey: 'econ.eq.grp.prep', items: [
-      ['prepRent', 'econ.eq.prepRent'],
       ['prepClimate', 'econ.eq.prepClimate'],
       ['prepElectric', 'econ.eq.prepElectric'],
       ['prepWater', 'econ.eq.prepWater'],
@@ -102,12 +104,23 @@
       return s;
     }
 
+    function getEquipItemMeta(key){
+      for (let gi = 0; gi < ECON_EQUIPMENT_GROUPS_RAW.length; gi++){
+        const g = ECON_EQUIPMENT_GROUPS_RAW[gi];
+        for (let ii = 0; ii < g.items.length; ii++){
+          const it = g.items[ii];
+          if (it[0] === key) return it[2] || null;
+        }
+      }
+      return null;
+    }
+
     function getEquipmentGroups(){
       return ECON_EQUIPMENT_GROUPS_RAW.map(function(g){
         return {
           title: T(g.titleKey, g.titleKey),
           items: g.items.map(function(it){
-            return [it[0], T(it[1], it[1])];
+            return [it[0], T(it[1], it[1]), it[2] || null];
           })
         };
       });
@@ -121,6 +134,32 @@
     const o = {};
     ECON_EQUIPMENT_GROUPS_RAW.forEach(g => g.items.forEach(function(it){ o[it[0]] = 0; }));
     return o;
+  }
+
+  function defaultEconEquipmentMonths(){
+    const o = {};
+    ECON_EQUIPMENT_GROUPS_RAW.forEach(function(g){
+      g.items.forEach(function(it){
+        const opts = it[2];
+        if (opts && opts.monthly){
+          o[it[0]] = opts.defaultMonths != null ? opts.defaultMonths : 1;
+        }
+      });
+    });
+    return o;
+  }
+
+  function econEquipEffectiveAmount(key, equipment, equipmentMonths, startupRunwayMonths){
+    const amt = parseFloat(equipment && equipment[key]) || 0;
+    const meta = getEquipItemMeta(key);
+    if (!meta || !meta.monthly) return amt;
+    let mo;
+    if (meta.runway){
+      mo = Math.max(1, parseFloat(startupRunwayMonths) || meta.defaultMonths || 3);
+    } else {
+      mo = Math.max(1, parseFloat(equipmentMonths && equipmentMonths[key]) || meta.defaultMonths || 1);
+    }
+    return amt * mo;
   }
 
   function newEconRowId(prefix){
@@ -202,6 +241,8 @@
       amortMonths: 60,
       equipmentEnabled: true,
       equipment: defaultEconEquipment(),
+      equipmentMonths: defaultEconEquipmentMonths(),
+      startupRunwayMonths: 3,
       equipmentCustom: []
     };
   }
@@ -1389,6 +1430,9 @@
 
     return {
       defaultEconEquipment: defaultEconEquipment,
+      defaultEconEquipmentMonths: defaultEconEquipmentMonths,
+      econEquipEffectiveAmount: econEquipEffectiveAmount,
+      getEquipItemMeta: getEquipItemMeta,
       defaultEconCultureRow: defaultEconCultureRow,
       defaultEconCultures: defaultEconCultures,
       defaultEconState: defaultEconState,

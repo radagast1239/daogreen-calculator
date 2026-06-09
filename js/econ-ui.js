@@ -299,34 +299,146 @@
       '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="' + dec + '" data-econ-key="' + key + '" value="' + disp + '"' + ro + '>' + hint + '</div>';
   }
 
+  function equipItemHint(key){
+    const hintKey = 'econ.eq.hint.' + key;
+    const hint = L(hintKey);
+    return hint !== hintKey ? hint : '';
+  }
+
+  function startupRunwayMonthsVal(){
+    return Math.max(1, parseFloat(st().econ.startupRunwayMonths) || 3);
+  }
+
+  function equipLineTotal(key, monthlyAmt, months, opts){
+    const meta = opts || (deps.getEquipItemMeta ? deps.getEquipItemMeta(key) : null);
+    if (!meta || !meta.monthly) return parseFloat(monthlyAmt) || 0;
+    let mo;
+    if (meta.runway) mo = startupRunwayMonthsVal();
+    else mo = Math.max(1, parseFloat(months) || meta.defaultMonths || 1);
+    return (parseFloat(monthlyAmt) || 0) * mo;
+  }
+
+  function syncRunwayFromCalc(){
+    const e = st().econ;
+    deps.ensureEconEquipment();
+    const rent = parseFloat(e.rentMonth) || 0;
+    if (rent > 0) e.equipment.prepRent = rent;
+    const farm = deps.calcFarmEconomics(e);
+    if (farm && farm.consumablesCost > 0) e.equipment.consumables = Math.round(farm.consumablesCost);
+    deps.saveEconStore();
+  }
+
+  function updateEconEquipLineTotals(){
+    const wrap = deps.$('econ-equipment-groups');
+    if (!wrap) return;
+    const runwayMo = startupRunwayMonthsVal();
+    wrap.querySelectorAll('[data-econ-runway-mo-label]').forEach(function(el){
+      el.textContent = tFmt('econ.runway.timesMonths', { months: deps.fmtNum(runwayMo) });
+    });
+    wrap.querySelectorAll('[data-econ-eq-total]').forEach(function(el){
+      const key = el.dataset.econEqTotal;
+      const amtInp = wrap.querySelector('[data-econ-eq="' + key + '"]');
+      const moInp = wrap.querySelector('[data-econ-eq-months="' + key + '"]');
+      if (!amtInp) return;
+      const meta = deps.getEquipItemMeta ? deps.getEquipItemMeta(key) : null;
+      const total = equipLineTotal(key, deps.parseNumInput(amtInp.value), moInp ? deps.parseNumInput(moInp.value) : null, meta);
+      el.textContent = moneyFmt(total);
+    });
+  }
+
+  function isRunwayGroup(grp){
+    return grp.items.some(function(it){ return it[2] && it[2].runway; });
+  }
+
+  function renderRunwayIntro(){
+    const mo = startupRunwayMonthsVal();
+    return '<div class="econ-runway-intro">' +
+      '<p class="econ-hint econ-runway-hint">' + L('econ.runway.intro') + '</p>' +
+      '<div class="econ-runway-controls">' +
+      '<label class="econ-runway-months-lbl">' + L('econ.runway.monthsLabel') +
+      '<input type="text" inputmode="numeric" class="econ-num-fmt econ-runway-months-inp" data-econ-decimals="0" data-econ-startup-runway-months value="' + deps.formatInputValue(mo, 0) + '"></label>' +
+      '<button type="button" class="auto-btn econ-runway-sync-btn" data-econ-runway-sync>' + L('econ.runway.syncBtn') + '</button>' +
+      '</div></div>';
+  }
+
+  function renderEquipHeadRow(hasMonthly, runway){
+    if (runway){
+      return '<div class="econ-equip-row econ-equip-row--head econ-equip-row--monthly econ-equip-row--runway">' +
+        '<span>' + L('econ.equip.head') + '</span>' +
+        '<span style="text-align:right">' + L('econ.equip.perMonth') + ', ' + moneySym() + '</span>' +
+        '<span style="text-align:center">' + L('econ.equip.months') + '</span>' +
+        '<span style="text-align:right">' + L('econ.equip.lineTotal') + ', ' + moneySym() + '</span>' +
+        '<span></span></div>';
+    }
+    if (hasMonthly){
+      return '<div class="econ-equip-row econ-equip-row--head econ-equip-row--monthly">' +
+        '<span>' + L('econ.equip.head') + '</span>' +
+        '<span style="text-align:right">' + L('econ.equip.perMonth') + ', ' + moneySym() + '</span>' +
+        '<span style="text-align:center">' + L('econ.equip.months') + '</span>' +
+        '<span style="text-align:right">' + L('econ.equip.lineTotal') + ', ' + moneySym() + '</span>' +
+        '<span></span></div>';
+    }
+    return '<div class="econ-equip-row econ-equip-row--head"><span>' + L('econ.equip.head') + '</span><span style="text-align:right">' + L('econ.equip.amount') + ', ' + moneySym() + '</span><span></span></div>';
+  }
+
+  function renderEquipItemRow(k, label, opts){
+    const val = st().econ.equipment[k] || 0;
+    const hint = equipItemHint(k);
+    const title = hint ? ' title="' + econEscAttr(hint) + '"' : '';
+    const monthly = opts && opts.monthly;
+    const runway = opts && opts.runway;
+    if (monthly && runway){
+      const total = equipLineTotal(k, val, null, opts);
+      return '<div class="econ-equip-row econ-equip-row--monthly econ-equip-row--runway">' +
+        '<label for="econ-eq-' + k + '"' + title + '>' + label + '</label>' +
+        '<input type="text" id="econ-eq-' + k + '" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-eq="' + k + '" value="' + deps.formatInputValue(val, 0) + '">' +
+        '<span class="econ-equip-runway-mo" data-econ-runway-mo-label>' + tFmt('econ.runway.timesMonths', { months: deps.fmtNum(startupRunwayMonthsVal()) }) + '</span>' +
+        '<span class="econ-equip-line-total" data-econ-eq-total="' + k + '">' + moneyFmt(total) + '</span>' +
+        '<span></span></div>';
+    }
+    if (monthly){
+      const months = Math.max(1, parseFloat((st().econ.equipmentMonths || {})[k]) || (opts.defaultMonths || 1));
+      const total = equipLineTotal(k, val, months, opts);
+      return '<div class="econ-equip-row econ-equip-row--monthly">' +
+        '<label for="econ-eq-' + k + '"' + title + '>' + label + '</label>' +
+        '<input type="text" id="econ-eq-' + k + '" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-eq="' + k + '" value="' + deps.formatInputValue(val, 0) + '">' +
+        '<input type="text" inputmode="numeric" class="econ-num-fmt econ-equip-months-inp" data-econ-decimals="0" data-econ-eq-months="' + k + '" value="' + deps.formatInputValue(months, 0) + '" aria-label="' + econEscAttr(L('econ.equip.months')) + '">' +
+        '<span class="econ-equip-line-total" data-econ-eq-total="' + k + '">' + moneyFmt(total) + '</span>' +
+        '<span></span></div>';
+    }
+    return '<div class="econ-equip-row"><label for="econ-eq-' + k + '"' + title + '>' + label + '</label>' +
+      '<input type="text" id="econ-eq-' + k + '" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-eq="' + k + '" value="' + deps.formatInputValue(val, 0) + '">' +
+      '<span></span></div>';
+  }
+
   function renderEconomicsEquipment(){
     deps.ensureEconEquipment();
     const wrap = deps.$('econ-equipment-groups');
     if (!wrap) return;
     const active = document.activeElement;
-    const focusKey = active && wrap.contains(active) ? (active.dataset.econEq || active.dataset.econCustomAmount || active.dataset.econCustomLabel) : null;
+    const focusKey = active && wrap.contains(active) ? (active.dataset.econEq || active.dataset.econEqMonths || active.dataset.econStartupRunwayMonths || active.dataset.econCustomAmount || active.dataset.econCustomLabel) : null;
     let html = '';
-    const headRow = '<div class="econ-equip-row econ-equip-row--head"><span>' + L('econ.equip.head') + '</span><span style="text-align:right">' + L('econ.equip.amount') + ', ' + moneySym() + '</span><span></span></div>';
     equipmentGroups().forEach(grp => {
-      html += '<div class="econ-equip-group"><h4>' + grp.title + '</h4><div class="econ-equip-items">' + headRow;
-      grp.items.forEach(([k, label]) => {
-        const val = st().econ.equipment[k] || 0;
-        html += '<div class="econ-equip-row"><label for="econ-eq-' + k + '">' + label + '</label>' +
-          '<input type="text" id="econ-eq-' + k + '" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-eq="' + k + '" value="' + deps.formatInputValue(val, 0) + '">' +
-          '<span></span></div>';
+      const runway = isRunwayGroup(grp);
+      const hasMonthly = runway || grp.items.some(function(it){ return it[2] && it[2].monthly; });
+      html += '<div class="econ-equip-group' + (runway ? ' econ-equip-group--runway' : '') + '"><h4>' + grp.title + '</h4>';
+      if (runway) html += renderRunwayIntro();
+      html += '<div class="econ-equip-items">' + renderEquipHeadRow(hasMonthly, runway);
+      grp.items.forEach(function(it){
+        html += renderEquipItemRow(it[0], it[1], it[2]);
       });
       html += '</div></div>';
     });
     const custom = st().econ.equipmentCustom;
     html += '<div class="econ-equip-group"><h4>' + L('econ.equip.customGroup') + '</h4><div class="econ-equip-items" id="econ-equipment-custom-list">';
-    if (custom.length) html += headRow;
+    if (custom.length) html += renderEquipHeadRow(false, false);
     custom.forEach(it => { html += renderEconCustomEquipRow(it); });
     html += '</div><button type="button" class="auto-btn econ-equip-add-custom" id="econ-equipment-add-custom">+ ' + L('econ.equip.addBtn') + '</button></div>';
     wrap.innerHTML = html;
     syncEconEquipmentPanel();
     updateEconEquipmentTotal();
     if (focusKey){
-      const el = wrap.querySelector('[data-econ-eq="' + focusKey + '"],[data-econ-custom-amount="' + focusKey + '"],[data-econ-custom-label="' + focusKey + '"]');
+      const el = wrap.querySelector('[data-econ-eq="' + focusKey + '"],[data-econ-eq-months="' + focusKey + '"],[data-econ-custom-amount="' + focusKey + '"],[data-econ-custom-label="' + focusKey + '"]');
       if (el) el.focus();
     }
   }
@@ -577,6 +689,12 @@
       });
     }
     root.addEventListener('click', e => {
+      if (e.target.closest('[data-econ-runway-sync]')){
+        syncRunwayFromCalc();
+        renderEconomicsEquipment();
+        renderEconomics();
+        return;
+      }
       if (e.target.closest('#econ-equipment-add-custom')){
         deps.ensureEconEquipment();
         st().econ.equipmentCustom.push({ id: 'eqc_' + Date.now(), label: L('econ.equip.newItem'), amount: 0 });
@@ -610,11 +728,33 @@
         if (it){ it.amount = parseMoney(t.value) || 0; deps.saveEconStore(); updateEconEquipmentTotal(); renderEconomics(); }
         return;
       }
+      const runwayMoInp = t.dataset.econStartupRunwayMonths;
+      if (runwayMoInp != null){
+        deps.ensureEconEquipment();
+        st().econ.startupRunwayMonths = Math.max(1, deps.parseNumInput(t.value) || 1);
+        deps.saveEconStore();
+        updateEconEquipLineTotals();
+        updateEconEquipmentTotal();
+        renderEconomics();
+        return;
+      }
+      const eqMo = t.dataset.econEqMonths;
+      if (eqMo){
+        deps.ensureEconEquipment();
+        if (!st().econ.equipmentMonths) st().econ.equipmentMonths = {};
+        st().econ.equipmentMonths[eqMo] = Math.max(1, deps.parseNumInput(t.value) || 1);
+        deps.saveEconStore();
+        updateEconEquipLineTotals();
+        updateEconEquipmentTotal();
+        renderEconomics();
+        return;
+      }
       const eq = t.dataset.econEq;
       if (eq){
         deps.ensureEconEquipment();
         st().econ.equipment[eq] = parseMoney(t.value) || 0;
         deps.saveEconStore();
+        updateEconEquipLineTotals();
         updateEconEquipmentTotal();
         renderEconomics();
       }

@@ -742,6 +742,54 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   gap: 8px;
   align-items: end;
 }
+.econ-runway-intro {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--olive-pale);
+  border-left: 3px solid var(--brand);
+}
+.econ-runway-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: flex-end;
+  margin-top: 8px;
+}
+.econ-runway-months-lbl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.econ-runway-months-inp { width: 72px; text-align: center; }
+.econ-equip-runway-mo {
+  display: block;
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.econ-equip-row--monthly {
+  grid-template-columns: 1fr minmax(88px, 108px) minmax(48px, 56px) minmax(88px, 108px) 28px;
+}
+.econ-equip-row--monthly .econ-equip-months-inp {
+  text-align: center;
+}
+.econ-equip-line-total {
+  display: block;
+  padding: 8px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--brand-text);
+  white-space: nowrap;
+}
 .econ-equip-row--head {
   align-items: center;
   padding-bottom: 2px;

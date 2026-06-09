@@ -51,8 +51,8 @@
     var decimalsFromStep = depCall('decimalsFromStep', 0);
     var round = depCall('round', 0);
 
-    var defaultEconState, defaultEconEquipment, defaultEconCultureRow, defaultEconCultures;
-    var getEquipmentGroups;
+    var defaultEconState, defaultEconEquipment, defaultEconEquipmentMonths, defaultEconCultureRow, defaultEconCultures;
+    var getEquipmentGroups, getEquipItemMeta, econEquipEffectiveAmount;
     var econCvDisplayName, econGhYieldPerCutFromStd, econCvTotalCycleDays, econSheetCutIntervalDays, econSheetYieldPerCut;
     var econYieldParamsForCvId, econCatalogDefaultsForCvId, normalizeEconCultureRow, parsePotHarvestMonthsFromCv, migrateEconCultureRows;
     var econCultureBio, formatEconCultureHint, calcCultureConsumables, econApplyCultureSelect, importEconRowFromPlanting, importAllEconFromPlanting;
@@ -119,8 +119,13 @@
     if (!st().econ) return;
     if (!st().econ.equipment) st().econ.equipment = getDefaultEconEquipment();
     else st().econ.equipment = Object.assign(getDefaultEconEquipment(), st().econ.equipment);
+    const defaultMonths = typeof defaultEconEquipmentMonths === 'function' ? defaultEconEquipmentMonths() : {};
+    if (!st().econ.equipmentMonths) st().econ.equipmentMonths = defaultMonths;
+    else st().econ.equipmentMonths = Object.assign(defaultMonths, st().econ.equipmentMonths);
     if (!Array.isArray(st().econ.equipmentCustom)) st().econ.equipmentCustom = [];
     if (st().econ.equipmentEnabled == null) st().econ.equipmentEnabled = true;
+    const runwayMo = parseFloat(st().econ.startupRunwayMonths);
+    if (!Number.isFinite(runwayMo) || runwayMo < 1) st().econ.startupRunwayMonths = 3;
   }
 
   function econEquipmentGroups(){
@@ -131,7 +136,16 @@
     ensureEconEquipment();
     let tot = 0;
     const eq = st().econ.equipment;
-    econEquipmentGroups().forEach(g => g.items.forEach(([k]) => { tot += parseFloat(eq[k]) || 0; }));
+    const eqMo = st().econ.equipmentMonths;
+    const runwayMo = st().econ.startupRunwayMonths;
+    econEquipmentGroups().forEach(function(g){
+      g.items.forEach(function(it){
+        const k = it[0];
+        tot += typeof econEquipEffectiveAmount === 'function'
+          ? econEquipEffectiveAmount(k, eq, eqMo, runwayMo)
+          : (parseFloat(eq[k]) || 0);
+      });
+    });
     (st().econ.equipmentCustom || []).forEach(it => { tot += parseFloat(it.amount) || 0; });
     return tot;
   }
@@ -171,6 +185,9 @@
     }));
     getEquipmentGroups = ec.getEquipmentGroups;
     defaultEconEquipment = ec.defaultEconEquipment;
+    defaultEconEquipmentMonths = ec.defaultEconEquipmentMonths;
+    econEquipEffectiveAmount = ec.econEquipEffectiveAmount;
+    getEquipItemMeta = ec.getEquipItemMeta;
     defaultEconCultureRow = ec.defaultEconCultureRow;
     defaultEconCultures = ec.defaultEconCultures;
     defaultEconState = ec.defaultEconState;
@@ -224,6 +241,7 @@
       ECON_SALAD_MIX_CV_IDS: ECON_SALAD_MIX_CV_IDS,
       ECON_CONSUMABLES_PER_POT_HINT: ECON_CONSUMABLES_PER_POT_HINT,
       getEquipmentGroups: econEquipmentGroups,
+      getEquipItemMeta: getEquipItemMeta,
       ECON_EQUIPMENT_GROUPS: ECON_EQUIPMENT_GROUPS_FALLBACK,
       VF_CULTIVARS: VF_CULTIVARS,
       CULTIVARS: CULTIVARS,

@@ -222,10 +222,24 @@
       var rows = [];
       group.querySelectorAll('.econ-equip-row:not(.econ-equip-row--head):not(.econ-equip-row--custom)').forEach(function(row){
         var label = row.querySelector('label');
-        var inp = row.querySelector('input');
         var k = label ? plainCellText(label) : '';
+        if (!k) return;
+        if (row.classList.contains('econ-equip-row--monthly')){
+          var amtInp = row.querySelector('[data-econ-eq]');
+          var moInp = row.querySelector('[data-econ-eq-months]');
+          var moLbl = row.querySelector('[data-econ-runway-mo-label]');
+          var runwayInp = group.querySelector('[data-econ-startup-runway-months]');
+          var totalEl = row.querySelector('[data-econ-eq-total]');
+          var amt = amtInp ? plainCellText(amtInp.value) : '0';
+          var mo = moLbl ? plainCellText(moLbl.textContent).replace(/[×\s]/g, '').replace(/мес\.?/i, '').trim()
+            : (moInp ? plainCellText(moInp.value) : (runwayInp ? plainCellText(runwayInp.value) : '1'));
+          var total = totalEl ? plainCellText(totalEl.textContent) : amt;
+          rows.push([k, amt + ' × ' + mo + ' ' + pdfT('econ.equip.months') + ' = ' + total]);
+          return;
+        }
+        var inp = row.querySelector('input');
         var v = inp ? plainCellText(inp.value) : fieldValue(row);
-        if (k) rows.push([k, v]);
+        rows.push([k, v]);
       });
       group.querySelectorAll('.econ-equip-row--custom').forEach(function(row){
         var inputs = row.querySelectorAll('input');
