@@ -125,6 +125,9 @@
       } else if (inp.dataset.econCulturePct != null){
         const i = parseInt(inp.dataset.econCulturePct, 10);
         if (st().econ.cultures[i]) v = st().econ.cultures[i].pct;
+      } else if (inp.dataset.econCultureSqm != null){
+        const i = parseInt(inp.dataset.econCultureSqm, 10);
+        if (st().econ.cultures[i]) v = st().econ.cultures[i].areaSqm;
       } else if (inp.dataset.econStaffSalary != null){
         const sid = inp.dataset.econStaffSalary;
         const row = (st().econ.staffLines || []).find(function(x){ return x.id === sid; });
@@ -764,7 +767,7 @@
     let html = '';
     st().econ.cultures.forEach((row, i) => {
       let norm = deps.normalizeEconCultureRow(row);
-      if (deps.syncEconCultureAreaFields) norm = deps.syncEconCultureAreaFields(norm, pa);
+      if (deps.syncEconCultureAreaFields) norm = deps.syncEconCultureAreaFields(norm, pa, { areaMode: mode });
       st().econ.cultures[i] = norm;
       const pct = norm.pct != null ? norm.pct : 0;
       const areaSqm = norm.areaSqm != null ? norm.areaSqm : 0;
@@ -891,7 +894,7 @@
         deps.ensureEconCultures();
         st().econ.cultures[i].pct = deps.clamp(deps.parseNumInput(e.target.value) || 0, 0, 100);
         if (deps.syncEconCultureAreaFields) {
-          st().econ.cultures[i] = deps.syncEconCultureAreaFields(st().econ.cultures[i], plantingAreaVal());
+          st().econ.cultures[i] = deps.syncEconCultureAreaFields(st().econ.cultures[i], plantingAreaVal(), { areaMode: 'pct' });
         }
         deps.saveEconStore();
         renderEconomics();
@@ -902,7 +905,7 @@
         deps.ensureEconCultures();
         st().econ.cultures[iSqm].areaSqm = Math.max(0, deps.parseNumInput(e.target.value) || 0);
         if (deps.syncEconCultureAreaFields) {
-          st().econ.cultures[iSqm] = deps.syncEconCultureAreaFields(st().econ.cultures[iSqm], plantingAreaVal());
+          st().econ.cultures[iSqm] = deps.syncEconCultureAreaFields(st().econ.cultures[iSqm], plantingAreaVal(), { areaMode: 'sqm' });
         }
         deps.saveEconStore();
         renderEconomics();
@@ -949,7 +952,7 @@
         deps.ensureEconCultures();
         st().econ.cultures[iSqmInp].areaSqm = Math.max(0, deps.parseNumInput(e.target.value) || 0);
         if (deps.syncEconCultureAreaFields) {
-          st().econ.cultures[iSqmInp] = deps.syncEconCultureAreaFields(st().econ.cultures[iSqmInp], plantingAreaVal());
+          st().econ.cultures[iSqmInp] = deps.syncEconCultureAreaFields(st().econ.cultures[iSqmInp], plantingAreaVal(), { areaMode: 'sqm' });
         }
         deps.saveEconStore();
         updateCulturesTotalLine(deps.$('econ-cultures-total'));
@@ -961,7 +964,7 @@
       if (e.target.dataset.econCulturePct != null){
         st().econ.cultures[i].pct = deps.parseNumInput(e.target.value) || 0;
         if (deps.syncEconCultureAreaFields) {
-          st().econ.cultures[i] = deps.syncEconCultureAreaFields(st().econ.cultures[i], plantingAreaVal());
+          st().econ.cultures[i] = deps.syncEconCultureAreaFields(st().econ.cultures[i], plantingAreaVal(), { areaMode: 'pct' });
         }
       } else {
         st().econ.cultures[i].salePrice = parseMoney(e.target.value) || 0;

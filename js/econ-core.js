@@ -961,14 +961,21 @@
     }, 0);
   }
 
-  function syncEconCultureAreaFields(row, plantingArea){
+  function syncEconCultureAreaFields(row, plantingArea, opts){
+    opts = opts || {};
     row = normalizeEconCultureRow(row);
     const pa = Math.max(0, parseFloat(plantingArea) || 0);
+    const mode = opts.areaMode != null ? opts.areaMode : econGetAreaMode();
     const pct = parseFloat(row.pct) || 0;
     let sqm = parseFloat(row.areaSqm);
-    if (!Number.isFinite(sqm) || sqm < 0) sqm = pa > 0 ? pa * pct / 100 : 0;
-    row.areaSqm = Math.max(0, sqm);
-    row.pct = pa > 0 ? row.areaSqm / pa * 100 : pct;
+    if (mode === 'sqm'){
+      if (!Number.isFinite(sqm) || sqm < 0) sqm = pa > 0 ? pa * pct / 100 : 0;
+      row.areaSqm = Math.max(0, sqm);
+      row.pct = pa > 0 ? row.areaSqm / pa * 100 : pct;
+    } else {
+      row.pct = pct;
+      row.areaSqm = pa > 0 ? pa * row.pct / 100 : (Number.isFinite(sqm) && sqm >= 0 ? sqm : 0);
+    }
     return row;
   }
 
