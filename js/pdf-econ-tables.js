@@ -341,23 +341,38 @@
     };
   }
 
+  function runwayMonthsVal(group, row, eqKey){
+    var runwayInp = group ? group.querySelector('[data-econ-startup-runway-months]') : null;
+    var moInp = row ? row.querySelector('[data-econ-eq-months]') : null;
+    var mo = runwayInp ? parseFloat(plainCellText(runwayInp.value)) : NaN;
+    if (isNaN(mo) || mo < 1) mo = moInp ? parseFloat(plainCellText(moInp.value)) : NaN;
+    if (isNaN(mo) || mo < 1) mo = eqKey === 'runwayElec' ? 3 : 1;
+    return mo;
+  }
+
   function runwayElecRampStrFromGroup(group, mo){
+    var months = parseInt(mo, 10);
+    if (isNaN(months) || months < 1) months = 3;
+    if (global.DG_ECON && global.DG_ECON.runwayElecRampLoads){
+      var loads = global.DG_ECON.runwayElecRampLoads(months);
+      if (loads && loads.length) {
+        return loads.map(function(l){ return Math.round(l * 100) + '%'; }).join('→');
+      }
+    }
     var inps = group ? group.querySelectorAll('[data-econ-runway-elec-ramp]') : [];
     if (inps.length){
       var cum = 0;
       var parts = [];
       inps.forEach(function(inp){
-        cum += (parseFloat(plainCellText(inp.value)) || 0) / 100;
+        var raw = inp.querySelector ? plainCellText(inp.value) : '';
+        if (!raw && inp.dataset && inp.dataset.fmtDisplay) raw = plainCellText(inp.dataset.fmtDisplay);
+        cum += (parseFloat(raw) || 0) / 100;
         if (cum > 1) cum = 1;
         parts.push(Math.round(cum * 100) + '%');
       });
-      return parts.join('→');
+      if (parts.length) return parts.join('→');
     }
-    if (global.DG_ECON && global.DG_ECON.runwayElecRampLoads){
-      var loads = global.DG_ECON.runwayElecRampLoads(mo);
-      return loads.map(function(l){ return Math.round(l * 100) + '%'; }).join('→');
-    }
-    return String(mo);
+    return String(months);
   }
 
   function equipPdfColWidths(contentW){
@@ -399,11 +414,12 @@
           var amtInp = row.querySelector('[data-econ-eq]');
           var moInp = row.querySelector('[data-econ-eq-months]');
           var moLbl = row.querySelector('[data-econ-runway-mo-label]');
-          var runwayInp = group.querySelector('[data-econ-startup-runway-months]');
           var totalEl = row.querySelector('[data-econ-eq-total]');
           var amt = amtInp ? plainCellText(amtInp.value) : '0';
-          var mo = moLbl ? plainCellText(moLbl.textContent).replace(/[×\s]/g, '').replace(/мес\.?/i, '').trim()
-            : (moInp ? plainCellText(moInp.value) : (runwayInp ? plainCellText(runwayInp.value) : '1'));
+          var mo = eqKey === 'runwayElec'
+            ? runwayMonthsVal(group, row, eqKey)
+            : (moLbl ? plainCellText(moLbl.textContent).replace(/[×\s]/g, '').replace(/мес\.?/i, '').trim()
+              : (moInp ? plainCellText(moInp.value) : '1'));
           var total = totalEl ? plainCellText(totalEl.textContent) : amt;
           if (eqKey === 'runwayElec'){
             var rampStr = runwayElecRampStrFromGroup(group, mo);

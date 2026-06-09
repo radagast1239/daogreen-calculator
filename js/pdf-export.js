@@ -550,10 +550,10 @@
 
     function createEconCultPdfWrap(){
       var wrap = document.createElement('div');
-      wrap.className = 'pdf-page-block pdf-econ-cult-detail panel econ-panel econ-panel--highlight';
+      wrap.className = 'pdf-page-block pdf-econ-cult-detail pdf-staging--econ panel econ-panel econ-panel--highlight';
       wrap.setAttribute('data-pdf-econ-cult-detail', '1');
       wrap.setAttribute('data-pdf-atomic', '1');
-      wrap.style.cssText = 'display:block;visibility:visible;opacity:1;background:#fff;color:#111;width:100%;max-width:' + PDF_W_PX + 'px;box-sizing:border-box;padding:8px 10px;';
+      wrap.style.cssText = 'display:block;visibility:visible;opacity:1;background:#fff;color:#111;width:' + PDF_W_PX + 'px;max-width:' + PDF_W_PX + 'px;box-sizing:border-box;padding:8px 10px;';
       return wrap;
     }
 
@@ -778,19 +778,31 @@
       applyStagingLayout(stagingOne, { planting: rasterOpts.planting });
       stagingOne.appendChild(wrapped);
       document.body.appendChild(stagingOne);
-      await waitForBlockImages(wrapped);
-      await waitForPaint(80);
+      await waitForBlockImages(stagingOne);
+      await waitForPaint(120);
       try {
-        return await captureBlock(apis.html2canvas, wrapped, { planting: rasterOpts.planting });
+        return await captureBlock(apis.html2canvas, stagingOne, { planting: rasterOpts.planting });
       } finally {
         stagingOne.remove();
       }
     }
 
+    function cultCardsRoot(el){
+      if (!el) return null;
+      return el.querySelector('[data-pdf-econ-cult-detail]') || el;
+    }
+
+    function beginCultChunkPage(pdf, pdfCtx, rasterOpts){
+      if (!rasterOpts.cultChunk || !pdfCtx) return;
+      pdf.addPage();
+      pdfCtx.y = pdfCtx.contentTop != null ? pdfCtx.contentTop : pdfCtx.margin;
+    }
+
     async function appendRasterWrapped(pdf, pdfCtx, apis, wrapped, margin, contentW, rasterOpts){
       rasterOpts = rasterOpts || {};
+      var cultRoot = cultCardsRoot(wrapped);
       var atomic = wrapped.getAttribute('data-pdf-atomic') === '1' ||
-        !!(wrapped.querySelector && wrapped.querySelector('[data-pdf-atomic="1"]'));
+        !!(cultRoot && cultRoot.getAttribute('data-pdf-atomic') === '1');
       var canvas = await captureRasterInStaging(wrapped, rasterOpts, apis);
       if (!canvas || canvas.width < 2 || canvas.height < 2) return false;
 
@@ -799,19 +811,23 @@
       var maxHmm = pdfUsableHeightMmFromCtx(pdfCtx);
 
       if (atomic && blockHmm > maxHmm + 0.5){
-        var cards = wrapped.querySelectorAll('.econ-culture-metric');
+        var cards = cultRoot ? cultRoot.querySelectorAll('.econ-culture-metric') : [];
         if (cards.length > 1){
           for (var ci = 0; ci < cards.length; ci++){
+            beginCultChunkPage(pdf, pdfCtx, rasterOpts);
             var solo = document.createElement('div');
             solo.setAttribute('data-pdf-atomic', '1');
-            solo.className = wrapped.className || 'pdf-econ-cult-detail';
-            if (wrapped.style && wrapped.style.cssText) solo.style.cssText = wrapped.style.cssText;
+            solo.className = 'pdf-page-block pdf-econ-cult-detail pdf-staging--econ panel econ-panel econ-panel--highlight';
+            solo.style.cssText = 'display:block;visibility:visible;opacity:1;background:#fff;color:#111;width:' + PDF_W_PX + 'px;max-width:' + PDF_W_PX + 'px;box-sizing:border-box;padding:8px 10px;';
             if (ci === 0){
-              wrapped.querySelectorAll('.econ-zone-label, .section-h, .econ-results-sub').forEach(function(el){
+              cultRoot.querySelectorAll('.econ-zone-label, .section-h, .econ-results-sub').forEach(function(el){
                 solo.appendChild(el.cloneNode(true));
               });
             }
-            solo.appendChild(cards[ci].cloneNode(true));
+            var soloGrid = document.createElement('div');
+            soloGrid.className = 'econ-results-per-culture pdf-econ-cult-page-grid';
+            soloGrid.appendChild(cards[ci].cloneNode(true));
+            solo.appendChild(soloGrid);
             prepareClone(solo, { group: 'economics' });
             var soloCanvas = await captureRasterInStaging(solo, rasterOpts, apis);
             if (soloCanvas && soloCanvas.width >= 2 && soloCanvas.height >= 2){
@@ -823,6 +839,8 @@
           return true;
         }
       }
+
+      beginCultChunkPage(pdf, pdfCtx, rasterOpts);
 
       if (pdfCtx && global.DG_appendCanvasToPdfCtx){
         DG_appendCanvasToPdfCtx(pdf, pdfCtx, canvas, margin, contentW, { atomic: atomic });
@@ -992,6 +1010,7 @@
       var hasCover = orderedIds.indexOf('cover') >= 0;
       var tocEntries = [];
       var secNum = 0;
+      var pendingToc = null;
 
       if (useVector) await DG_ensurePdfCyrillicFont(pdf);
 
@@ -1000,15 +1019,30 @@
         return secNum + '. ' + secLabel(id);
       }
 
-      function noteSectionStart(id){
+      function beginSectionToc(id){
         if (id === 'cover') return;
+        flushSectionToc();
         secNum++;
-        tocEntries.push({
+        pendingToc = {
           n: secNum,
           title: secLabel(id),
-          page: pdf.internal.getNumberOfPages(),
+          page: 0,
           group: econTocGroupForId(id)
-        });
+        };
+      }
+
+      function pinSectionTocPage(){
+        if (pendingToc && !pendingToc.page){
+          pendingToc.page = pdf.internal.getNumberOfPages();
+        }
+      }
+
+      function flushSectionToc(){
+        if (pendingToc){
+          if (!pendingToc.page) pendingToc.page = pdf.internal.getNumberOfPages();
+          tocEntries.push(pendingToc);
+          pendingToc = null;
+        }
       }
 
       for (var i = 0; i < orderedIds.length; i++){
@@ -1017,33 +1051,39 @@
         if (!sec) continue;
 
         if (useVector && DG_isVectorEconPdfSection(vectorSectionKey(sec))){
-          noteSectionStart(id);
+          beginSectionToc(id);
+          pinSectionTocPage();
           var exportCtx = deps.getPdfExportContext ? deps.getPdfExportContext() : null;
           await DG_renderVectorEconPdfSection(pdf, pdfCtx, vectorSectionKey(sec), sectionDisplayTitle(id), exportCtx);
           if (id === 'econ-payback') await appendPaybackChartRaster(pdf, pdfCtx, apis);
+          flushSectionToc();
           hasContent = true;
           continue;
         }
 
         var blocks = blocksForSection(sec);
         if (!blocks.length) continue;
-        noteSectionStart(id);
+        beginSectionToc(id);
         var isPlantingPdf = sec.group === 'planting';
+        var sectionPinned = false;
         for (var bi = 0; bi < blocks.length; bi++){
-          if (sec.kind === 'econ-cult-unit-cost' && pdfCtx && (bi === 0 ? hasContent : true)){
-            pdf.addPage();
-            pdfCtx.y = pdfCtx.contentTop != null ? pdfCtx.contentTop : margin;
-          }
           var block = blocks[bi];
           var wrapped = sec.skipPdfWrapTitle ? block : wrapWithSectionTitle(block, sectionDisplayTitle(id));
           if (await appendRasterWrapped(pdf, pdfCtx, apis, wrapped, margin, contentW, {
             planting: isPlantingPdf,
-            econ: isEconSectionId(id)
+            econ: isEconSectionId(id),
+            cultChunk: sec.kind === 'econ-cult-unit-cost' && (bi > 0 || hasContent)
           })){
+            if (!sectionPinned){
+              pinSectionTocPage();
+              sectionPinned = true;
+            }
             hasContent = true;
           }
         }
+        flushSectionToc();
       }
+      flushSectionToc();
 
       if (!hasContent){
         throw new Error(pdfT('pdf.err.empty'));
