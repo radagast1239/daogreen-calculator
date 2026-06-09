@@ -9,7 +9,8 @@
 
   var MONEY_ECON_KEYS = {
     priceKwh: 1, rentMonth: 1, staffSalary: 1, logisticsMonth: 1, salePrice: 1,
-    otherMonth: 1, consumablesPerKg: 1, consumablesPerPcs: 1, accountingMonth: 1
+    otherMonth: 1, consumablesPerKg: 1, consumablesPerPcs: 1, accountingMonth: 1,
+    waterPriceM3: 1, waterFertPerM3: 1
   };
   var MONEY_CULT_FIELDS = { salePrice: 1, consumablesPerPot: 1 };
 
@@ -149,10 +150,18 @@
       'econ.staffSalary': 'Зарплата на человека',
       'econ.payrollTax': 'Отчисления с ФОТ 42,5%',
       'econ.logisticsMonth': 'Логистика',
+      'econ.waterM3Month': 'Расход воды, м³/мес',
+      'econ.waterM3Month.hint': 'Суммарный объём воды на полив и технологические нужды',
+      'econ.waterPriceM3': 'Вода, ₽/м³',
+      'econ.waterPriceM3.hint': 'Стоимость 1 м³ воды (водоснабжение, осмос, отстаивание)',
+      'econ.waterFertPerM3': 'Удобрения, ₽/м³ воды',
+      'econ.waterFertPerM3.hint': 'Растворы и удобрения на каждый израсходованный м³ — суммируется с ценой воды',
+      'econ.perM3': '₽/м³',
       'econ.floorArea': 'Площадь фермы по полу, м²',
       'econ.plantingArea': 'Посевная полезная площадь, м²',
-      'econ.wastePct': 'Брак / нереализованный урожай, %',
-      'econ.wastePct.hint': 'Снижает продаваемый объём; себестоимость на чистый выпуск',
+      'econ.wastePct': 'Брак и возврат урожая, %',
+      'econ.wastePct.hint': 'Доля урожая, которую не удаётся реализовать — снижает выручку и продаваемый объём',
+      'econ.wastePct.note': 'Ритейл регулярно возвращает товар с истекающим сроком годности или списывает его за счёт поставщика. Закладывайте ретро-бонусы, штрафы за недопоставки и логистику возвратов.',
       'econ.salePrice': 'Цена продажи (по умолчанию)',
       'econ.salePrice.hint': 'Для всех культур; можно задать в строке',
       'econ.kwhPerM2Hour': 'Свет, кВт·ч/м²',
@@ -407,10 +416,18 @@
       'econ.staffSalary': 'Salary per person',
       'econ.payrollTax': 'Payroll taxes 42.5%',
       'econ.logisticsMonth': 'Logistics',
+      'econ.waterM3Month': 'Water use, m³/mo',
+      'econ.waterM3Month.hint': 'Total water for irrigation and process needs',
+      'econ.waterPriceM3': 'Water, per m³',
+      'econ.waterPriceM3.hint': 'Cost per m³ (supply, RO, settling)',
+      'econ.waterFertPerM3': 'Nutrients, per m³ water',
+      'econ.waterFertPerM3.hint': 'Fertilizer cost per m³ used — added to water price',
+      'econ.perM3': 'per m³',
       'econ.floorArea': 'Floor area, m²',
       'econ.plantingArea': 'Planting area, m²',
-      'econ.wastePct': 'Waste / unsold, %',
-      'econ.wastePct.hint': 'Reduces sellable volume; cost per net output',
+      'econ.wastePct': 'Waste & returns, %',
+      'econ.wastePct.hint': 'Share of crop you cannot sell — lowers revenue and sellable volume',
+      'econ.wastePct.note': 'Retail often returns near-expiry product or writes it off at the supplier’s expense. Allow for retro bonuses, under-delivery penalties and return logistics.',
       'econ.salePrice': 'Default sale price',
       'econ.salePrice.hint': 'For all crops; override per row',
       'econ.kwhPerM2Hour': 'Light, kWh/m²',

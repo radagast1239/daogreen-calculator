@@ -67,7 +67,8 @@
       cultures: [{ cvId: '', pct: 100, salePrice: 0, density: 80, yieldPerCut: 15, cutIntervalDays: 15,
         kwhPerM2Hour: 0.12, lightHoursDay: 16, consumablesPerPot: 4, potHarvestMonths: 3, unitIsPieces: false }],
       salePrice: 800, kwhPerM2Hour: 0.12, lightHoursDay: 16, elecCats: {},
-      otherMonth: 15000, consumablesPerKg: 0, consumablesPerPcs: 0, wastePct: 0, usnTax: false, vatTax: false, vatPct: 12,
+      otherMonth: 15000, waterM3Month: 0, waterPriceM3: 0, waterFertPerM3: 0,
+      consumablesPerKg: 0, consumablesPerPcs: 0, wastePct: 0, usnTax: false, vatTax: false, vatPct: 12,
       profitTax: false, profitTaxPct: 15, amortMonths: 60,
       equipmentEnabled: true, equipment: {}, equipmentCustom: []
     };

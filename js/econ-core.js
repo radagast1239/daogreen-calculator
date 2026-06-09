@@ -56,6 +56,7 @@
     ]},
     { titleKey: 'econ.eq.grp.runway', items: [
       ['prepRent', 'econ.eq.prepRent', { monthly: true, runway: true, defaultMonths: 3 }],
+      ['runwayElec', 'econ.eq.runwayElec', { monthly: true, runway: true, defaultMonths: 3 }],
       ['consumables', 'econ.eq.consumables', { monthly: true, runway: true, defaultMonths: 3 }]
     ]},
     { titleKey: 'econ.eq.grp.prep', items: [
@@ -222,6 +223,9 @@
       payrollCustom: [],
       accountingMonth: 15000,
       logisticsMonth: 0,
+      waterM3Month: 0,
+      waterPriceM3: 0,
+      waterFertPerM3: 0,
       floorArea: 200,
       plantingArea: 150,
       areaMode: 'pct',
@@ -888,6 +892,8 @@
     c.priceKwh = (parseFloat(c.priceKwh) || 0) * factor;
     c.otherMonth = (parseFloat(c.otherMonth) || 0) * factor;
     c.logisticsMonth = (parseFloat(c.logisticsMonth) || 0) * factor;
+    c.waterPriceM3 = (parseFloat(c.waterPriceM3) || 0) * factor;
+    c.waterFertPerM3 = (parseFloat(c.waterFertPerM3) || 0) * factor;
     c.consumablesPerKg = (parseFloat(c.consumablesPerKg) || 0) * factor;
     c.consumablesPerPcs = (parseFloat(c.consumablesPerPcs) || 0) * factor;
     c.accountingMonth = (parseFloat(c.accountingMonth) || 0) * factor;
@@ -910,6 +916,13 @@
   function migrateEconOtherElectricity(e){
     migrateEconElecCats(e);
     migrateEconPayroll(e);
+  }
+
+  function calcWaterMonthly(e){
+    const m3 = Math.max(0, parseFloat(e && e.waterM3Month) || 0);
+    const price = Math.max(0, parseFloat(e && e.waterPriceM3) || 0);
+    const fert = Math.max(0, parseFloat(e && e.waterFertPerM3) || 0);
+    return { m3: m3, price: price, fert: fert, cost: m3 * (price + fert) };
   }
 
   function calcOtherElecMonthly(e){
@@ -1229,9 +1242,11 @@
     const rent = parseFloat(e.rentMonth) || 0;
     const logistics = parseFloat(e.logisticsMonth) || 0;
     const other = parseFloat(e.otherMonth) || 0;
+    const water = calcWaterMonthly(e);
+    const waterCost = water.cost;
     const otherElec = calcOtherElecMonthly(e);
     const otherElecCost = otherElec.cost;
-    const fixedOpex = rent + staffTotal + logistics + other + otherElecCost + equipAmort;
+    const fixedOpex = rent + staffTotal + logistics + other + waterCost + otherElecCost + equipAmort;
 
     let lightCost = 0;
     let consumablesCost = 0;
@@ -1324,6 +1339,7 @@
       const shareStaff = staffTotal * areaShare;
       const shareRent = rent * areaShare;
       const shareLogistics = logistics * areaShare;
+      const shareWater = waterCost * areaShare;
       const shareOtherElec = otherElecCost * areaShare;
       const shareOther = other * areaShare;
       const shareAmort = equipAmort * areaShare;
@@ -1333,6 +1349,7 @@
       p.slice.allocatedStaff = shareStaff;
       p.slice.allocatedRent = shareRent;
       p.slice.allocatedLogistics = shareLogistics;
+      p.slice.allocatedWater = shareWater;
       p.slice.allocatedOther = shareOther;
       p.slice.allocatedAmort = shareAmort;
       p.slice.allocatedElec = shareLight + shareOtherElec;
@@ -1344,6 +1361,7 @@
       p.slice.unitCostStaff = perUnit(shareStaff);
       p.slice.unitCostRent = perUnit(shareRent);
       p.slice.unitCostLogistics = perUnit(shareLogistics);
+      p.slice.unitCostWater = perUnit(shareWater);
       p.slice.unitCostOther = perUnit(shareOther);
       p.slice.unitCostAmort = perUnit(shareAmort);
       p.slice.unitCostConsumables = perUnit(p.slice.consumablesCost);
@@ -1400,6 +1418,10 @@
       payroll: payroll,
       elecBreakdown: elecBreakdown,
       logistics: logistics,
+      waterM3Month: water.m3,
+      waterPriceM3: water.price,
+      waterFertPerM3: water.fert,
+      waterCost: waterCost,
       lightCost: lightCost,
       lightKwhMonth: lightKwhMonth,
       otherElec: otherElec,

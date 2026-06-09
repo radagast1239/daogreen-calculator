@@ -315,6 +315,19 @@
   font-weight: 600;
 }
 
+#view-economics .econ-waste-note {
+  margin: -4px 0 10px;
+  max-width: 52em;
+}
+
+#view-economics .econ-bd-note {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  padding-top: 2px;
+  padding-bottom: 6px;
+}
+
 /* —— Derived / yield —— */
 #view-economics .econ-derived {
   border-left: 3px solid var(--brand);

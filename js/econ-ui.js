@@ -331,6 +331,7 @@
     if (rent > 0) e.equipment.prepRent = rent;
     const farm = deps.calcFarmEconomics(e);
     if (farm && farm.consumablesCost > 0) e.equipment.consumables = Math.round(farm.consumablesCost);
+    if (farm && farm.totalElecCost > 0) e.equipment.runwayElec = Math.round(farm.totalElecCost);
     deps.saveEconStore();
   }
 
@@ -783,23 +784,28 @@
   function renderEconomicsForm(){
     const gen = deps.$('econ-inputs-general');
     var ft = formToken();
+    const genToken = ft + '-farm-v3';
     if (!gen){
       ensureEconSubPanels(ft);
       return;
     }
-    if (gen.dataset.built === ft){
+    if (gen.dataset.built === genToken){
       ensureEconSubPanels(ft);
       return;
     }
-    gen.dataset.built = ft;
+    gen.dataset.built = genToken;
     gen.innerHTML =
       econNumInput('priceKwh', moneyLabel('econ.priceKwh', 'econ.perKwh'), { step: 0.1 }) +
       econNumInput('rentMonth', moneyLabel('econ.rentMonth', 'econ.perMonth'), { step: 1000 }) +
       econToggleHtml('econ-payroll-tax', L('econ.payrollTax'), st().econ.payrollTax) +
       econNumInput('logisticsMonth', moneyLabel('econ.logisticsMonth', 'econ.perMonth'), { step: 1000 }) +
+      econNumInput('waterM3Month', L('econ.waterM3Month'), { step: 0.1, decimals: 1, hint: L('econ.waterM3Month.hint') }) +
+      econNumInput('waterPriceM3', moneyLabel('econ.waterPriceM3', 'econ.perM3'), { step: 1, hint: L('econ.waterPriceM3.hint') }) +
+      econNumInput('waterFertPerM3', moneyLabel('econ.waterFertPerM3', 'econ.perM3'), { step: 1, hint: L('econ.waterFertPerM3.hint') }) +
       econNumInput('floorArea', L('econ.floorArea'), { step: 1 }) +
       econNumInput('plantingArea', L('econ.plantingArea'), { step: 1 }) +
       econNumInput('wastePct', L('econ.wastePct'), { step: 1, hint: L('econ.wastePct.hint') }) +
+      '<p class="econ-hint econ-waste-note">' + L('econ.wastePct.note') + '</p>' +
       econNumInput('kwhPerM2Hour', L('econ.kwhPerM2Hour'), { step: 0.001, hint: L('econ.kwhPerM2Hour.hint') }) +
       econNumInput('lightHoursDay', L('econ.lightHoursDay'), { step: 0.5, hint: L('econ.lightHoursDay.hint') }) +
       econNumInput('amortMonths', L('econ.amortMonths'), { step: 1 });
@@ -1462,7 +1468,8 @@
     renderElecCharts(res);
 
     const wasteRow = res.wastePct > 0
-      ? '<tr><td>' + L('econ.bd.waste') + '</td><td colspan="2">' + deps.r1(res.wastePct) + '%</td></tr>'
+      ? '<tr><td>' + L('econ.bd.waste') + '</td><td colspan="2">' + deps.r1(res.wastePct) + '%</td></tr>' +
+        '<tr class="econ-bd-note-row"><td colspan="3" class="econ-bd-note">' + L('econ.wastePct.note') + '</td></tr>'
       : '';
     let bd =
       '<tr><td>' + L('econ.bd.rent') + '</td><td>—</td><td>' + moneyFmt(res.rent) + '</td></tr>' +
@@ -1471,7 +1478,8 @@
       (res.payrollCustom > 0 ? '<tr><td>' + L('econ.bd.payrollCustom') + '</td><td>—</td><td>' + moneyFmt(res.payrollCustom) + '</td></tr>' : '') +
       (res.accountingMonth > 0 ? '<tr><td>' + L('econ.bd.accounting') + '</td><td>—</td><td>' + moneyFmt(res.accountingMonth) + '</td></tr>' : '') +
       '<tr><td>' + L('econ.bd.staff') + '</td><td>—</td><td>' + moneyFmt(res.staffTotal) + '</td></tr>' +
-      '<tr><td>' + L('econ.bd.logistics') + '</td><td>—</td><td>' + moneyFmt(res.logistics) + '</td></tr>';
+      '<tr><td>' + L('econ.bd.logistics') + '</td><td>—</td><td>' + moneyFmt(res.logistics) + '</td></tr>' +
+      (res.waterCost > 0 ? '<tr><td>' + L('econ.bd.water') + '</td><td>' + deps.r1(res.waterM3Month) + '</td><td>' + moneyFmt(res.waterCost) + '</td></tr>' : '');
     (res.elecBreakdown || []).forEach(function(row){
       const lbl = row.id === 'light' ? L('econ.bd.light') : (L('econ.bd.elecPrefix') + ' ' + elecCatLabel(row.id));
       bd += '<tr><td>' + lbl + '</td><td>' + deps.fmtNum(row.kwh || 0) + '</td><td>' + moneyFmt(row.cost) + '</td></tr>';
