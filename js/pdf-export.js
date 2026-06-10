@@ -569,6 +569,114 @@
       wrap.appendChild(head);
     }
 
+    function fmtSaladPotPdfMoney(n){
+      if (!(n > 0)) return '—';
+      if (global.DG_formatMoneyInput) return global.DG_formatMoneyInput(n, 1);
+      if (global.DG_fmtMoney) return global.DG_fmtMoney(n, { decimals: 1 });
+      return String(n);
+    }
+
+    function collectSaladPotConsumablesRows(){
+      if (!deps.getState) return [];
+      var st = deps.getState();
+      if (!st || !st.econ || !Array.isArray(st.econ.cultures)) return [];
+      var normalize = deps.normalizeEconCultureRow;
+      var nameFn = deps.econCvDisplayName;
+      var rows = [];
+      st.econ.cultures.forEach(function(row){
+        if (!row || !row.cvId) return;
+        var cv = deps.findCvById && deps.findCvById(row.cvId);
+        if (!cv || !(cv.econLotSale && cv.econLotSalePot)) return;
+        var norm = normalize ? normalize(row) : row;
+        var parts = {
+          seeds: Math.max(0, parseFloat(norm.consPotSeeds) || 0),
+          vermiculite: Math.max(0, parseFloat(norm.consPotVermiculite) || 0),
+          pot: Math.max(0, parseFloat(norm.consPotPot) || 0),
+          rockwool: Math.max(0, parseFloat(norm.consPotRockwool) || 0)
+        };
+        var hasParts = parts.seeds > 0 || parts.vermiculite > 0 || parts.pot > 0 || parts.rockwool > 0;
+        var breakdown = !!(norm.consPotBreakdown && hasParts);
+        var total = hasParts
+          ? Math.round((parts.seeds + parts.vermiculite + parts.pot + parts.rockwool) * 100) / 100
+          : Math.max(0, parseFloat(norm.consumablesPerPot) || 0);
+        if (!(total > 0)) return;
+        rows.push({
+          name: nameFn ? nameFn(norm.cvId) : (norm.cvId || '—'),
+          parts: parts,
+          total: total,
+          breakdown: breakdown
+        });
+      });
+      return rows;
+    }
+
+    function buildSaladPotPdfBlock(){
+      var dataRows = collectSaladPotConsumablesRows();
+      if (!dataRows.length) return null;
+
+      var wrap = createEconCultPdfWrap();
+      wrap.classList.add('pdf-econ-salad-pot');
+      appendEconCultSectionHeader(wrap, true);
+
+      var sub = document.createElement('p');
+      sub.className = 'econ-results-sub';
+      var subKey = 'pdf.cult.saladPotBreakdown';
+      var subTitle = pdfT(subKey);
+      sub.textContent = subTitle !== subKey ? subTitle : econUiLabel('econ.cult.consPot');
+      wrap.appendChild(sub);
+
+      var hint = document.createElement('p');
+      hint.className = 'econ-breakdown-note';
+      hint.textContent = econUiLabel('econ.cult.consPot.lotHint');
+      wrap.appendChild(hint);
+
+      var scroll = document.createElement('div');
+      scroll.className = 'econ-table-scroll';
+      var tbl = document.createElement('table');
+      tbl.className = 'econ-breakdown econ-salad-pot-breakdown';
+
+      var thead = document.createElement('thead');
+      var headTr = document.createElement('tr');
+      [
+        econUiLabel('econ.cult.culture'),
+        econUiLabel('econ.cult.consPot.seeds'),
+        econUiLabel('econ.cult.consPot.vermiculite'),
+        econUiLabel('econ.cult.consPot.pot'),
+        econUiLabel('econ.cult.consPot.rockwool'),
+        econUiLabel('econ.cult.consPot.total')
+      ].forEach(function(label){
+        var th = document.createElement('th');
+        th.textContent = label;
+        headTr.appendChild(th);
+      });
+      thead.appendChild(headTr);
+      tbl.appendChild(thead);
+
+      var tbody = document.createElement('tbody');
+      dataRows.forEach(function(r){
+        var tr = document.createElement('tr');
+        function partCell(v){ return r.breakdown ? fmtSaladPotPdfMoney(v) : '—'; }
+        [
+          r.name,
+          partCell(r.parts.seeds),
+          partCell(r.parts.vermiculite),
+          partCell(r.parts.pot),
+          partCell(r.parts.rockwool),
+          fmtSaladPotPdfMoney(r.total)
+        ].forEach(function(cell){
+          var td = document.createElement('td');
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+      tbl.appendChild(tbody);
+      scroll.appendChild(tbl);
+      wrap.appendChild(scroll);
+      prepareClone(wrap, { group: 'economics' });
+      return wrap;
+    }
+
     function buildEconCultUnitCostBlocks(){
       var metricsEl = document.getElementById('econ-results-metrics');
       var breakdownTbl = document.getElementById('econ-cultures-breakdown');
@@ -582,12 +690,14 @@
         ? Array.prototype.slice.call(cultSection.querySelectorAll('.econ-culture-metric'))
         : [];
       var hasTable = !!(breakdownTbl && breakdownTbl.querySelector('tr'));
-      if (!cards.length && !hasTable) return [];
+      var saladBlock = buildSaladPotPdfBlock();
+      if (!cards.length && !hasTable && !saladBlock) return [];
 
       var blocks = [];
+      if (saladBlock) blocks.push(saladBlock);
       for (var i = 0; i < cards.length; i += CULT_PDF_PER_PAGE){
         var wrap = createEconCultPdfWrap();
-        appendEconCultSectionHeader(wrap, i === 0);
+        appendEconCultSectionHeader(wrap, i === 0 && !saladBlock);
         var sub = document.createElement('p');
         sub.className = 'econ-results-sub';
         sub.textContent = i === 0
