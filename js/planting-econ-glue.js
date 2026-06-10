@@ -55,6 +55,7 @@
     var getEquipmentGroups, getEquipItemMeta, econEquipEffectiveAmount, runwayElecEffectiveAmount, runwayElecRampLoads, normalizeRunwayElecRampPct, migrateEconRunwayElecRamp;
     var econCvDisplayName, econGhYieldPerCutFromStd, econCvTotalCycleDays, econSheetCutIntervalDays, econSheetYieldPerCut;
     var econYieldParamsForCvId, econCatalogDefaultsForCvId, normalizeEconCultureRow, parsePotHarvestMonthsFromCv, migrateEconCultureRows;
+    var econSaladPotConsumablesMode, sumConsPotParts, syncConsPotPartsTotal, hasConsPotParts;
     var econCultureBio, formatEconCultureHint, calcCultureConsumables, econApplyCultureSelect, importEconRowFromPlanting, importAllEconFromPlanting;
     var calcOtherElecMonthly, migrateEconOtherElectricity, ensureEconCultures, econGetAreaMode, econCulturesTotalPct, econCulturesTotalSqm, syncEconCultureAreaFields, setEconAreaMode, calcCultureSliceFromRow;
     var dedupeEconCultures, canAddEconCulture, findDuplicateCultureIds, collectEconWarnings, calcFarmEconomics, calcEconomics;
@@ -209,6 +210,10 @@
     econYieldParamsForCvId = ec.econYieldParamsForCvId;
     econCatalogDefaultsForCvId = ec.econCatalogDefaultsForCvId;
     normalizeEconCultureRow = ec.normalizeEconCultureRow;
+    econSaladPotConsumablesMode = ec.econSaladPotConsumablesMode;
+    sumConsPotParts = ec.sumConsPotParts;
+    syncConsPotPartsTotal = ec.syncConsPotPartsTotal;
+    hasConsPotParts = ec.hasConsPotParts;
     parsePotHarvestMonthsFromCv = ec.parsePotHarvestMonthsFromCv;
     migrateEconCultureRows = ec.migrateEconCultureRows;
     econCultureBio = ec.econCultureBio;
@@ -264,6 +269,10 @@
       migrateEconCultureRows: migrateEconCultureRows,
       dedupeEconCultures: dedupeEconCultures,
       normalizeEconCultureRow: normalizeEconCultureRow,
+      econSaladPotConsumablesMode: econSaladPotConsumablesMode,
+      sumConsPotParts: sumConsPotParts,
+      syncConsPotPartsTotal: syncConsPotPartsTotal,
+      hasConsPotParts: hasConsPotParts,
       econCvDisplayName: econCvDisplayName,
       econCultureBio: econCultureBio,
       formatEconCultureHint: formatEconCultureHint,

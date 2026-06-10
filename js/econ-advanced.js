@@ -29,6 +29,10 @@
       var r = Object.assign({}, row);
       var cp = parseFloat(r.consumablesPerPot);
       if (cp > 0) r.consumablesPerPot = cp * factor;
+      ['consPotSeeds', 'consPotVermiculite', 'consPotPot', 'consPotRockwool'].forEach(function(k){
+        var v = parseFloat(r[k]);
+        if (v > 0) r[k] = v * factor;
+      });
       return r;
     });
     c._costScale = (parseFloat(c._costScale) || 1) * factor;
@@ -124,6 +128,10 @@
       var r = Object.assign({}, row);
       var cp = parseFloat(r.consumablesPerPot);
       if (cp > 0) r.consumablesPerPot = cp * fOther;
+      ['consPotSeeds', 'consPotVermiculite', 'consPotPot', 'consPotRockwool'].forEach(function(k){
+        var v = parseFloat(r[k]);
+        if (v > 0) r[k] = v * fOther;
+      });
       var sp = parseFloat(r.salePrice);
       if (sp > 0) r.salePrice = sp * fPrice;
       return r;

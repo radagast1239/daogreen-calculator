@@ -12,7 +12,10 @@
     otherMonth: 1, consumablesPerKg: 1, consumablesPerPcs: 1, accountingMonth: 1,
     waterPriceM3: 1, waterFertPerM3: 1
   };
-  var MONEY_CULT_FIELDS = { salePrice: 1, consumablesPerPot: 1 };
+  var MONEY_CULT_FIELDS = {
+    salePrice: 1, consumablesPerPot: 1,
+    consPotSeeds: 1, consPotVermiculite: 1, consPotPot: 1, consPotRockwool: 1
+  };
 
   var STR = {
     ru: {
@@ -223,6 +226,14 @@
       'econ.unit.hPerDay': 'ч/сут',
       'econ.cult.consPot': 'Посев на 1 горшок',
       'econ.cult.consPot.lotHint': '₽/горшок на каждую проданную шт — попадает в себестоимость, строка «Расходники». Упаковка/этикетка — отдельно, «₽/шт» в затратах фермы',
+      'econ.cult.consPot.seeds': 'Семена',
+      'econ.cult.consPot.vermiculite': 'Вермикулит',
+      'econ.cult.consPot.pot': 'Горшок',
+      'econ.cult.consPot.rockwool': 'Кубик ваты',
+      'econ.cult.consPot.total': 'Итого на горшок',
+      'econ.cult.consPot.expand': 'Расписать по статьям',
+      'econ.cult.consPot.collapse': 'Одной суммой',
+      'econ.hint.consPotParts': ' ({seeds} + {verm} + {pot} + {wool})',
       'econ.cult.consTray': 'Посев на 1 лоток',
       'econ.cult.consPcs': 'Расходники на 1 шт',
       'econ.cult.potLife': 'Срок жизни горшка, мес',
@@ -493,6 +504,14 @@
       'econ.unit.hPerDay': 'h/d',
       'econ.cult.consPot': 'Sowing per pot',
       'econ.cult.consPot.lotHint': '₽/pot per unit sold — in unit cost under “Consumables”. Packaging/labels — separate “per unit” farm cost',
+      'econ.cult.consPot.seeds': 'Seeds',
+      'econ.cult.consPot.vermiculite': 'Vermiculite',
+      'econ.cult.consPot.pot': 'Pot',
+      'econ.cult.consPot.rockwool': 'Rockwool cube',
+      'econ.cult.consPot.total': 'Total per pot',
+      'econ.cult.consPot.expand': 'Break down by item',
+      'econ.cult.consPot.collapse': 'Single total',
+      'econ.hint.consPotParts': ' ({seeds} + {verm} + {pot} + {wool})',
       'econ.cult.consTray': 'Sowing per tray',
       'econ.cult.consPcs': 'Consumables per pc',
       'econ.cult.potLife': 'Pot life, mo',

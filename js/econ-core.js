@@ -267,7 +267,12 @@
       lightHoursDay: 16,
       consumablesPerPot: ECON_DEFAULT_CONSUMABLES_PER_POT,
       potHarvestMonths: 3,
-      unitIsPieces: false
+      unitIsPieces: false,
+      consPotBreakdown: false,
+      consPotSeeds: 0,
+      consPotVermiculite: 0,
+      consPotPot: 0,
+      consPotRockwool: 0
     };
     if (st().econ){
       row.kwhPerM2Hour = parseFloat(st().econ.kwhPerM2Hour) || row.kwhPerM2Hour;
@@ -400,6 +405,30 @@
 
   function econLotSaleAsPot(cv){
     return !!(cv && cv.econLotSale && cv.econLotSalePot);
+  }
+
+  const CONS_POT_PART_KEYS = ['consPotSeeds', 'consPotVermiculite', 'consPotPot', 'consPotRockwool'];
+
+  function sumConsPotParts(row){
+    if (!row) return 0;
+    return CONS_POT_PART_KEYS.reduce(function(s, k){
+      return s + Math.max(0, parseFloat(row[k]) || 0);
+    }, 0);
+  }
+
+  function hasConsPotParts(row){
+    return CONS_POT_PART_KEYS.some(function(k){ return (parseFloat(row[k]) || 0) > 0; });
+  }
+
+  function econSaladPotConsumablesMode(cv){
+    return econLotSaleAsPot(cv);
+  }
+
+  function syncConsPotPartsTotal(row){
+    if (!row) return row;
+    const sum = sumConsPotParts(row);
+    if (sum > 0) row.consumablesPerPot = Math.round(sum * 100) / 100;
+    return row;
   }
 
   /** Полный цикл для продажи лотком/горшком: 1 шт = 1 лоток или 1 горшок, выход = (мес / цикл) × шт/м² */
@@ -553,6 +582,16 @@
     if (cv && cv.id === 'pl-edible-flowers' && out.consumablesPerPot < 1){
       out.consumablesPerPot = ECON_DEFAULT_CONSUMABLES_PER_POT;
     }
+    CONS_POT_PART_KEYS.forEach(function(k){
+      const v = row && row[k] != null ? parseFloat(row[k]) : NaN;
+      out[k] = Number.isFinite(v) && v >= 0 ? v : 0;
+    });
+    if (cv && econSaladPotConsumablesMode(cv)){
+      if (out.consPotBreakdown == null) out.consPotBreakdown = true;
+      if (hasConsPotParts(out)) syncConsPotPartsTotal(out);
+    } else {
+      out.consPotBreakdown = false;
+    }
     out.potHarvestMonths = row && row.potHarvestMonths != null ? Math.max(0.25, parseFloat(row.potHarvestMonths) || 3) : 3;
     if (cv && cv.econLotSale){
       out.potHarvestMonths = parsePotHarvestMonthsFromCv(cv, deps.getPlantingSnapshotForCvId(out.cvId));
@@ -704,8 +743,17 @@
       }
       if (isLot){
         const consSqm = bio.yieldPerSqmMonthPcs * norm.consumablesPerPot;
+        let perUnitStr = fmtMoneyUnit(norm.consumablesPerPot, lotPot ? 'econ.perPot' : 'econ.perTray', lotPot ? '/горшок' : '/лоток');
+        if (lotPot && norm.consPotBreakdown && hasConsPotParts(norm)){
+          perUnitStr += TF('econ.hint.consPotParts', {
+            seeds: fmtMoneyUnit(norm.consPotSeeds, 'econ.perPot', '/горшок'),
+            verm: fmtMoneyUnit(norm.consPotVermiculite, 'econ.perPot', '/горшок'),
+            pot: fmtMoneyUnit(norm.consPotPot, 'econ.perPot', '/горшок'),
+            wool: fmtMoneyUnit(norm.consPotRockwool, 'econ.perPot', '/горшок')
+          }, ' ({seeds} + {verm} + {pot} + {wool})');
+        }
         h += TF(lotPot ? 'econ.hint.consLotSalePot' : 'econ.hint.consLotSale', {
-          perUnit: fmtMoneyUnit(norm.consumablesPerPot, lotPot ? 'econ.perPot' : 'econ.perTray', lotPot ? '/горшок' : '/лоток'),
+          perUnit: perUnitStr,
           consMo: fmtMoneyUnit(consSqm, 'econ.perSqmMonth', '/м²·мес')
         }, lotPot
           ? ' · <strong>{perUnit}</strong> на каждую проданную шт → <strong>{consMo}</strong>'
@@ -984,6 +1032,10 @@
       var r = Object.assign({}, row);
       var cp = parseFloat(r.consumablesPerPot);
       if (cp > 0) r.consumablesPerPot = cp * factor;
+      CONS_POT_PART_KEYS.forEach(function(k){
+        var v = parseFloat(r[k]);
+        if (v > 0) r[k] = v * factor;
+      });
       return r;
     });
     c._costScale = (parseFloat(c._costScale) || 1) * factor;
@@ -1613,7 +1665,12 @@
       collectEconWarnings: collectEconWarnings,
       calcFarmEconomics: calcFarmEconomics,
       calcEconomics: calcEconomics,
-      getEquipmentGroups: getEquipmentGroups
+      getEquipmentGroups: getEquipmentGroups,
+      econSaladPotConsumablesMode: econSaladPotConsumablesMode,
+      CONS_POT_PART_KEYS: CONS_POT_PART_KEYS,
+      sumConsPotParts: sumConsPotParts,
+      hasConsPotParts: hasConsPotParts,
+      syncConsPotPartsTotal: syncConsPotPartsTotal
     };
   }
 

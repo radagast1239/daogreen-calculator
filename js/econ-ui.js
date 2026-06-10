@@ -993,17 +993,66 @@
     initEconFmtInputs();
   }
 
+  function isConsPotPartField(f){
+    return f === 'consPotSeeds' || f === 'consPotVermiculite' || f === 'consPotPot' || f === 'consPotRockwool';
+  }
+
+  function applyCultFieldValue(i, field, rawVal){
+    deps.ensureEconCultures();
+    const v = isMoneyCult(field) || isConsPotPartField(field) ? parseMoney(rawVal) : deps.parseNumInput(rawVal);
+    st().econ.cultures[i][field] = isNaN(v) ? 0 : v;
+    if (isConsPotPartField(field) && deps.syncConsPotPartsTotal){
+      deps.syncConsPotPartsTotal(st().econ.cultures[i]);
+    }
+  }
+
   function econCultParamInput(i, field, label, opts){
     opts = opts || {};
     const row = deps.normalizeEconCultureRow(st().econ.cultures[i]);
     const yUnit = field === 'yieldPerCut' ? (row.unitIsPieces ? uPcs() : uG()) : '';
     const dec = opts.decimals != null ? opts.decimals : deps.decimalsFromStep(opts.step || 1);
     const v = row[field] != null ? row[field] : '';
-    const disp = v === '' ? '' : deps.formatInputValue(v, dec);
+    const disp = v === '' ? '' : (isMoneyCult(field) || isConsPotPartField(field) ? fmtMoneyInp(v, dec) : deps.formatInputValue(v, dec));
     const ph = opts.placeholder ? ' placeholder="' + opts.placeholder + '"' : '';
     const title = opts.title ? ' title="' + opts.title + '"' : '';
     return '<div class="econ-field econ-culture-param"><label>' + label + (yUnit ? ' (' + yUnit + ')' : '') + '</label>' +
       '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="' + dec + '" data-econ-cult-field="' + field + '" data-econ-cult-idx="' + i + '" value="' + disp + '"' + ph + title + '></div>';
+  }
+
+  function econCultConsPotFieldHtml(i, norm, cv, consLbl, consPh){
+    const saladPot = deps.econSaladPotConsumablesMode && cv && deps.econSaladPotConsumablesMode(cv);
+    const consTitle = (cv && cv.econLotSale && cv.econLotSalePot) ? L('econ.cult.consPot.lotHint') : consLbl;
+    if (!saladPot){
+      return econCultParamInput(i, 'consumablesPerPot', consLbl + ', ' + moneySym(), {
+        step: 0.5, decimals: 1, placeholder: consPh, title: consTitle
+      });
+    }
+    if (!norm.consPotBreakdown){
+      return '<div class="econ-culture-cons-simple">' +
+        econCultParamInput(i, 'consumablesPerPot', consLbl + ', ' + moneySym(), {
+          step: 0.1, decimals: 1, placeholder: consPh, title: consTitle
+        }) +
+        '<button type="button" class="econ-link-btn econ-cons-breakdown-toggle" data-econ-cult-breakdown="' + i + '" data-econ-cult-breakdown-on="1">' + L('econ.cult.consPot.expand') + '</button>' +
+        '</div>';
+    }
+    const parts = [
+      ['consPotSeeds', L('econ.cult.consPot.seeds')],
+      ['consPotVermiculite', L('econ.cult.consPot.vermiculite')],
+      ['consPotPot', L('econ.cult.consPot.pot')],
+      ['consPotRockwool', L('econ.cult.consPot.rockwool')]
+    ];
+    const total = deps.sumConsPotParts ? deps.sumConsPotParts(norm) : 0;
+    const totalDisp = total > 0 ? total : norm.consumablesPerPot;
+    return '<div class="econ-culture-cons-breakdown">' +
+      '<div class="econ-culture-cons-breakdown-head">' +
+      '<span class="econ-cons-breakdown-title">' + consLbl + ', ' + moneySym() + '</span>' +
+      '<button type="button" class="econ-link-btn econ-cons-breakdown-toggle" data-econ-cult-breakdown="' + i + '" data-econ-cult-breakdown-on="0">' + L('econ.cult.consPot.collapse') + '</button>' +
+      '</div>' +
+      '<div class="econ-cons-breakdown-grid">' + parts.map(function(p){
+        return econCultParamInput(i, p[0], p[1], { step: 0.1, decimals: 1 });
+      }).join('') + '</div>' +
+      '<p class="econ-cons-breakdown-total">' + L('econ.cult.consPot.total') + ': <strong data-econ-cons-total="' + i + '">' + fmtMoneyInp(totalDisp, 1) + ' ' + moneySym() + '</strong></p>' +
+      '</div>';
   }
 
   function econAreaMode(){
@@ -1090,10 +1139,7 @@
         econCultParamInput(i, 'cutIntervalDays', L('econ.cult.interval'), { step: 1, min: 1 }) +
         econCultParamInput(i, 'kwhPerM2Hour', L('econ.cult.lightKwh'), { step: 0.001 }) +
         econCultParamInput(i, 'lightHoursDay', L('econ.cult.lightH'), { step: 0.5 }) +
-        econCultParamInput(i, 'consumablesPerPot', consLbl + ', ' + moneySym(), {
-          step: 0.5, decimals: 1, placeholder: consPh,
-          title: (isLot && lotPot) ? L('econ.cult.consPot.lotHint') : consLbl
-        }) +
+        econCultConsPotFieldHtml(i, norm, cv, consLbl, consPh) +
         (isLot ? '' : econCultParamInput(i, 'potHarvestMonths', L('econ.cult.potLife'), { step: 0.5, decimals: 1 })) +
         '</div>' +
         '<p class="econ-culture-hint">' + deps.formatEconCultureHint(norm) + '</p>' +
@@ -1126,6 +1172,19 @@
     const list = deps.$('econ-cultures-list');
     if (!list || list.dataset.econCulturesBound) return;
     list.dataset.econCulturesBound = '1';
+
+    list.addEventListener('click', e => {
+      const bdBtn = e.target.closest('[data-econ-cult-breakdown]');
+      if (bdBtn){
+        const iBd = parseInt(bdBtn.dataset.econCultBreakdown, 10);
+        deps.ensureEconCultures();
+        if (!st().econ.cultures[iBd]) return;
+        st().econ.cultures[iBd].consPotBreakdown = bdBtn.dataset.econCultBreakdownOn === '1';
+        deps.saveEconStore();
+        renderEconomics();
+        return;
+      }
+    });
 
     list.addEventListener('change', e => {
       const cvSel = e.target.dataset.econCultureCv;
@@ -1172,9 +1231,7 @@
       const cultField = e.target.dataset.econCultField;
       if (cultField != null){
         const i = parseInt(e.target.dataset.econCultIdx, 10);
-        deps.ensureEconCultures();
-        const v = isMoneyCult(cultField) ? parseMoney(e.target.value) : deps.parseNumInput(e.target.value);
-        st().econ.cultures[i][cultField] = isNaN(v) ? 0 : v;
+        applyCultFieldValue(i, cultField, e.target.value);
         deps.saveEconStore();
         renderEconomics();
         return;
@@ -1214,10 +1271,17 @@
       const cultField = e.target.dataset.econCultField;
       if (cultField != null){
         const i = parseInt(e.target.dataset.econCultIdx, 10);
-        deps.ensureEconCultures();
-        const v = isMoneyCult(cultField) ? parseMoney(e.target.value) : deps.parseNumInput(e.target.value);
-        st().econ.cultures[i][cultField] = isNaN(v) ? 0 : v;
+        applyCultFieldValue(i, cultField, e.target.value);
         deps.saveEconStore();
+        if (isConsPotPartField(cultField)){
+          const card = e.target.closest('.econ-culture-card');
+          const totalEl = card && card.querySelector('[data-econ-cons-total="' + i + '"]');
+          if (totalEl){
+            const sum = deps.sumConsPotParts ? deps.sumConsPotParts(st().econ.cultures[i]) : 0;
+            const disp = sum > 0 ? sum : st().econ.cultures[i].consumablesPerPot;
+            totalEl.textContent = fmtMoneyInp(disp, 1) + ' ' + moneySym();
+          }
+        }
         renderEconDerivedPanel();
         const hint = e.target.closest('.econ-culture-card')?.querySelector('.econ-culture-hint');
         if (hint){
