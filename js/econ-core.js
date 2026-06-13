@@ -15,6 +15,97 @@
     'pl-spinach-baby': { density: 220, yieldPerCut: 3, cutIntervalDays: 7, consumablesPerPot: 4 },
     'pl-edible-flowers': { yieldPerCut: 30, cutIntervalDays: 7, consumablesPerPot: 4, potHarvestMonths: 5 }
   };
+  /** Доп. культуры только для экономики (без посадочного каталога). */
+  const ECON_EXTRA_CULTURE_DEFAULTS = {
+    'econ-berry-blueberry': {
+      density: 8,
+      yieldPerPlantMonth: 0.45,
+      yieldPerCut: 150,
+      cutsPerMonthManual: 3,
+      cutIntervalDays: 10,
+      unitIsPieces: false,
+      consumablesPerPot: 6,
+      potHarvestMonths: 8
+    },
+    'econ-berry-raspberry': {
+      density: 10,
+      yieldPerPlantMonth: 0.55,
+      yieldPerCut: 180,
+      cutsPerMonthManual: 3,
+      cutIntervalDays: 10,
+      unitIsPieces: false,
+      consumablesPerPot: 6,
+      potHarvestMonths: 6
+    },
+    'econ-berry-strawberry': {
+      density: 16,
+      yieldPerPlantMonth: 0.35,
+      yieldPerCut: 120,
+      cutsPerMonthManual: 3,
+      cutIntervalDays: 10,
+      unitIsPieces: false,
+      consumablesPerPot: 6,
+      potHarvestMonths: 5
+    },
+    'econ-veg-cucumber': {
+      density: 2.5,
+      yieldPerPlantMonth: 4.2,
+      yieldPerCut: 1400,
+      cutsPerMonthManual: 3,
+      cutIntervalDays: 10,
+      unitIsPieces: false,
+      consumablesPerPot: 5,
+      potHarvestMonths: 5
+    },
+    'econ-veg-tomato': {
+      density: 2.8,
+      yieldPerPlantMonth: 3.8,
+      yieldPerCut: 1270,
+      cutsPerMonthManual: 3,
+      cutIntervalDays: 10,
+      unitIsPieces: false,
+      consumablesPerPot: 5,
+      potHarvestMonths: 6
+    },
+    'econ-veg-pepper': {
+      density: 3.2,
+      yieldPerPlantMonth: 2.8,
+      yieldPerCut: 930,
+      cutsPerMonthManual: 3,
+      cutIntervalDays: 10,
+      unitIsPieces: false,
+      consumablesPerPot: 5,
+      potHarvestMonths: 6
+    },
+    // Legacy ids: keep support for already saved projects.
+    'econ-berry': {
+      density: 18,
+      yieldPerCut: 220,
+      cutIntervalDays: 28,
+      unitIsPieces: false,
+      consumablesPerPot: 6,
+      potHarvestMonths: 4
+    },
+    'econ-vegetables': {
+      density: 22,
+      yieldPerCut: 260,
+      cutIntervalDays: 30,
+      unitIsPieces: false,
+      consumablesPerPot: 6,
+      potHarvestMonths: 3
+    }
+  };
+  /** Группы выпуска в кг для итоговых строк */
+  const ECON_KG_OUTPUT_GROUPS = {
+    berries: ['econ-berry-blueberry', 'econ-berry-raspberry', 'econ-berry-strawberry', 'econ-berry'],
+    vegetables: ['econ-veg-cucumber', 'econ-veg-tomato', 'econ-veg-pepper', 'econ-vegetables']
+  };
+  function econOutputKgGroup(cvId){
+    if (!cvId) return 'otherKg';
+    if (ECON_KG_OUTPUT_GROUPS.berries.indexOf(cvId) >= 0) return 'berries';
+    if (ECON_KG_OUTPUT_GROUPS.vegetables.indexOf(cvId) >= 0) return 'vegetables';
+    return 'otherKg';
+  }
   /** Группы выпуска в шт для итоговых строк */
   const ECON_PCS_OUTPUT_GROUPS = {
     microBaby: ['pl-microgreens', 'pl-baby-living'],
@@ -267,6 +358,9 @@
       lightHoursDay: 16,
       consumablesPerPot: ECON_DEFAULT_CONSUMABLES_PER_POT,
       potHarvestMonths: 3,
+      yieldPerPlantMonth: 0,
+      yieldPerSqmMonthManual: 0,
+      cutsPerMonthManual: 0,
       unitIsPieces: false,
       consPotBreakdown: false,
       consPotSeeds: 0,
@@ -333,6 +427,14 @@
 
   function econCvDisplayName(cvId){
     if (!cvId) return T('econ.cv.noSort', 'Культура (без сорта)');
+    if (cvId === 'econ-berry-blueberry') return T('econ.opt.berryBlueberry', 'Голубика');
+    if (cvId === 'econ-berry-raspberry') return T('econ.opt.berryRaspberry', 'Малина');
+    if (cvId === 'econ-berry-strawberry') return T('econ.opt.berryStrawberry', 'Земляника');
+    if (cvId === 'econ-veg-cucumber') return T('econ.opt.vegCucumber', 'Огурцы');
+    if (cvId === 'econ-veg-tomato') return T('econ.opt.vegTomato', 'Томаты');
+    if (cvId === 'econ-veg-pepper') return T('econ.opt.vegPepper', 'Перцы');
+    if (cvId === 'econ-berry') return T('econ.opt.berry', 'Ягоды');
+    if (cvId === 'econ-vegetables') return T('econ.opt.vegetables', 'Овощи');
     const cv = deps.findCvById(cvId);
     return cv ? cv.name : cvId;
   }
@@ -515,6 +617,9 @@
       lightHoursDay: parseFloat(e && e.lightHoursDay) || 16
     };
     if (!cvId) return light;
+    if (ECON_EXTRA_CULTURE_DEFAULTS[cvId]){
+      return applyEconCvOverrides(cvId, Object.assign({}, light, ECON_EXTRA_CULTURE_DEFAULTS[cvId]));
+    }
     if (deps.isPalletCvId(cvId) && deps.allPalletCultivars().length){
       const cv = deps.allPalletCultivars().find(c => c.id === cvId);
       if (!cv) return light;
@@ -582,6 +687,9 @@
     if (cv && cv.id === 'pl-edible-flowers' && out.consumablesPerPot < 1){
       out.consumablesPerPot = ECON_DEFAULT_CONSUMABLES_PER_POT;
     }
+    out.yieldPerPlantMonth = Math.max(0, parseFloat(row && row.yieldPerPlantMonth) || 0);
+    out.yieldPerSqmMonthManual = Math.max(0, parseFloat(row && row.yieldPerSqmMonthManual) || 0);
+    out.cutsPerMonthManual = Math.max(0, parseFloat(row && row.cutsPerMonthManual) || 0);
     CONS_POT_PART_KEYS.forEach(function(k){
       const v = row && row[k] != null ? parseFloat(row[k]) : NaN;
       out[k] = Number.isFinite(v) && v >= 0 ? v : 0;
@@ -674,17 +782,41 @@
   function econCultureBio(row){
     row = normalizeEconCultureRow(row);
     const density = Math.max(0, parseFloat(row.density) || 0);
-    const yieldPerCut = Math.max(0, parseFloat(row.yieldPerCut) || 0);
+    let yieldPerCut = Math.max(0, parseFloat(row.yieldPerCut) || 0);
     const cutIntervalDays = Math.max(1, parseFloat(row.cutIntervalDays) || 15);
-    const cutsPerMonth = ECON_MONTH_DAYS / cutIntervalDays;
-    const yieldPerPotMonth = yieldPerCut * cutsPerMonth;
     const unitIsPieces = !!row.unitIsPieces;
+    const cutsManual = Math.max(0, parseFloat(row.cutsPerMonthManual) || 0);
+    const cutsPerMonth = cutsManual > 0 ? cutsManual : (ECON_MONTH_DAYS / cutIntervalDays);
+    const yieldPerPlantMonthInput = Math.max(0, parseFloat(row.yieldPerPlantMonth) || 0);
+    const yieldPerSqmMonthManual = Math.max(0, parseFloat(row.yieldPerSqmMonthManual) || 0);
+    let yieldPerPotMonth = yieldPerCut * cutsPerMonth;
+    if (yieldPerPlantMonthInput > 0){
+      // Для кг-культур ввод "с растения в мес" идёт в кг.
+      yieldPerPotMonth = unitIsPieces ? yieldPerPlantMonthInput : (yieldPerPlantMonthInput * 1000);
+      if (cutsPerMonth > 0) yieldPerCut = yieldPerPotMonth / cutsPerMonth;
+    }
     let yieldPerSqmMonthKg = 0;
     let yieldPerSqmMonthPcs = 0;
-    if (unitIsPieces){
-      yieldPerSqmMonthPcs = yieldPerPotMonth * density;
+    if (yieldPerSqmMonthManual > 0){
+      if (unitIsPieces){
+        yieldPerSqmMonthPcs = yieldPerSqmMonthManual;
+      } else {
+        yieldPerSqmMonthKg = yieldPerSqmMonthManual;
+      }
+      if (density > 0){
+        if (unitIsPieces){
+          yieldPerPotMonth = yieldPerSqmMonthPcs / density;
+        } else {
+          yieldPerPotMonth = (yieldPerSqmMonthKg * 1000) / density;
+        }
+        if (cutsPerMonth > 0) yieldPerCut = yieldPerPotMonth / cutsPerMonth;
+      }
     } else {
-      yieldPerSqmMonthKg = (yieldPerPotMonth / 1000) * density;
+      if (unitIsPieces){
+        yieldPerSqmMonthPcs = yieldPerPotMonth * density;
+      } else {
+        yieldPerSqmMonthKg = (yieldPerPotMonth / 1000) * density;
+      }
     }
     return {
       density: density,
@@ -692,6 +824,8 @@
       cutIntervalDays: cutIntervalDays,
       cutsPerMonth: cutsPerMonth,
       yieldPerPotMonth: yieldPerPotMonth,
+      yieldPerPlantMonthInput: yieldPerPlantMonthInput,
+      yieldPerSqmMonthManual: yieldPerSqmMonthManual,
       unitIsPieces: unitIsPieces,
       yieldUnit: unitIsPieces ? 'шт' : 'г',
       yieldPerSqmMonthKg: yieldPerSqmMonthKg,
@@ -735,6 +869,12 @@
       ? 'Оборот в месяц: <strong>{cuts}</strong> ({intervalLbl}) · {fromLbl}: <strong>{yieldPot} {unit}</strong> · <strong>{ySqm}</strong> · свет {kwh} кВт·ч/м² × {lightH} ч'
       : 'Срезок в месяц: <strong>{cuts}</strong> ({intervalLbl}) · {fromLbl}: <strong>{yieldPot} {unit}</strong> · <strong>{ySqm}</strong> · свет {kwh} кВт·ч/м² × {lightH} ч');
     if (norm.consumablesPerPot > 0){
+      const isExtraSeedling = !!norm.cvId && (
+        norm.cvId.indexOf('econ-berry-') === 0 ||
+        norm.cvId.indexOf('econ-veg-') === 0 ||
+        norm.cvId === 'econ-berry' ||
+        norm.cvId === 'econ-vegetables'
+      );
       function fmtMoneyUnit(amount, unitKey, unitFallback){
         var unit = T(unitKey, unitFallback);
         if (deps.fmtMoney) return deps.fmtMoney(amount) + unit;
@@ -762,14 +902,25 @@
         const consSqm = bio.density > 0 && bio.potHarvestMonths > 0
           ? (bio.density * norm.consumablesPerPot) / bio.potHarvestMonths : 0;
         const consOnce = bio.density * norm.consumablesPerPot;
-        h += TF('econ.hint.cons', {
-          perPot: fmtMoneyUnit(norm.consumablesPerPot, 'econ.perPot', '/горшок'),
-          dens: deps.round(bio.density),
-          pcsSqm: T('econ.unit.pcsSqm', 'шт/м²'),
-          consOnce: fmtMoneyUnit(consOnce, 'econ.perSqm', '/м²'),
-          months: deps.r1(bio.potHarvestMonths),
-          consMo: fmtMoneyUnit(consSqm, 'econ.perSqmMonth', '/м²·мес')
-        }, ' · посев <strong>{perPot}</strong> × <strong>{dens} {pcsSqm}</strong> = <strong>{consOnce}</strong>, ÷ <strong>{months}</strong> → <strong>{consMo}</strong>');
+        if (isExtraSeedling){
+          h += TF('econ.hint.consSeedling', {
+            perSeedling: fmtMoneyUnit(norm.consumablesPerPot, 'econ.perSeedling', '/саженец'),
+            dens: deps.round(bio.density),
+            pcsSqm: T('econ.unit.pcsSqm', 'шт/м²'),
+            consOnce: fmtMoneyUnit(consOnce, 'econ.perSqm', '/м²'),
+            months: deps.r1(bio.potHarvestMonths),
+            consMo: fmtMoneyUnit(consSqm, 'econ.perSqmMonth', '/м²·мес')
+          }, ' · саженец <strong>{perSeedling}</strong> × <strong>{dens} {pcsSqm}</strong> = <strong>{consOnce}</strong>, ÷ <strong>{months}</strong> → <strong>{consMo}</strong>');
+        } else {
+          h += TF('econ.hint.cons', {
+            perPot: fmtMoneyUnit(norm.consumablesPerPot, 'econ.perPot', '/горшок'),
+            dens: deps.round(bio.density),
+            pcsSqm: T('econ.unit.pcsSqm', 'шт/м²'),
+            consOnce: fmtMoneyUnit(consOnce, 'econ.perSqm', '/м²'),
+            months: deps.r1(bio.potHarvestMonths),
+            consMo: fmtMoneyUnit(consSqm, 'econ.perSqmMonth', '/м²·мес')
+          }, ' · посев <strong>{perPot}</strong> × <strong>{dens} {pcsSqm}</strong> = <strong>{consOnce}</strong>, ÷ <strong>{months}</strong> → <strong>{consMo}</strong>');
+        }
       }
     }
     return h;
@@ -1401,6 +1552,8 @@
     let lightCost = 0;
     let consumablesCost = 0;
     let outKg = 0;
+    let outBerriesKg = 0;
+    let outVegetablesKg = 0;
     let outPcs = 0;
     let outMicroBabyPcs = 0;
     let outFlowersPcs = 0;
@@ -1424,6 +1577,9 @@
         else outOtherPcs += p.slice.monthlyOutput;
       } else {
         outKg += p.slice.monthlyOutput;
+        const g = econOutputKgGroup(p.cvId);
+        if (g === 'berries') outBerriesKg += p.slice.monthlyOutput;
+        else if (g === 'vegetables') outVegetablesKg += p.slice.monthlyOutput;
         revKg += p.slice.revenue;
         areaKg += p.slice.area;
       }
@@ -1431,6 +1587,8 @@
 
     const areaUsed = parts.reduce((s, p) => s + p.slice.area, 0);
     const sellKg = outKg * wasteFactor;
+    const sellBerriesKg = outBerriesKg * wasteFactor;
+    const sellVegetablesKg = outVegetablesKg * wasteFactor;
     const sellPcs = outPcs * wasteFactor;
     const sellMicroBabyPcs = outMicroBabyPcs * wasteFactor;
     const sellFlowersPcs = outFlowersPcs * wasteFactor;
@@ -1535,12 +1693,16 @@
       waterEnabled: econWaterInCalc(e),
       wasteFactor: wasteFactor,
       sellKg: sellKg,
+      sellBerriesKg: sellBerriesKg,
+      sellVegetablesKg: sellVegetablesKg,
       sellPcs: sellPcs,
       sellMicroBabyPcs: sellMicroBabyPcs,
       sellFlowersPcs: sellFlowersPcs,
       sellWheatgrassPcs: sellWheatgrassPcs,
       sellOtherPcs: sellOtherPcs,
       outKg: outKg,
+      outBerriesKg: outBerriesKg,
+      outVegetablesKg: outVegetablesKg,
       outPcs: outPcs,
       revKg: revKg,
       revPcs: revPcs,

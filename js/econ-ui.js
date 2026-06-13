@@ -57,6 +57,18 @@
     var VF_CULTIVARS = deps.VF_CULTIVARS || [];
     var CULTIVARS = deps.CULTIVARS || [];
     var PALLET_CULTIVARS = deps.PALLET_CULTIVARS || [];
+    var ECON_EXTRA_BERRIES = [
+      { id: 'econ-berry-blueberry', labelKey: 'econ.opt.berryBlueberry' },
+      { id: 'econ-berry-raspberry', labelKey: 'econ.opt.berryRaspberry' },
+      { id: 'econ-berry-strawberry', labelKey: 'econ.opt.berryStrawberry' },
+      { id: 'econ-berry', labelKey: 'econ.opt.berryLegacy' }
+    ];
+    var ECON_EXTRA_VEGETABLES = [
+      { id: 'econ-veg-cucumber', labelKey: 'econ.opt.vegCucumber' },
+      { id: 'econ-veg-tomato', labelKey: 'econ.opt.vegTomato' },
+      { id: 'econ-veg-pepper', labelKey: 'econ.opt.vegPepper' },
+      { id: 'econ-vegetables', labelKey: 'econ.opt.vegetablesLegacy' }
+    ];
 
   function getEconCultureOptionsHtml(selectedId, rowIdx){
     const used = new Set();
@@ -87,7 +99,24 @@
       PALLET_CULTIVARS.forEach(c => { html += opt(c.id, c.name); });
       html += '</optgroup>';
     }
+    html += '<optgroup label="' + L('econ.opt.groupBerries') + '">';
+    ECON_EXTRA_BERRIES.forEach(function(c){
+      html += opt(c.id, L(c.labelKey));
+    });
+    html += '</optgroup>';
+    html += '<optgroup label="' + L('econ.opt.groupVegetables') + '">';
+    ECON_EXTRA_VEGETABLES.forEach(function(c){
+      html += opt(c.id, L(c.labelKey));
+    });
+    html += '</optgroup>';
     return html;
+  }
+
+  function econExtraKind(cvId){
+    if (!cvId) return '';
+    if (cvId.indexOf('econ-berry-') === 0 || cvId === 'econ-berry') return 'berry';
+    if (cvId.indexOf('econ-veg-') === 0 || cvId === 'econ-vegetables') return 'vegetables';
+    return '';
   }
 
   function isEconCvIdTaken(cvId, exceptIdx){
@@ -1120,10 +1149,23 @@
       const cv = typeof deps.findCvById === 'function' ? deps.findCvById(norm.cvId) : null;
       const isLot = !!(cv && cv.econLotSale);
       const lotPot = !!(cv && cv.econLotSalePot);
-      const yieldLbl = isLot ? L('econ.cult.yieldCycle') : (norm.unitIsPieces ? L('econ.cult.yieldPcs') : L('econ.cult.yield'));
+      const extraKind = econExtraKind(norm.cvId);
+      const densityLbl = extraKind === 'berry'
+        ? L('econ.cult.densityBush')
+        : (extraKind === 'vegetables' ? L('econ.cult.densityPlant') : L('econ.cult.density'));
+      const yieldLbl = (extraKind && !isLot)
+        ? L('econ.cult.yieldCut')
+        : (isLot ? L('econ.cult.yieldCycle') : (norm.unitIsPieces ? L('econ.cult.yieldPcs') : L('econ.cult.yield')));
       const yieldHint = isLot ? L('econ.cult.yieldCycleHint') : L('econ.cult.yieldHint');
-      const consLbl = isLot ? (lotPot ? L('econ.cult.consPot') : L('econ.cult.consTray')) : L('econ.cult.consPot');
+      const consLbl = (extraKind === 'berry' || extraKind === 'vegetables')
+        ? L('econ.cult.consSeedling')
+        : (isLot ? (lotPot ? L('econ.cult.consPot') : L('econ.cult.consTray')) : L('econ.cult.consPot'));
       const consPh = isLot ? '10' : String(ECON_CONSUMABLES_PER_POT_HINT);
+      const showPlantYield = extraKind === 'berry' || extraKind === 'vegetables';
+      const plantYieldLabel = extraKind === 'berry' ? L('econ.cult.yieldBushMonth') : L('econ.cult.yieldPlantMonth');
+      const replaceLabel = (extraKind === 'berry' || extraKind === 'vegetables')
+        ? L('econ.cult.seedlingLifeMonths')
+        : L('econ.cult.potLife');
       html += '<div class="econ-culture-card" data-econ-culture-idx="' + i + '">' +
         '<div class="econ-culture-head">' +
         '<div class="econ-field"><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i) + '</select></div>' +
@@ -1134,13 +1176,16 @@
         '<button type="button" class="econ-rm" data-econ-culture-rm="' + i + '" title="' + L('econ.btn.remove') + '" aria-label="' + L('econ.btn.remove') + '">×</button>' +
         '</div>' +
         '<div class="econ-culture-params">' +
-        econCultParamInput(i, 'density', L('econ.cult.density'), { step: 1 }) +
+        econCultParamInput(i, 'density', densityLbl, showPlantYield ? { step: 0.1, decimals: 1 } : { step: 1 }) +
+        (showPlantYield ? econCultParamInput(i, 'yieldPerPlantMonth', plantYieldLabel, { step: 0.01, decimals: 2 }) : '') +
+        (showPlantYield ? econCultParamInput(i, 'yieldPerSqmMonthManual', L('econ.cult.yieldSqmMonth'), { step: 0.01, decimals: 2 }) : '') +
+        (showPlantYield ? econCultParamInput(i, 'cutsPerMonthManual', L('econ.cult.cutsMonth'), { step: 0.1, decimals: 1 }) : '') +
         econCultParamInput(i, 'yieldPerCut', yieldLbl, { step: isLot ? 1 : 0.1, decimals: isLot ? 0 : null, title: yieldHint }) +
         econCultParamInput(i, 'cutIntervalDays', L('econ.cult.interval'), { step: 1, min: 1 }) +
         econCultParamInput(i, 'kwhPerM2Hour', L('econ.cult.lightKwh'), { step: 0.001 }) +
         econCultParamInput(i, 'lightHoursDay', L('econ.cult.lightH'), { step: 0.5 }) +
         econCultConsPotFieldHtml(i, norm, cv, consLbl, consPh) +
-        (isLot ? '' : econCultParamInput(i, 'potHarvestMonths', L('econ.cult.potLife'), { step: 0.5, decimals: 1 })) +
+        (isLot ? '' : econCultParamInput(i, 'potHarvestMonths', replaceLabel, { step: 0.5, decimals: 1 })) +
         '</div>' +
         '<p class="econ-culture-hint">' + deps.formatEconCultureHint(norm) + '</p>' +
         '</div>';
@@ -1547,6 +1592,9 @@
           ch += '<tr class="econ-total-row"><td><strong>' + L('econ.tbl.totalKg') + '</strong></td><td>' + pctShow + '</td><td>' + deps.r1(farm.areaUsed) + '</td><td>' +
             (res.sellKg > 0 ? deps.r1(res.sellKg) + ' ' + uKg() + (wasteActive ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '') : '—') +
             '</td><td><strong>' + (res.unitCostKg > 0 ? moneyFmt(res.unitCostKg) : '—') + '</strong></td><td>—</td><td><strong>' + moneyFmt(res.revKg) + '</strong></td><td><strong>' + moneyFmt(res.marginKg) + '</strong></td></tr>';
+          const kgOpts = Object.assign({}, totOpts, { unit: uKg(), decimals: 1 });
+          ch += outputTotalRow(L('econ.tbl.outBerriesKg'), res.sellBerriesKg, kgOpts);
+          ch += outputTotalRow(L('econ.tbl.outVegetablesKg'), res.sellVegetablesKg, kgOpts);
         }
         ch += outputTotalRow(L('econ.tbl.outMicroBaby'), res.sellMicroBabyPcs, totOpts);
         ch += outputTotalRow(L('econ.tbl.outFlowers'), res.sellFlowersPcs, totOpts);
@@ -1626,6 +1674,12 @@
     let farmCards = '<div class="econ-results" style="margin-top:0">';
     if (res.sellKg > 0){
       farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.totalKg') + '</div><div class="m-val">' + deps.r1(res.sellKg) + ' <span class="m-u">' + uKg() + '</span></div></div>';
+    }
+    if (res.sellBerriesKg > 0){
+      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outBerriesKg') + '</div><div class="m-val">' + deps.r1(res.sellBerriesKg) + ' <span class="m-u">' + uKg() + '</span></div></div>';
+    }
+    if (res.sellVegetablesKg > 0){
+      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outVegetablesKg') + '</div><div class="m-val">' + deps.r1(res.sellVegetablesKg) + ' <span class="m-u">' + uKg() + '</span></div></div>';
     }
     if (res.sellMicroBabyPcs > 0){
       farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outMicroBaby') + '</div><div class="m-val">' + deps.fmtNum(res.sellMicroBabyPcs) + ' <span class="m-u">' + uPcs() + '</span></div></div>';

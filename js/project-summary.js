@@ -32,6 +32,12 @@
       rows.push({ k: t(deps, 'sum.marginPct'), a: farm.marginPct, b: '%', num: true });
       if (farm.sellKg > 0){
         rows.push({ k: t(deps, 'sum.salesKg'), a: farm.sellKg, b: t(deps, 'sum.unit.kgMo'), num: true });
+        if (farm.sellBerriesKg > 0){
+          rows.push({ k: t(deps, 'sum.salesBerries'), a: farm.sellBerriesKg, b: t(deps, 'sum.unit.kgMo'), num: true });
+        }
+        if (farm.sellVegetablesKg > 0){
+          rows.push({ k: t(deps, 'sum.salesVegetables'), a: farm.sellVegetablesKg, b: t(deps, 'sum.unit.kgMo'), num: true });
+        }
         rows.push({ k: t(deps, 'sum.unitCost'), a: farm.unitCostKg, b: moneyUnit(deps, deps.t ? deps.t('econ.perKg') : '/кг'), num: true, money: true });
       }
       if (farm.sellMicroBabyPcs > 0){
