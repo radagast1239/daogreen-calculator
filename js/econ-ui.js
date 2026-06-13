@@ -70,45 +70,52 @@
       { id: 'econ-vegetables', labelKey: 'econ.opt.vegetablesLegacy' }
     ];
 
-  function getEconCultureOptionsHtml(selectedId, rowIdx){
+  function getEconCultureOptionsHtml(selectedId, rowIdx, searchQuery){
     const used = new Set();
     deps.ensureEconCultures();
     st().econ.cultures.forEach((row, j) => {
       if (j !== rowIdx && row.cvId) used.add(row.cvId);
     });
+    const q = String(searchQuery || '').trim().toLowerCase();
+    const matchName = function(name){
+      if (!q) return true;
+      return String(name || '').toLowerCase().indexOf(q) >= 0;
+    };
     const opt = (val, label) => {
       const sel = selectedId === val ? ' selected' : '';
       const dis = val && used.has(val) ? ' disabled' : '';
       return '<option value="' + val + '"' + sel + dis + '>' + label + '</option>';
     };
+    const pushMatched = function(target, id, label){
+      if (!id) return;
+      if (selectedId === id || matchName(label)) target.push({ id: id, label: label });
+    };
+    const renderGroup = function(label, list){
+      if (!list.length) return '';
+      return '<optgroup label="' + label + '">' + list.map(function(item){ return opt(item.id, item.label); }).join('') + '</optgroup>';
+    };
     let html = opt('', L('econ.opt.empty'));
     const customVf = st().customVfCultivars || [];
     const customGh = st().customGhCultivars || [];
-    if (VF_CULTIVARS.length || customVf.length){
-      html += '<optgroup label="' + L('econ.opt.vf') + '">';
-      VF_CULTIVARS.forEach(c => { html += opt(c.id, c.name); });
-      customVf.forEach(c => { html += opt(c.id, c.name + ' ★'); });
-      html += '</optgroup>';
-    }
-    html += '<optgroup label="' + L('econ.opt.gh') + '">';
-    CULTIVARS.forEach(c => { html += opt(c.id, c.name); });
-    customGh.forEach(c => { html += opt(c.id, c.name + ' ★'); });
-    html += '</optgroup>';
+    const vfOpts = [];
+    VF_CULTIVARS.forEach(function(c){ pushMatched(vfOpts, c.id, c.name); });
+    customVf.forEach(function(c){ pushMatched(vfOpts, c.id, c.name + ' ★'); });
+    html += renderGroup(L('econ.opt.vf'), vfOpts);
+    const ghOpts = [];
+    CULTIVARS.forEach(function(c){ pushMatched(ghOpts, c.id, c.name); });
+    customGh.forEach(function(c){ pushMatched(ghOpts, c.id, c.name + ' ★'); });
+    html += renderGroup(L('econ.opt.gh'), ghOpts);
     if (PALLET_CULTIVARS.length){
-      html += '<optgroup label="' + L('econ.opt.pal') + '">';
-      PALLET_CULTIVARS.forEach(c => { html += opt(c.id, c.name); });
-      html += '</optgroup>';
+      const palOpts = [];
+      PALLET_CULTIVARS.forEach(function(c){ pushMatched(palOpts, c.id, c.name); });
+      html += renderGroup(L('econ.opt.pal'), palOpts);
     }
-    html += '<optgroup label="' + L('econ.opt.groupBerries') + '">';
-    ECON_EXTRA_BERRIES.forEach(function(c){
-      html += opt(c.id, L(c.labelKey));
-    });
-    html += '</optgroup>';
-    html += '<optgroup label="' + L('econ.opt.groupVegetables') + '">';
-    ECON_EXTRA_VEGETABLES.forEach(function(c){
-      html += opt(c.id, L(c.labelKey));
-    });
-    html += '</optgroup>';
+    const berryOpts = [];
+    ECON_EXTRA_BERRIES.forEach(function(c){ pushMatched(berryOpts, c.id, L(c.labelKey)); });
+    html += renderGroup(L('econ.opt.groupBerries'), berryOpts);
+    const vegOpts = [];
+    ECON_EXTRA_VEGETABLES.forEach(function(c){ pushMatched(vegOpts, c.id, L(c.labelKey)); });
+    html += renderGroup(L('econ.opt.groupVegetables'), vegOpts);
     return html;
   }
 
@@ -119,6 +126,19 @@
     return '';
   }
 
+  function econYieldInputMode(row, extraKind){
+    if (extraKind !== 'berry' && extraKind !== 'vegetables') return 'cutMonth';
+    const mode = row && row.yieldInputMode;
+    if (mode === 'plantMonth' || mode === 'sqmMonth' || mode === 'cutMonth') return mode;
+    const bySqm = Math.max(0, parseFloat(row && row.yieldPerSqmMonthManual) || 0);
+    if (bySqm > 0) return 'sqmMonth';
+    const byPlant = Math.max(0, parseFloat(row && row.yieldPerPlantMonth) || 0);
+    if (byPlant > 0) return 'plantMonth';
+    const byCuts = Math.max(0, parseFloat(row && row.cutsPerMonthManual) || 0);
+    if (byCuts > 0) return 'cutMonth';
+    return 'plantMonth';
+  }
+
   function isEconCvIdTaken(cvId, exceptIdx){
     if (!cvId) return false;
     deps.ensureEconCultures();
@@ -127,6 +147,18 @@
 
   function econEscAttr(t){
     return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  function econYieldModeSelectInput(i, mode, plantLabel){
+    function opt(val, lbl){
+      return '<option value="' + val + '"' + (mode === val ? ' selected' : '') + '>' + econEscAttr(lbl) + '</option>';
+    }
+    return '<div class="econ-field econ-culture-param"><label>' + L('econ.cult.yieldMode') + '</label>' +
+      '<select data-econ-cult-field="yieldInputMode" data-econ-cult-idx="' + i + '">' +
+      opt('plantMonth', plantLabel) +
+      opt('sqmMonth', L('econ.cult.yieldModeSqmMonth')) +
+      opt('cutMonth', L('econ.cult.yieldModeCutsMonth')) +
+      '</select></div>';
   }
 
   function fmtEconRub(n){
@@ -1028,6 +1060,10 @@
 
   function applyCultFieldValue(i, field, rawVal){
     deps.ensureEconCultures();
+    if (field === 'yieldInputMode'){
+      st().econ.cultures[i][field] = String(rawVal || '');
+      return;
+    }
     const v = isMoneyCult(field) || isConsPotPartField(field) ? parseMoney(rawVal) : deps.parseNumInput(rawVal);
     st().econ.cultures[i][field] = isNaN(v) ? 0 : v;
     if (isConsPotPartField(field) && deps.syncConsPotPartsTotal){
@@ -1163,12 +1199,19 @@
       const consPh = isLot ? '10' : String(ECON_CONSUMABLES_PER_POT_HINT);
       const showPlantYield = extraKind === 'berry' || extraKind === 'vegetables';
       const plantYieldLabel = extraKind === 'berry' ? L('econ.cult.yieldBushMonth') : L('econ.cult.yieldPlantMonth');
+      const yieldMode = showPlantYield ? econYieldInputMode(norm, extraKind) : 'cutMonth';
+      const showYieldByPlant = showPlantYield && yieldMode === 'plantMonth';
+      const showYieldBySqm = showPlantYield && yieldMode === 'sqmMonth';
+      const showYieldByCuts = showPlantYield && yieldMode === 'cutMonth';
+      const showClassicYieldControls = !showPlantYield || showYieldByCuts;
       const replaceLabel = (extraKind === 'berry' || extraKind === 'vegetables')
         ? L('econ.cult.seedlingLifeMonths')
         : L('econ.cult.potLife');
+      const searchQ = String(norm.cvSearch || '');
       html += '<div class="econ-culture-card" data-econ-culture-idx="' + i + '">' +
         '<div class="econ-culture-head">' +
-        '<div class="econ-field"><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i) + '</select></div>' +
+        '<div class="econ-field"><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i, searchQ) + '</select></div>' +
+        '<div class="econ-field"><label>' + L('econ.cult.search') + '</label><input type="search" autocomplete="off" spellcheck="false" data-econ-culture-search="' + i + '" value="' + econEscAttr(searchQ) + '" placeholder="' + econEscAttr(L('econ.cult.searchPh')) + '"></div>' +
         (mode === 'sqm'
           ? '<div class="econ-field"><label>' + L('econ.cult.areaSqm') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-sqm="' + i + '" value="' + deps.formatInputValue(areaSqm, 1) + '"></div>'
           : '<div class="econ-field"><label>' + L('econ.cult.share') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-pct="' + i + '" value="' + deps.formatInputValue(pct, 1) + '"></div>') +
@@ -1177,11 +1220,12 @@
         '</div>' +
         '<div class="econ-culture-params">' +
         econCultParamInput(i, 'density', densityLbl, showPlantYield ? { step: 0.1, decimals: 1 } : { step: 1 }) +
-        (showPlantYield ? econCultParamInput(i, 'yieldPerPlantMonth', plantYieldLabel, { step: 0.01, decimals: 2 }) : '') +
-        (showPlantYield ? econCultParamInput(i, 'yieldPerSqmMonthManual', L('econ.cult.yieldSqmMonth'), { step: 0.01, decimals: 2 }) : '') +
-        (showPlantYield ? econCultParamInput(i, 'cutsPerMonthManual', L('econ.cult.cutsMonth'), { step: 0.1, decimals: 1 }) : '') +
-        econCultParamInput(i, 'yieldPerCut', yieldLbl, { step: isLot ? 1 : 0.1, decimals: isLot ? 0 : null, title: yieldHint }) +
-        econCultParamInput(i, 'cutIntervalDays', L('econ.cult.interval'), { step: 1, min: 1 }) +
+        (showPlantYield ? econYieldModeSelectInput(i, yieldMode, plantYieldLabel) : '') +
+        (showYieldByPlant ? econCultParamInput(i, 'yieldPerPlantMonth', plantYieldLabel, { step: 0.01, decimals: 2 }) : '') +
+        (showYieldBySqm ? econCultParamInput(i, 'yieldPerSqmMonthManual', L('econ.cult.yieldSqmMonth'), { step: 0.01, decimals: 2 }) : '') +
+        (showYieldByCuts ? econCultParamInput(i, 'cutsPerMonthManual', L('econ.cult.cutsMonth'), { step: 0.1, decimals: 1 }) : '') +
+        (showClassicYieldControls ? econCultParamInput(i, 'yieldPerCut', yieldLbl, { step: isLot ? 1 : 0.1, decimals: isLot ? 0 : null, title: yieldHint }) : '') +
+        (showClassicYieldControls ? econCultParamInput(i, 'cutIntervalDays', L('econ.cult.interval'), { step: 1, min: 1 }) : '') +
         econCultParamInput(i, 'kwhPerM2Hour', L('econ.cult.lightKwh'), { step: 0.001 }) +
         econCultParamInput(i, 'lightHoursDay', L('econ.cult.lightH'), { step: 0.5 }) +
         econCultConsPotFieldHtml(i, norm, cv, consLbl, consPh) +
@@ -1313,6 +1357,21 @@
     });
 
     list.addEventListener('input', e => {
+      if (e.target.dataset.econCultureSearch != null){
+        const iSearch = parseInt(e.target.dataset.econCultureSearch, 10);
+        if (!isFinite(iSearch)) return;
+        deps.ensureEconCultures();
+        if (!st().econ.cultures[iSearch]) return;
+        const q = String(e.target.value || '');
+        st().econ.cultures[iSearch].cvSearch = q;
+        const card = e.target.closest('.econ-culture-card');
+        const sel = card && card.querySelector('[data-econ-culture-cv="' + iSearch + '"]');
+        if (sel){
+          sel.innerHTML = getEconCultureOptionsHtml(st().econ.cultures[iSearch].cvId || '', iSearch, q);
+        }
+        deps.saveEconStore();
+        return;
+      }
       const cultField = e.target.dataset.econCultField;
       if (cultField != null){
         const i = parseInt(e.target.dataset.econCultIdx, 10);

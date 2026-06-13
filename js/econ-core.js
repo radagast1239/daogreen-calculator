@@ -15,10 +15,16 @@
     'pl-spinach-baby': { density: 220, yieldPerCut: 3, cutIntervalDays: 7, consumablesPerPot: 4 },
     'pl-edible-flowers': { yieldPerCut: 30, cutIntervalDays: 7, consumablesPerPot: 4, potHarvestMonths: 5 }
   };
+  const ECON_YIELD_INPUT_MODE = {
+    CUT_MONTH: 'cutMonth',
+    PLANT_MONTH: 'plantMonth',
+    SQM_MONTH: 'sqmMonth'
+  };
   /** Доп. культуры только для экономики (без посадочного каталога). */
   const ECON_EXTRA_CULTURE_DEFAULTS = {
     'econ-berry-blueberry': {
       density: 8,
+      yieldInputMode: ECON_YIELD_INPUT_MODE.PLANT_MONTH,
       yieldPerPlantMonth: 0.45,
       yieldPerCut: 150,
       cutsPerMonthManual: 3,
@@ -29,6 +35,7 @@
     },
     'econ-berry-raspberry': {
       density: 10,
+      yieldInputMode: ECON_YIELD_INPUT_MODE.PLANT_MONTH,
       yieldPerPlantMonth: 0.55,
       yieldPerCut: 180,
       cutsPerMonthManual: 3,
@@ -39,6 +46,7 @@
     },
     'econ-berry-strawberry': {
       density: 16,
+      yieldInputMode: ECON_YIELD_INPUT_MODE.PLANT_MONTH,
       yieldPerPlantMonth: 0.35,
       yieldPerCut: 120,
       cutsPerMonthManual: 3,
@@ -49,6 +57,7 @@
     },
     'econ-veg-cucumber': {
       density: 2.5,
+      yieldInputMode: ECON_YIELD_INPUT_MODE.PLANT_MONTH,
       yieldPerPlantMonth: 4.2,
       yieldPerCut: 1400,
       cutsPerMonthManual: 3,
@@ -59,6 +68,7 @@
     },
     'econ-veg-tomato': {
       density: 2.8,
+      yieldInputMode: ECON_YIELD_INPUT_MODE.PLANT_MONTH,
       yieldPerPlantMonth: 3.8,
       yieldPerCut: 1270,
       cutsPerMonthManual: 3,
@@ -69,6 +79,7 @@
     },
     'econ-veg-pepper': {
       density: 3.2,
+      yieldInputMode: ECON_YIELD_INPUT_MODE.PLANT_MONTH,
       yieldPerPlantMonth: 2.8,
       yieldPerCut: 930,
       cutsPerMonthManual: 3,
@@ -80,6 +91,7 @@
     // Legacy ids: keep support for already saved projects.
     'econ-berry': {
       density: 18,
+      yieldInputMode: ECON_YIELD_INPUT_MODE.CUT_MONTH,
       yieldPerCut: 220,
       cutIntervalDays: 28,
       unitIsPieces: false,
@@ -88,6 +100,7 @@
     },
     'econ-vegetables': {
       density: 22,
+      yieldInputMode: ECON_YIELD_INPUT_MODE.CUT_MONTH,
       yieldPerCut: 260,
       cutIntervalDays: 30,
       unitIsPieces: false,
@@ -100,6 +113,27 @@
     berries: ['econ-berry-blueberry', 'econ-berry-raspberry', 'econ-berry-strawberry', 'econ-berry'],
     vegetables: ['econ-veg-cucumber', 'econ-veg-tomato', 'econ-veg-pepper', 'econ-vegetables']
   };
+  function econIsExtraSeedlingCvId(cvId){
+    if (!cvId) return false;
+    return cvId.indexOf('econ-berry-') === 0
+      || cvId.indexOf('econ-veg-') === 0
+      || cvId === 'econ-berry'
+      || cvId === 'econ-vegetables';
+  }
+  function econResolveYieldInputMode(row){
+    if (!row || !econIsExtraSeedlingCvId(row.cvId)) return '';
+    const mode = row.yieldInputMode;
+    if (mode === ECON_YIELD_INPUT_MODE.CUT_MONTH
+      || mode === ECON_YIELD_INPUT_MODE.PLANT_MONTH
+      || mode === ECON_YIELD_INPUT_MODE.SQM_MONTH){
+      return mode;
+    }
+    const bySqm = Math.max(0, parseFloat(row.yieldPerSqmMonthManual) || 0);
+    if (bySqm > 0) return ECON_YIELD_INPUT_MODE.SQM_MONTH;
+    const byPlant = Math.max(0, parseFloat(row.yieldPerPlantMonth) || 0);
+    if (byPlant > 0) return ECON_YIELD_INPUT_MODE.PLANT_MONTH;
+    return ECON_YIELD_INPUT_MODE.CUT_MONTH;
+  }
   function econOutputKgGroup(cvId){
     if (!cvId) return 'otherKg';
     if (ECON_KG_OUTPUT_GROUPS.berries.indexOf(cvId) >= 0) return 'berries';
@@ -358,6 +392,7 @@
       lightHoursDay: 16,
       consumablesPerPot: ECON_DEFAULT_CONSUMABLES_PER_POT,
       potHarvestMonths: 3,
+      yieldInputMode: '',
       yieldPerPlantMonth: 0,
       yieldPerSqmMonthManual: 0,
       cutsPerMonthManual: 0,
@@ -690,6 +725,7 @@
     out.yieldPerPlantMonth = Math.max(0, parseFloat(row && row.yieldPerPlantMonth) || 0);
     out.yieldPerSqmMonthManual = Math.max(0, parseFloat(row && row.yieldPerSqmMonthManual) || 0);
     out.cutsPerMonthManual = Math.max(0, parseFloat(row && row.cutsPerMonthManual) || 0);
+    out.yieldInputMode = econResolveYieldInputMode(out);
     CONS_POT_PART_KEYS.forEach(function(k){
       const v = row && row[k] != null ? parseFloat(row[k]) : NaN;
       out[k] = Number.isFinite(v) && v >= 0 ? v : 0;
@@ -785,19 +821,25 @@
     let yieldPerCut = Math.max(0, parseFloat(row.yieldPerCut) || 0);
     const cutIntervalDays = Math.max(1, parseFloat(row.cutIntervalDays) || 15);
     const unitIsPieces = !!row.unitIsPieces;
+    const isExtraSeedling = econIsExtraSeedlingCvId(row.cvId);
+    const yieldInputMode = econResolveYieldInputMode(row);
     const cutsManual = Math.max(0, parseFloat(row.cutsPerMonthManual) || 0);
     const cutsPerMonth = cutsManual > 0 ? cutsManual : (ECON_MONTH_DAYS / cutIntervalDays);
     const yieldPerPlantMonthInput = Math.max(0, parseFloat(row.yieldPerPlantMonth) || 0);
     const yieldPerSqmMonthManual = Math.max(0, parseFloat(row.yieldPerSqmMonthManual) || 0);
     let yieldPerPotMonth = yieldPerCut * cutsPerMonth;
-    if (yieldPerPlantMonthInput > 0){
+    let yieldPerSqmMonthKg = 0;
+    let yieldPerSqmMonthPcs = 0;
+    if (isExtraSeedling && yieldInputMode === ECON_YIELD_INPUT_MODE.PLANT_MONTH){
       // Для кг-культур ввод "с растения в мес" идёт в кг.
       yieldPerPotMonth = unitIsPieces ? yieldPerPlantMonthInput : (yieldPerPlantMonthInput * 1000);
       if (cutsPerMonth > 0) yieldPerCut = yieldPerPotMonth / cutsPerMonth;
-    }
-    let yieldPerSqmMonthKg = 0;
-    let yieldPerSqmMonthPcs = 0;
-    if (yieldPerSqmMonthManual > 0){
+      if (unitIsPieces){
+        yieldPerSqmMonthPcs = yieldPerPotMonth * density;
+      } else {
+        yieldPerSqmMonthKg = (yieldPerPotMonth / 1000) * density;
+      }
+    } else if (isExtraSeedling && yieldInputMode === ECON_YIELD_INPUT_MODE.SQM_MONTH){
       if (unitIsPieces){
         yieldPerSqmMonthPcs = yieldPerSqmMonthManual;
       } else {
@@ -810,8 +852,41 @@
           yieldPerPotMonth = (yieldPerSqmMonthKg * 1000) / density;
         }
         if (cutsPerMonth > 0) yieldPerCut = yieldPerPotMonth / cutsPerMonth;
+      } else {
+        yieldPerPotMonth = 0;
+        yieldPerCut = 0;
+      }
+    } else if (isExtraSeedling && yieldInputMode === ECON_YIELD_INPUT_MODE.CUT_MONTH){
+      if (unitIsPieces){
+        yieldPerSqmMonthPcs = yieldPerPotMonth * density;
+      } else {
+        yieldPerSqmMonthKg = (yieldPerPotMonth / 1000) * density;
+      }
+    } else if (yieldPerSqmMonthManual > 0){
+      if (unitIsPieces){
+        yieldPerSqmMonthPcs = yieldPerSqmMonthManual;
+      } else {
+        yieldPerSqmMonthKg = yieldPerSqmMonthManual;
+      }
+      if (yieldPerPlantMonthInput > 0){
+        // Для кг-культур ввод "с растения в мес" идёт в кг.
+        yieldPerPotMonth = unitIsPieces ? yieldPerPlantMonthInput : (yieldPerPlantMonthInput * 1000);
+        if (cutsPerMonth > 0) yieldPerCut = yieldPerPotMonth / cutsPerMonth;
+      }
+      if (density > 0){
+        if (unitIsPieces){
+          yieldPerPotMonth = yieldPerSqmMonthPcs / density;
+        } else {
+          yieldPerPotMonth = (yieldPerSqmMonthKg * 1000) / density;
+        }
+        if (cutsPerMonth > 0) yieldPerCut = yieldPerPotMonth / cutsPerMonth;
       }
     } else {
+      if (yieldPerPlantMonthInput > 0){
+        // Для кг-культур ввод "с растения в мес" идёт в кг.
+        yieldPerPotMonth = unitIsPieces ? yieldPerPlantMonthInput : (yieldPerPlantMonthInput * 1000);
+        if (cutsPerMonth > 0) yieldPerCut = yieldPerPotMonth / cutsPerMonth;
+      }
       if (unitIsPieces){
         yieldPerSqmMonthPcs = yieldPerPotMonth * density;
       } else {
@@ -820,6 +895,7 @@
     }
     return {
       density: density,
+      yieldInputMode: yieldInputMode,
       yieldPerCut: yieldPerCut,
       cutIntervalDays: cutIntervalDays,
       cutsPerMonth: cutsPerMonth,
@@ -869,12 +945,7 @@
       ? 'Оборот в месяц: <strong>{cuts}</strong> ({intervalLbl}) · {fromLbl}: <strong>{yieldPot} {unit}</strong> · <strong>{ySqm}</strong> · свет {kwh} кВт·ч/м² × {lightH} ч'
       : 'Срезок в месяц: <strong>{cuts}</strong> ({intervalLbl}) · {fromLbl}: <strong>{yieldPot} {unit}</strong> · <strong>{ySqm}</strong> · свет {kwh} кВт·ч/м² × {lightH} ч');
     if (norm.consumablesPerPot > 0){
-      const isExtraSeedling = !!norm.cvId && (
-        norm.cvId.indexOf('econ-berry-') === 0 ||
-        norm.cvId.indexOf('econ-veg-') === 0 ||
-        norm.cvId === 'econ-berry' ||
-        norm.cvId === 'econ-vegetables'
-      );
+      const isExtraSeedling = econIsExtraSeedlingCvId(norm.cvId);
       function fmtMoneyUnit(amount, unitKey, unitFallback){
         var unit = T(unitKey, unitFallback);
         if (deps.fmtMoney) return deps.fmtMoney(amount) + unit;
