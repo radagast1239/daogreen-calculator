@@ -104,6 +104,15 @@ body {
     gap: 10px;
   }
 
+  .econ-culture-head .econ-field--culture-main,
+  .econ-culture-head .econ-field--culture-search,
+  .econ-culture-head .econ-field--culture-share,
+  .econ-culture-head .econ-field--culture-price,
+  .econ-culture-head .econ-rm {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
   .econ-culture-head .econ-rm {
     width: 100%;
     min-height: 44px;

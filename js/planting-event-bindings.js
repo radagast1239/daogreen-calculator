@@ -688,6 +688,11 @@ const dlg = $('cv-add-dialog');
         var cv = getActiveCv();
         return cv ? cv.name : 'calc';
       },
+      calcFarmEconomics: calcFarmEconomics,
+      migrateEconOtherElectricity: migrateEconOtherElectricity,
+      fmtNum: deps.fmtNum,
+      fmtMoney: deps.fmtMoney,
+      currencySym: deps.currencySym,
       toast: showToast,
       onApplied: function(){ syncProjectMetaInputs(); showToast(ui('ui.toast.projectLoaded')); renderAll(); }
     });

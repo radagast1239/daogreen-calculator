@@ -1210,12 +1210,12 @@
       const searchQ = String(norm.cvSearch || '');
       html += '<div class="econ-culture-card" data-econ-culture-idx="' + i + '">' +
         '<div class="econ-culture-head">' +
-        '<div class="econ-field"><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i, searchQ) + '</select></div>' +
-        '<div class="econ-field"><label>' + L('econ.cult.search') + '</label><input type="search" autocomplete="off" spellcheck="false" data-econ-culture-search="' + i + '" value="' + econEscAttr(searchQ) + '" placeholder="' + econEscAttr(L('econ.cult.searchPh')) + '"></div>' +
+        '<div class="econ-field econ-field--culture-main"><label>' + L('econ.cult.culture') + '</label><select data-econ-culture-cv="' + i + '">' + getEconCultureOptionsHtml(norm.cvId || '', i, searchQ) + '</select></div>' +
+        '<div class="econ-field econ-field--culture-search"><label>' + L('econ.cult.search') + '</label><input type="search" autocomplete="off" spellcheck="false" data-econ-culture-search="' + i + '" value="' + econEscAttr(searchQ) + '" placeholder="' + econEscAttr(L('econ.cult.searchPh')) + '"></div>' +
         (mode === 'sqm'
-          ? '<div class="econ-field"><label>' + L('econ.cult.areaSqm') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-sqm="' + i + '" value="' + deps.formatInputValue(areaSqm, 1) + '"></div>'
-          : '<div class="econ-field"><label>' + L('econ.cult.share') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-pct="' + i + '" value="' + deps.formatInputValue(pct, 1) + '"></div>') +
-        '<div class="econ-field"><label>' + L('econ.cult.price') + ', ' + moneySym() + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" placeholder="—" data-econ-culture-price="' + i + '" value="' + (sp ? fmtMoneyInp(sp, 0) : '') + '"></div>' +
+          ? '<div class="econ-field econ-field--culture-share"><label>' + L('econ.cult.areaSqm') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-sqm="' + i + '" value="' + deps.formatInputValue(areaSqm, 1) + '"></div>'
+          : '<div class="econ-field econ-field--culture-share"><label>' + L('econ.cult.share') + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-culture-pct="' + i + '" value="' + deps.formatInputValue(pct, 1) + '"></div>') +
+        '<div class="econ-field econ-field--culture-price"><label>' + L('econ.cult.price') + ', ' + moneySym() + '</label><input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" placeholder="—" data-econ-culture-price="' + i + '" value="' + (sp ? fmtMoneyInp(sp, 0) : '') + '"></div>' +
         '<button type="button" class="econ-rm" data-econ-culture-rm="' + i + '" title="' + L('econ.btn.remove') + '" aria-label="' + L('econ.btn.remove') + '">×</button>' +
         '</div>' +
         '<div class="econ-culture-params">' +
@@ -1593,6 +1593,9 @@
     }
     renderEconWarnings(warnItems);
     renderEconDerivedPanel();
+    if (typeof global.DG_renderProjectStatsPanel === 'function'){
+      global.DG_renderProjectStatsPanel();
+    }
 
     const res = farm;
     const wasteActive = res.wasteEnabled !== false && (res.wastePct || 0) > 0;

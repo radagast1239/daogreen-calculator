@@ -1186,10 +1186,15 @@ html.simple-ui-active #simple-ui-hint { display: block; }
 }
 .econ-culture-head {
   display: grid;
-  grid-template-columns: 1fr minmax(72px, 88px) minmax(88px, 110px) 36px;
+  grid-template-columns: minmax(220px, 1fr) minmax(140px, 0.65fr) minmax(88px, 104px) minmax(116px, 138px) 36px;
   gap: 8px;
   align-items: stretch;
 }
+.econ-culture-head .econ-field--culture-main { grid-column: 1; min-width: 0; }
+.econ-culture-head .econ-field--culture-search { grid-column: 2; min-width: 0; }
+.econ-culture-head .econ-field--culture-share { grid-column: 3; min-width: 0; }
+.econ-culture-head .econ-field--culture-price { grid-column: 4; min-width: 116px; }
+.econ-culture-head .econ-field--culture-search input[type="search"] { text-align: left; }
 .econ-culture-params {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -1305,6 +1310,8 @@ html.simple-ui-active #simple-ui-hint { display: block; }
   color: var(--ink);
 }
 .econ-culture-card .econ-rm {
+  grid-column: 5;
+  grid-row: 1;
   padding: 8px;
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
@@ -2498,6 +2505,7 @@ html.tray-lot-active .ctrl:has(#pallet-mount) { display: none !important; }
 .pdf-staging--econ .econ-culture-head { gap: 4px; margin-bottom: 2px; }
 .pdf-staging--econ .econ-culture-head .econ-field,
 .pdf-staging--econ .econ-culture-param { padding: 3px 4px; }
+.pdf-staging--econ .econ-culture-head .econ-field--culture-search { display: none !important; }
 .pdf-staging--econ .econ-culture-params { gap: 3px 5px; margin-top: 4px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .pdf-staging--econ .econ-culture-param label,
 .pdf-staging--econ .econ-culture-head .econ-field label { min-height: 0; font-size: 8px; margin-bottom: 1px; }
@@ -2873,6 +2881,7 @@ html.share-mode .page { user-select: text; padding-top: 0; }
           </div>
           <div class="masthead-group masthead-group--menu masthead-group--export">
         <button type="button" class="auto-btn" id="btn-project-compare" data-i18n="btn.compare" data-i18n-attr="title" data-readonly-allow>Сравнить</button>
+        <button type="button" class="auto-btn" id="btn-project-stats" data-i18n="btn.stats" data-i18n-attr="title" data-readonly-allow>Статистика</button>
           </div>
           <div class="masthead-group masthead-group--menu masthead-group--app">
         <button type="button" class="auto-btn" id="btn-tour" data-i18n="btn.tour" data-i18n-attr="title" data-readonly-allow>Гайд</button>
@@ -3975,6 +3984,12 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </div>
     </section>
 
+    <section class="panel econ-panel" id="econ-panel-project-stats">
+      <div class="section-h" data-i18n="proj.stats.title">Статистика сохранений</div>
+      <p class="econ-lead" data-i18n="proj.stats.lead">Сводка только по экономике проектов, сохранённых кнопкой «Сохранить».</p>
+      <div id="econ-project-stats-body"></div>
+    </section>
+
     <section class="panel econ-panel collapse-block" id="econ-panel-advanced">
       <div class="collapse-head">
         <span class="section-h" data-i18n="econ.section.advanced">Расширенная модель</span>
@@ -4057,6 +4072,19 @@ html.share-mode .page { user-select: text; padding-top: 0; }
     <div id="project-compare-body"></div>
     <div class="pdf-export-actions">
       <button type="button" class="auto-btn" data-compare-cancel data-readonly-allow>Закрыть</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="project-stats-dialog" class="pdf-export-dialog project-compare-dialog">
+  <div class="pdf-export-form">
+    <h2 class="pdf-export-title" data-i18n="proj.stats.title">Статистика сохранений</h2>
+    <p class="pdf-export-lead" data-i18n="proj.stats.lead">Сводка по проектам, сохранённым кнопкой «Сохранить».</p>
+    <div id="project-stats-body"></div>
+    <div class="pdf-export-actions">
+      <button type="button" class="auto-btn" id="project-stats-export" data-i18n="proj.stats.export" data-readonly-allow>Экспорт архива JSON</button>
+      <button type="button" class="auto-btn" id="project-stats-clear" data-i18n="proj.stats.clear" data-readonly-allow>Очистить архив</button>
+      <button type="button" class="auto-btn" data-project-stats-close data-i18n="ui.projCompare.close" data-readonly-allow>Закрыть</button>
     </div>
   </div>
 </dialog>
