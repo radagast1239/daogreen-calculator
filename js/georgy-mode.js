@@ -238,7 +238,7 @@
       if (!deps.dliFactor) return 1;
       var df = deps.dliFactor();
       var pf = deps.photoperiodFactor ? deps.photoperiodFactor() : 1;
-      return clamp(df * pf, 0.72, 1.15);
+      return clamp(df * pf, 0.72, 1.08);
     }
 
     function georgyLightYieldPct(){

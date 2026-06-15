@@ -23,7 +23,11 @@
       var state = st();
       var table = naturalDliTable();
       if (deps.isVF() || deps.isPalletView()) return 0;
-      return table[state.month - 1] ? table[state.month - 1].dli : 0;
+      var base = table[state.month - 1] ? table[state.month - 1].dli : 0;
+      var shade = parseFloat(state.shadePct);
+      if (isNaN(shade) || shade <= 0) return base;
+      shade = Math.max(0, Math.min(95, shade));
+      return base * (1 - shade / 100);
     }
 
     function photoperiod() {

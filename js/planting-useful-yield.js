@@ -41,6 +41,26 @@
       return !!state.georgyMode;
     }
 
+    /** Минимум дней в канале до товарного кочана (без рассады). */
+    function minHeadChannelDays(cv) {
+      if (!cv || typeof deps.harvestChannel !== 'function') return 0;
+      var ch = Math.round(deps.harvestChannel(cv));
+      return ch > 0 ? ch : 0;
+    }
+
+    /** Не считать оборот быстрее, чем культура реально созревает в канале. */
+    function finalizeMainHallMeta(cv, meta) {
+      if (!meta || meta.usefulAreaBasis !== 'main_hall') return meta;
+      var minCh = minHeadChannelDays(cv);
+      if (minCh > 0 && meta.mainHallIntervalDays > 0 && meta.mainHallIntervalDays < minCh) {
+        meta.mainHallIntervalDays = minCh;
+      }
+      if (meta.mainHallIntervalDays > 0) {
+        meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
+      }
+      return meta;
+    }
+
     function resolveMeta(cv, r) {
       cv = cv || (deps.getCv ? deps.getCv() : null);
       r = r || {};
@@ -61,11 +81,8 @@
         meta.mainHallIntervalDays = gm.headMainChannelDays
           ? gm.headMainChannelDays()
           : Math.max(1, Math.round(state.day));
-        meta.harvestCyclesPerMonth = meta.mainHallIntervalDays > 0
-          ? HMD / meta.mainHallIntervalDays
-          : 0;
         meta.usefulAreaBasis = 'main_hall';
-        return meta;
+        return finalizeMainHallMeta(cv, meta);
       }
       if (
         deps.isPalletView &&
@@ -112,9 +129,8 @@
       }
       if (gm && isHeadHallSingleCut(cv, state, gm)) {
         meta.mainHallIntervalDays = Math.max(1, Math.round(state.day));
-        meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
         meta.usefulAreaBasis = 'main_hall';
-        return meta;
+        return finalizeMainHallMeta(cv, meta);
       }
       /* Теплица · каналы: головной салат — оборот по каналу только после подбора плотности; беби — по интервалу срезок. */
       if (isGreenhouseChannels() && !state.georgyMode && gm) {
@@ -130,9 +146,8 @@
         if (gm.isHeadLettuceChannel && gm.isHeadLettuceChannel(cv)) {
           if (state.georgyDensityFitted && state.georgyTargetDensity > 0) {
             meta.mainHallIntervalDays = Math.max(1, Math.round(state.day));
-            meta.harvestCyclesPerMonth = HMD / meta.mainHallIntervalDays;
             meta.usefulAreaBasis = 'main_hall';
-            return meta;
+            return finalizeMainHallMeta(cv, meta);
           }
           return meta;
         }

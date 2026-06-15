@@ -3149,6 +3149,13 @@ html.share-mode .page { user-select: text; padding-top: 0; }
       </label>
     </div>
 
+    <div class="ctrl gh-shade-ctrl">
+      <span class="ctrl-label" data-i18n="env.shade">Затенение сеткой</span>
+      <input type="range" id="shadePct" min="0" max="90" step="5" value="0">
+      <span class="ctrl-val"><span id="shadePct-v">0</span><span class="unit">%</span></span>
+    </div>
+    <p class="ui-hint gh-shade-hint" id="shadePct-hint" data-i18n="env.shadeHint">Снижает только естественный свет (DLI). Досветка не затеняется.</p>
+
     <div class="ctrl env-gh-lighting">
       <span class="ctrl-label">Целевой DLI с досветкой</span>
       <input type="range" id="targetDli" min="14" max="22" step="0.5" value="17">

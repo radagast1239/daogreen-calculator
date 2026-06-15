@@ -44,6 +44,8 @@
       'env.month': 'Месяц',
       'env.lighting': 'Искусственная досветка',
       'env.lightingOff': 'Выключена — только естественный свет',
+      'env.shade': 'Затенение сеткой',
+      'env.shadeHint': 'Снижает только естественный свет (DLI). Досветка не затеняется.',
       'env.dli': 'Целевой DLI с досветкой',
       'env.photoperiod': 'Целевой фотопериод',
       'env.ledGh': 'КПД LED (досветка)',
@@ -339,6 +341,8 @@
       'env.month': 'Month',
       'env.lighting': 'Supplemental lighting',
       'env.lightingOff': 'Off — natural light only',
+      'env.shade': 'Shade cloth',
+      'env.shadeHint': 'Reduces natural light (DLI) only. Supplemental lighting is not shaded.',
       'env.dli': 'Target DLI with supplemental',
       'env.photoperiod': 'Target photoperiod',
       'env.ledGh': 'LED efficacy (supplemental)',
@@ -685,6 +689,9 @@
     setText('#block-env-gh-season .collapse-head > span:first-child', 'env.season');
     setText('#env-greenhouse .ctrl:nth-child(1) .ctrl-label', 'env.month');
     setText('#env-greenhouse .ctrl:nth-child(2) .ctrl-label', 'env.lighting');
+    setText('.gh-shade-ctrl .ctrl-label', 'env.shade');
+    var shadeHint = document.getElementById('shadePct-hint');
+    if (shadeHint) shadeHint.textContent = plantT('env.shadeHint');
   var ll = document.getElementById('lighting-label');
     if (ll) ll.textContent = plantT('env.lightingOff');
     setText('.env-gh-lighting:nth-of-type(1) .ctrl-label', 'env.dli');

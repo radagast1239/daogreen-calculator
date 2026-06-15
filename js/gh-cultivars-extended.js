@@ -341,7 +341,25 @@
     .concat(BABY_LEAF);
 
   // Помечаем всё как калибровка-теоретическая
+  function headLettuceT50Bump(cv) {
+    if (!cv || cv.babyGreen || cv.multicut) return;
+    var type = String(cv.type || '');
+    var delta = 0;
+    if (type.indexOf('iceberg') >= 0) delta = 8;
+    else if (type.indexOf('batavia') >= 0) {
+      delta = cv.M_max >= 280 ? 10 : (cv.M_max >= 240 ? 9 : 8);
+    } else if (type.indexOf('oakleaf') >= 0) delta = 7;
+    else if (type.indexOf('salanova') >= 0) delta = 7;
+    else if (type.indexOf('lollo') >= 0) delta = 6;
+    else if (type.indexOf('mini') >= 0 || type.indexOf('romaine') >= 0) {
+      delta = cv.M_max >= 200 ? 7 : 6;
+    } else if (type.indexOf('butterhead') >= 0) delta = 6;
+    else if (cv.M_max >= 180) delta = 6;
+    if (delta > 0) cv.t50 = Math.round((cv.t50 || 0) + delta);
+  }
+
   ALL_EXTENDED.forEach(function(cv){
+    headLettuceT50Bump(cv);
     if (cv.calibrated == null) cv.calibrated = false;
     if (cv.canopyExp == null) cv.canopyExp = 0.5;  // дефолт = текущая формула d=ca·√M
   });

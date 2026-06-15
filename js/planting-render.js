@@ -1187,6 +1187,9 @@
       row1 = '<div class="env-row">' +
         '<span>' + ui('ui.env.light') + '</span>' +
         '<span>' + ui('ui.env.natLine', { nat: r1(nat), mol: mol, ph: r1(ph), hUnit: hUnit }) + '</span>';
+      if ((parseFloat(st().shadePct) || 0) > 0) {
+        row1 += '<span class="env-pill warn">' + ui('ui.env.shadePill', { pct: Math.round(parseFloat(st().shadePct) || 0) }) + '</span>';
+      }
       if (st().lighting){
         if (dayS > 0){
           row1 += '<span class="env-pill ok">' + ui('ui.env.dayPill', { day: ui('ui.env.daySupp'), val: r1(dayS), mol: mol }) + '</span>';

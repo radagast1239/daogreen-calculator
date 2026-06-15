@@ -188,7 +188,7 @@ const dlg = $('cv-add-dialog');
       try { renderAll(); } catch (err) { showError('slider/' + id, err); }
     }
   }
-  const numericSliders = ['germination','length','palletsAlong','nch','density','offset','extraB','day','nursery','temp','targetDli','targetPhotoperiod','cutInterval','errorPct','canopyPct','temp-B','pricePerKg','pricePerKwh','targetDliVf','targetPhotoperiodVf','ppfd','ledEfficacyVf','rh','targetDliB','targetPhotoperiodB','palletTiers','tierGapMm','palletLidHoles'];
+  const numericSliders = ['germination','length','palletsAlong','nch','density','offset','extraB','day','nursery','temp','shadePct','targetDli','targetPhotoperiod','cutInterval','errorPct','canopyPct','temp-B','pricePerKg','pricePerKwh','targetDliVf','targetPhotoperiodVf','ppfd','ledEfficacyVf','rh','targetDliB','targetPhotoperiodB','palletTiers','tierGapMm','palletLidHoles'];
   numericSliders.forEach(id => {
     const sliderEl = $(id);
     if (!sliderEl) return;

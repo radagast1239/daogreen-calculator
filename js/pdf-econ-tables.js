@@ -153,6 +153,75 @@
     return String(t).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
+  var PDF_BERRY_CV_IDS = {
+    'econ-berry-blueberry': true,
+    'econ-berry-raspberry': true,
+    'econ-berry-strawberry': true,
+    'econ-berry': true
+  };
+
+  var PDF_VEGETABLE_CV_IDS = {
+    'econ-veg-cucumber': true,
+    'econ-veg-tomato': true,
+    'econ-veg-pepper': true,
+    'econ-vegetables': true
+  };
+
+  function pdfKgOutputGroupByCvId(cvId){
+    if (!cvId) return '';
+    if (PDF_BERRY_CV_IDS[cvId]) return 'berries';
+    if (PDF_VEGETABLE_CV_IDS[cvId]) return 'vegetables';
+    return '';
+  }
+
+  function parseNetOutputCellForKpi(text){
+    var t = plainCellText(text);
+    if (!t || t === '—') return t || '—';
+    var norm = t.replace(/\s*->\s*/g, '→');
+    if (norm.indexOf('→') < 0) return norm;
+    var parts = norm.split('→');
+    var net = plainCellText(parts[parts.length - 1] || '');
+    return net || norm;
+  }
+
+  function collectPerCultureKgCards(group){
+    var table = document.getElementById('econ-cultures-breakdown');
+    if (!table) return [];
+    var out = [];
+    table.querySelectorAll('tr[data-econ-cv-id]').forEach(function(tr){
+      var cvId = tr.getAttribute('data-econ-cv-id') || '';
+      if (pdfKgOutputGroupByCvId(cvId) !== group) return;
+      var cells = tr.querySelectorAll('td, th');
+      if (!cells || cells.length < 4) return;
+      var name = plainCellText(cells[0]);
+      var value = parseNetOutputCellForKpi(cells[3]);
+      if (!name || !value || value === '—') return;
+      out.push({ label: name, val: value, sub: '' });
+    });
+    return out;
+  }
+
+  function expandKgGroupCardsForPdf(cards){
+    if (!cards || !cards.length) return cards;
+    var berriesLabel = plainCellText(pdfT('econ.tbl.outBerriesKg'));
+    var vegetablesLabel = plainCellText(pdfT('econ.tbl.outVegetablesKg'));
+    var expanded = [];
+    cards.forEach(function(card){
+      var lbl = plainCellText(card && card.label);
+      var group = '';
+      if (lbl && berriesLabel && lbl === berriesLabel) group = 'berries';
+      else if (lbl && vegetablesLabel && lbl === vegetablesLabel) group = 'vegetables';
+      if (!group){
+        expanded.push(card);
+        return;
+      }
+      var perCulture = collectPerCultureKgCards(group);
+      if (perCulture.length) Array.prototype.push.apply(expanded, perCulture);
+      else expanded.push(card);
+    });
+    return expanded;
+  }
+
   function fieldValue(field){
     var cb = field.querySelector('input[type="checkbox"]');
     if (cb) return cb.checked ? pdfT('pdf.vec.yes') : pdfT('pdf.vec.no');
@@ -841,6 +910,7 @@
       var sub = m.querySelector('.m-sub');
       if (label) cards.push({ label: plainCellText(label), val: plainCellText(val), sub: plainCellText(sub) });
     });
+    cards = expandKgGroupCardsForPdf(cards);
     if (!cards.length) return ctx.y;
 
     var cols = Math.min(3, cards.length);

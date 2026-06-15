@@ -25,7 +25,7 @@
     var d = Math.max(0, dli);
     var raw = 1 - Math.exp(-DLI_K * d);
     var atOpt = 1 - Math.exp(-DLI_K * DLI_OPT);
-    return clamp(raw / atOpt, 0.4, 1.35);
+    return clamp(raw / atOpt, 0.6, 1.15);
   }
 
   /**

@@ -17,6 +17,7 @@
       day: 21,
       month: currentMonth,
       lighting: false,
+      shadePct: 0,
       targetDli: 17,
       targetPhotoperiod: 16,
       temp: 26,

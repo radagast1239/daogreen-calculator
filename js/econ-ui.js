@@ -1646,7 +1646,7 @@
           }
           const uc = p.slice.unitCostFull > 0 ? fmtUnitCost(p.slice.unitCostFull, u) : '—';
           const consSqm = p.slice.consumablesPerSqm > 0 ? moneyPer(p.slice.consumablesPerSqm, 'econ.perSqm') : '—';
-          ch += '<tr><td>' + p.name + '</td><td>' + deps.r1(p.pct) + '</td><td>' + deps.r1(p.slice.area) + '</td><td>' + out + '</td><td>' + uc + '</td><td>' + consSqm + '</td><td>' + moneyFmt(revNet) + '</td><td>' + moneyFmt(p.slice.margin) + '</td></tr>';
+          ch += '<tr data-econ-cv-id="' + econEscAttr(p.cvId || '') + '"><td>' + p.name + '</td><td>' + deps.r1(p.pct) + '</td><td>' + deps.r1(p.slice.area) + '</td><td>' + out + '</td><td>' + uc + '</td><td>' + consSqm + '</td><td>' + moneyFmt(revNet) + '</td><td>' + moneyFmt(p.slice.margin) + '</td></tr>';
         });
         const pctShow = deps.r1(farm.totalPct > 100 ? 100 : farm.totalPct);
         const totOpts = { mixed: mixed, pctShow: pctShow, farm: farm, res: res, skipWaste: mixed };

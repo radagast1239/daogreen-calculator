@@ -164,7 +164,7 @@
         ? GLM.logisticMass(cv, t, envK(cv))
         : cv.M_max / (1 + Math.exp(-envK(cv) * (t - cv.t50)));
       if (!deps.isVF() && !deps.isPalletView()) {
-        m *= photoperiodFactor();
+        m *= deps.clamp(photoperiodFactor(), 1.0, 1.05);
         if (m > cv.M_max) m = cv.M_max;
       }
       return m;
