@@ -1752,6 +1752,38 @@
       p.slice.margin = revNet - p.slice.monthlyOpex - taxShare;
     });
 
+    function sumOutputGroup(pred){
+      var sell = 0;
+      var rev = 0;
+      var mar = 0;
+      var area = 0;
+      var costWeighted = 0;
+      parts.forEach(function(p){
+        if (!pred(p)) return;
+        var s = (p.slice.monthlyOutput || 0) * wasteFactor;
+        sell += s;
+        rev += (p.slice.revenue || 0) * wasteFactor;
+        mar += p.slice.margin || 0;
+        area += p.slice.area || 0;
+        if (s > 0) costWeighted += (p.slice.unitCostFull || 0) * s;
+      });
+      return {
+        sell: sell,
+        revenue: rev,
+        margin: mar,
+        area: area,
+        unitCost: sell > 0 ? costWeighted / sell : 0
+      };
+    }
+    const groupBerries = sumOutputGroup(function(p){ return econOutputKgGroup(p.cvId) === 'berries'; });
+    const groupVegetables = sumOutputGroup(function(p){ return econOutputKgGroup(p.cvId) === 'vegetables'; });
+    const groupMicroBaby = sumOutputGroup(function(p){ return econOutputPcsGroup(p.cvId) === 'microBaby'; });
+    const groupFlowers = sumOutputGroup(function(p){ return econOutputPcsGroup(p.cvId) === 'flowers'; });
+    const groupWheatgrass = sumOutputGroup(function(p){ return econOutputPcsGroup(p.cvId) === 'wheatgrass'; });
+    const groupOtherPcs = sumOutputGroup(function(p){
+      return p.slice.outputUnit === 'шт' && econOutputPcsGroup(p.cvId) === 'otherPcs';
+    });
+
     const farm = {
       parts: parts,
       areaMode: areaMode,
@@ -1771,6 +1803,32 @@
       sellFlowersPcs: sellFlowersPcs,
       sellWheatgrassPcs: sellWheatgrassPcs,
       sellOtherPcs: sellOtherPcs,
+      areaKg: areaKg,
+      areaPcs: areaPcs,
+      revBerriesKg: groupBerries.revenue,
+      marginBerriesKg: groupBerries.margin,
+      areaBerriesKg: groupBerries.area,
+      unitCostBerriesKg: groupBerries.unitCost,
+      revVegetablesKg: groupVegetables.revenue,
+      marginVegetablesKg: groupVegetables.margin,
+      areaVegetablesKg: groupVegetables.area,
+      unitCostVegetablesKg: groupVegetables.unitCost,
+      revMicroBabyPcs: groupMicroBaby.revenue,
+      marginMicroBabyPcs: groupMicroBaby.margin,
+      areaMicroBabyPcs: groupMicroBaby.area,
+      unitCostMicroBabyPcs: groupMicroBaby.unitCost,
+      revFlowersPcs: groupFlowers.revenue,
+      marginFlowersPcs: groupFlowers.margin,
+      areaFlowersPcs: groupFlowers.area,
+      unitCostFlowersPcs: groupFlowers.unitCost,
+      revWheatgrassPcs: groupWheatgrass.revenue,
+      marginWheatgrassPcs: groupWheatgrass.margin,
+      areaWheatgrassPcs: groupWheatgrass.area,
+      unitCostWheatgrassPcs: groupWheatgrass.unitCost,
+      revOtherPcs: groupOtherPcs.revenue,
+      marginOtherPcs: groupOtherPcs.margin,
+      areaOtherPcs: groupOtherPcs.area,
+      unitCostOtherPcs: groupOtherPcs.unitCost,
       outKg: outKg,
       outBerriesKg: outBerriesKg,
       outVegetablesKg: outVegetablesKg,

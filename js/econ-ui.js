@@ -126,6 +126,62 @@
     return '';
   }
 
+  function econPcsOutputGroup(cvId){
+    if (cvId === 'pl-microgreens' || cvId === 'pl-baby-living') return 'microBaby';
+    if (cvId === 'pl-edible-flowers') return 'flowers';
+    if (cvId === 'pl-wheatgrass') return 'wheatgrass';
+    return 'otherPcs';
+  }
+
+  function fmtYieldSqmRate(yieldPerSqm, unit){
+    if (!(yieldPerSqm > 0)) return '';
+    if (unit === 'шт') return deps.r1(yieldPerSqm) + ' ' + L('econ.yield.pcsSqm');
+    return deps.r2(yieldPerSqm) + ' ' + L('econ.yield.kgSqm');
+  }
+
+  function fmtCultureOutputCell(slice, wasteActive, wasteFactor){
+    const u = slice.outputUnit;
+    const gross = slice.monthlyOutput;
+    const sell = gross * wasteFactor;
+    const yieldPerSqm = slice.yieldPerSqmMonth > 0
+      ? slice.yieldPerSqmMonth
+      : (slice.area > 0 ? sell / slice.area : 0);
+    const perSqm = fmtYieldSqmRate(yieldPerSqm, u === 'шт' ? 'шт' : 'кг');
+    if (!(gross > 0)) return '—';
+    const gStr = u === 'кг' ? deps.r1(gross) : deps.fmtNum(gross);
+    const sStr = u === 'кг' ? deps.r1(sell) : deps.fmtNum(sell);
+    const totalStr = wasteActive ? gStr + ' → ' + sStr + ' ' + uOut(u) : gStr + ' ' + uOut(u);
+    return (perSqm ? perSqm + ' · ' : '') + totalStr;
+  }
+
+  function aggregateCultureGroup(parts, pred, wasteFactor){
+    let sell = 0;
+    let rev = 0;
+    let margin = 0;
+    let area = 0;
+    let opex = 0;
+    let unit = 'кг';
+    parts.forEach(p => {
+      if (!pred(p)) return;
+      const gross = p.slice.monthlyOutput;
+      sell += gross * wasteFactor;
+      rev += p.slice.revenue * wasteFactor;
+      margin += p.slice.margin || 0;
+      area += p.slice.area;
+      opex += p.slice.monthlyOpex || 0;
+      unit = p.slice.outputUnit;
+    });
+    return {
+      sell: sell,
+      rev: rev,
+      margin: margin,
+      area: area,
+      unitCost: sell > 0 ? opex / sell : 0,
+      yieldSqm: area > 0 ? sell / area : 0,
+      unit: unit
+    };
+  }
+
   function econYieldInputMode(row, extraKind){
     if (extraKind !== 'berry' && extraKind !== 'vegetables') return 'cutMonth';
     const mode = row && row.yieldInputMode;
@@ -1604,18 +1660,36 @@
     const hasPcs = res.sellPcs > 0 || res.outPcs > 0;
     const mixed = hasKg && hasPcs;
 
-    function outputTotalRow(label, sellVal, opts){
-      if (!(sellVal > 0)) return '';
+    function farmGroupAgg(sell, rev, margin, area, unitCost, unit){
+      return {
+        sell: sell,
+        rev: rev,
+        margin: margin,
+        area: area,
+        unitCost: unitCost,
+        yieldSqm: area > 0 ? sell / area : 0,
+        unit: unit
+      };
+    }
+
+    function outputTotalRow(label, agg, opts){
+      if (!agg || !(agg.sell > 0)) return '';
       opts = opts || {};
       const mixed = opts.mixed;
       const pctShow = opts.pctShow;
       const farm = opts.farm;
       const res = opts.res;
       const wasteSuffix = wasteActive && !opts.skipWaste ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '';
-      const unit = opts.unit || uPcs();
-      const valStr = opts.decimals != null ? deps.fmtNum(sellVal, { decimals: opts.decimals }) : deps.fmtNum(sellVal);
-      return '<tr class="econ-total-row"><td><strong>' + label + '</strong></td><td>' + (mixed ? '—' : pctShow) + '</td><td>' + (mixed ? '—' : deps.r1(farm.areaUsed)) + '</td><td>' +
-        valStr + ' ' + unit + wasteSuffix + '</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>';
+      const unitLbl = agg.unit === 'шт' ? uPcs() : uKg();
+      const valStr = agg.unit === 'кг' ? deps.r1(agg.sell) : deps.fmtNum(agg.sell);
+      const perSqm = fmtYieldSqmRate(agg.yieldSqm, agg.unit === 'шт' ? 'шт' : 'кг');
+      const outCell = (perSqm ? perSqm + ' · ' : '') + valStr + ' ' + unitLbl + wasteSuffix;
+      const uc = agg.unitCost > 0 ? fmtUnitCost(agg.unitCost, agg.unit) : '—';
+      const revCell = agg.rev > 0 ? moneyFmt(agg.rev) : '—';
+      const marginCell = agg.rev > 0 || agg.margin !== 0 ? moneyFmt(agg.margin) : '—';
+      const areaShow = agg.area > 0 ? agg.area : farm.areaUsed;
+      return '<tr class="econ-total-row"><td><strong>' + label + '</strong></td><td>' + (mixed ? '—' : pctShow) + '</td><td>' + (mixed ? '—' : deps.r1(areaShow)) + '</td><td>' +
+        outCell + '</td><td>' + uc + '</td><td>—</td><td>' + revCell + '</td><td>' + marginCell + '</td></tr>';
     }
 
     const cultTbl = deps.$('econ-cultures-breakdown');
@@ -1635,15 +1709,8 @@
         let ch = '<tr><th>' + L('econ.cult.culture') + '</th><th>%</th><th>' + L('econ.unit.sqm') + '</th><th>' + L('econ.tbl.out') + '</th><th>' + L('econ.tbl.cost') + '</th><th>' + moneySym() + L('econ.perSqm') + '</th><th>' + revHdr + '</th><th>' + L('econ.tbl.margin') + '</th></tr>';
         parts.forEach(p => {
           const u = p.slice.outputUnit;
-          const gross = p.slice.monthlyOutput;
-          const sell = gross * wasteFactor;
           const revNet = p.slice.revenue * wasteFactor;
-          let out = '—';
-          if (gross > 0){
-            const gStr = u === 'кг' ? deps.r1(gross) : deps.fmtNum(gross);
-            const sStr = u === 'кг' ? deps.r1(sell) : deps.fmtNum(sell);
-            out = wasteActive ? gStr + ' → ' + sStr + ' ' + uOut(u) : gStr + ' ' + uOut(u);
-          }
+          const out = fmtCultureOutputCell(p.slice, wasteActive, wasteFactor);
           const uc = p.slice.unitCostFull > 0 ? fmtUnitCost(p.slice.unitCostFull, u) : '—';
           const consSqm = p.slice.consumablesPerSqm > 0 ? moneyPer(p.slice.consumablesPerSqm, 'econ.perSqm') : '—';
           ch += '<tr data-econ-cv-id="' + econEscAttr(p.cvId || '') + '"><td>' + p.name + '</td><td>' + deps.r1(p.pct) + '</td><td>' + deps.r1(p.slice.area) + '</td><td>' + out + '</td><td>' + uc + '</td><td>' + consSqm + '</td><td>' + moneyFmt(revNet) + '</td><td>' + moneyFmt(p.slice.margin) + '</td></tr>';
@@ -1651,18 +1718,15 @@
         const pctShow = deps.r1(farm.totalPct > 100 ? 100 : farm.totalPct);
         const totOpts = { mixed: mixed, pctShow: pctShow, farm: farm, res: res, skipWaste: mixed };
         if (hasKg){
-          ch += '<tr class="econ-total-row"><td><strong>' + L('econ.tbl.totalKg') + '</strong></td><td>' + pctShow + '</td><td>' + deps.r1(farm.areaUsed) + '</td><td>' +
-            (res.sellKg > 0 ? deps.r1(res.sellKg) + ' ' + uKg() + (wasteActive ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '') : '—') +
-            '</td><td><strong>' + (res.unitCostKg > 0 ? moneyFmt(res.unitCostKg) : '—') + '</strong></td><td>—</td><td><strong>' + moneyFmt(res.revKg) + '</strong></td><td><strong>' + moneyFmt(res.marginKg) + '</strong></td></tr>';
-          const kgOpts = Object.assign({}, totOpts, { unit: uKg(), decimals: 1 });
-          ch += outputTotalRow(L('econ.tbl.outBerriesKg'), res.sellBerriesKg, kgOpts);
-          ch += outputTotalRow(L('econ.tbl.outVegetablesKg'), res.sellVegetablesKg, kgOpts);
+          ch += outputTotalRow(L('econ.tbl.totalKg'), farmGroupAgg(res.sellKg, res.revKg, res.marginKg, res.areaKg || 0, res.unitCostKg, 'кг'), totOpts);
+          ch += outputTotalRow(L('econ.tbl.outBerriesKg'), farmGroupAgg(res.sellBerriesKg, res.revBerriesKg, res.marginBerriesKg, res.areaBerriesKg, res.unitCostBerriesKg, 'кг'), totOpts);
+          ch += outputTotalRow(L('econ.tbl.outVegetablesKg'), farmGroupAgg(res.sellVegetablesKg, res.revVegetablesKg, res.marginVegetablesKg, res.areaVegetablesKg, res.unitCostVegetablesKg, 'кг'), totOpts);
         }
-        ch += outputTotalRow(L('econ.tbl.outMicroBaby'), res.sellMicroBabyPcs, totOpts);
-        ch += outputTotalRow(L('econ.tbl.outFlowers'), res.sellFlowersPcs, totOpts);
-        ch += outputTotalRow(L('econ.tbl.outWheatgrass'), res.sellWheatgrassPcs, totOpts);
+        ch += outputTotalRow(L('econ.tbl.outMicroBaby'), farmGroupAgg(res.sellMicroBabyPcs, res.revMicroBabyPcs, res.marginMicroBabyPcs, res.areaMicroBabyPcs, res.unitCostMicroBabyPcs, 'шт'), totOpts);
+        ch += outputTotalRow(L('econ.tbl.outFlowers'), farmGroupAgg(res.sellFlowersPcs, res.revFlowersPcs, res.marginFlowersPcs, res.areaFlowersPcs, res.unitCostFlowersPcs, 'шт'), totOpts);
+        ch += outputTotalRow(L('econ.tbl.outWheatgrass'), farmGroupAgg(res.sellWheatgrassPcs, res.revWheatgrassPcs, res.marginWheatgrassPcs, res.areaWheatgrassPcs, res.unitCostWheatgrassPcs, 'шт'), totOpts);
         if (res.sellOtherPcs > 0){
-          ch += outputTotalRow(L('econ.tbl.outOtherPcs'), res.sellOtherPcs, totOpts);
+          ch += outputTotalRow(L('econ.tbl.outOtherPcs'), farmGroupAgg(res.sellOtherPcs, res.revOtherPcs, res.marginOtherPcs, res.areaOtherPcs, res.unitCostOtherPcs, 'шт'), totOpts);
         }
         if (!hasKg && !hasPcs){
           ch += '<tr><td><strong>' + L('econ.tbl.total') + '</strong></td><td colspan="7">—</td></tr>';
@@ -1680,6 +1744,10 @@
         const uc = p.slice.unitCostFull;
         const outLbl = u === 'шт' ? L('econ.out.pcsMo') : L('econ.out.kgMo');
         const outVal = u === 'кг' ? (sell > 0 ? deps.fmtNum(sell, {decimals: 1}) : '—') : (sell > 0 ? deps.fmtNum(sell) : '—');
+        const ySqmMo = p.slice.yieldPerSqmMonth > 0
+          ? p.slice.yieldPerSqmMonth
+          : (p.slice.area > 0 ? sell / p.slice.area : 0);
+        const ySqmFmt = ySqmMo > 0 ? fmtYieldSqmRate(ySqmMo, u === 'шт' ? 'шт' : 'кг') : '—';
         const consSqm = p.slice.consumablesPerSqm > 0 ? moneyPer(p.slice.consumablesPerSqm, 'econ.perSqmMonth') : '—';
         const consMo = p.slice.consumablesCost > 0 ? moneyPer(p.slice.consumablesCost, 'econ.perMonth') : '—';
         const consOnceSqm = p.slice.consumablesPerSqmOnce > 0 ? moneyPer(p.slice.consumablesPerSqmOnce, 'econ.perSqm') : '—';
@@ -1713,6 +1781,7 @@
           '<div class="line"><span>' + L('econ.metrics.sowOnce') + '</span><strong>' + consOnceSqm + '</strong> · ' + consOnceArea + '</div>' +
           '<div class="line"><span>' + L('econ.metrics.sowMo') + '</span><strong>' + consSqm + '</strong></div>' +
           '<div class="line"><span>' + L('econ.metrics.consArea') + '</span><strong>' + consMo + '</strong></div>' +
+          '<div class="line"><span>' + L('econ.derived.yield') + '</span><strong>' + ySqmFmt + '</strong></div>' +
           '<div class="line"><span>' + L('econ.metrics.out') + '</span><strong>' + outVal + ' ' + outLbl + '</strong></div>' +
           '<div class="line econ-metric-line--share"><span>' + L('econ.metrics.share') + '</span><strong>' + deps.r1(p.pct) + '% · ' + deps.r1(p.slice.area) + ' ' + L('econ.unit.sqm') + '</strong></div></div></div>';
 
