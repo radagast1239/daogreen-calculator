@@ -46,7 +46,7 @@
     { id: 'econ-costs', group: 'economics', selector: '#econ-panel-costs', vectorId: 'econ-costs' },
     { id: 'econ-equipment', group: 'economics', selector: '#econ-panel-equipment', vectorId: 'econ-equipment' },
     { id: 'econ-results', group: 'economics', selector: '#econ-panel-results', vectorId: 'econ-results' },
-    { id: 'econ-advanced', group: 'economics', selector: '#econ-panel-advanced' },
+    { id: 'econ-advanced', group: 'economics', selector: '#econ-panel-advanced', vectorId: 'econ-advanced' },
     { id: 'econ-sensitivity', group: 'economics', selector: '#econ-panel-sensitivity', vectorId: 'econ-sensitivity' },
     { id: 'econ-payback', group: 'economics', selector: '#econ-panel-payback', vectorId: 'econ-payback' }
   ];

@@ -83,7 +83,7 @@
         deps.migrateEconOtherElectricity(st.econ);
         var farm = deps.calcFarmEconomics(st.econ);
         var dl = global.DG_downloadEconCsv || global.DG_exportEconCsv;
-        dl(farm, { build: deps.CALC_BUILD, filename: 'daogreen-econ-' + new Date().toISOString().slice(0, 10) });
+        dl(farm, { build: deps.CALC_BUILD, filename: 'daogreen-econ-' + new Date().toISOString().slice(0, 10), econ: st.econ });
       },
       diagnose: function () {
         var st = deps.getState();

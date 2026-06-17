@@ -63,12 +63,24 @@ else fail('VF_CULTIVARS not in initEconUI deps');
 const econGlue = fs.existsSync(path.join(root, 'js/planting-econ-glue.js'))
   ? read('js/planting-econ-glue.js')
   : '';
-const econSrc = html + econGlue;
+const pdfExport = fs.existsSync(path.join(root, 'js/pdf-export.js'))
+  ? read('js/pdf-export.js')
+  : '';
+const econSrc = html + econGlue + pdfExport;
 if (econSrc.includes('econCulturesTotalPct: econCulturesTotalPct')) ok('econCulturesTotalPct dep');
 else fail('econCulturesTotalPct not in initEconUI deps');
 
 if (econSrc.includes('elecCatDailyKwh: elecCatDailyKwh')) ok('elecCatDailyKwh dep');
 else fail('elecCatDailyKwh not in initEconUI deps');
+
+if (econSrc.includes("vectorId: 'econ-advanced'")) ok('econ-advanced pdf vector');
+else fail('econ-advanced pdf vector missing');
+
+const pdfTables = fs.existsSync(path.join(root, 'js/pdf-econ-tables.js'))
+  ? read('js/pdf-econ-tables.js')
+  : '';
+if (pdfTables.includes("mode: 'adv-blocks'")) ok('pdf adv-blocks parser');
+else fail('pdf adv-blocks parser missing');
 
 if (html.includes('econ-panel-sensitivity')) ok('sensitivity panel in html');
 else fail('econ-panel-sensitivity missing');

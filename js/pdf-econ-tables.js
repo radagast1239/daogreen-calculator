@@ -141,6 +141,9 @@
         { selector: '#econ-payback-body .econ-pb-callout', mode: 'payback-callout' },
         { titleKey: 'pdf.vec.payback', selector: '#econ-payback-body .econ-pb-grid', mode: 'kv-grid' },
         { selector: '#econ-payback-body .econ-pb-list', mode: 'pb-list' }
+      ],
+      'econ-advanced': [
+        { selector: '#econ-advanced-body', mode: 'adv-blocks' }
       ]
     };
   }
@@ -294,16 +297,21 @@
   function parseElecCats(root){
     if (!root) return null;
     var rows = [];
+    var hasDayNight = false;
     root.querySelectorAll('.econ-elec-cat-card').forEach(function(card){
       var title = plainCellText(card.querySelector('.econ-elec-cat-title'));
+      var dayNightChk = card.querySelector('[data-econ-cat-daynight]');
       var kwDay = card.querySelector('[data-econ-cat-kw-day]');
       var hDay = card.querySelector('[data-econ-cat-h-day]');
       var kwNight = card.querySelector('[data-econ-cat-kw-night]');
       var hNight = card.querySelector('[data-econ-cat-h-night]');
-      if (kwDay || kwNight){
+      if (dayNightChk && dayNightChk.checked && (kwDay || kwNight)){
+        hasDayNight = true;
         var dayPart = (kwDay ? plainCellText(kwDay.value) : '0') + '×' + (hDay ? plainCellText(hDay.value) : '0');
         var nightPart = (kwNight ? plainCellText(kwNight.value) : '0') + '×' + (hNight ? plainCellText(hNight.value) : '0');
-        rows.push([title, dayPart + ' + ' + nightPart, 'ч/сут']);
+        var totalEl = card.querySelector('.econ-elec-daynight-total');
+        var totalStr = totalEl ? plainCellText(totalEl.textContent) : '';
+        rows.push([title, dayPart + ' + ' + nightPart, totalStr || '—']);
         return;
       }
       var kw = card.querySelector('[data-econ-cat-kw]');
@@ -311,7 +319,11 @@
       rows.push([title, kw ? plainCellText(kw.value) : '—', h ? plainCellText(h.value) : '—']);
     });
     return rows.length ? {
-      headers: [pdfT('pdf.vec.elecCat'), pdfT('pdf.vec.elecKw'), pdfT('pdf.vec.elecH')],
+      headers: [
+        pdfT('pdf.vec.elecCat'),
+        pdfT('pdf.vec.elecKw'),
+        hasDayNight ? pdfT('pdf.vec.elecDaily') : pdfT('pdf.vec.elecH')
+      ],
       rows: rows
     } : null;
   }
@@ -387,6 +399,12 @@
     if (item.mode === 'econ-grid' && data.headers.length === 2){
       data.tableKind = 'kv';
     }
+    if (data.tableKind === 'adv-season' && data.headers.length >= 5 && !data.colWidths){
+      data.colWidths = [0.11, 0.14, 0.14, 0.14, 0.47];
+    }
+    if (item.selector && String(item.selector).indexOf('econ-sens-table') >= 0 && data.headers.length >= 6){
+      data.colWidths = [0.24, 0.15, 0.15, 0.15, 0.09, 0.12];
+    }
     return data;
   }
 
@@ -402,18 +420,88 @@
         if (data) out.push({ title: title, data: data });
         return;
       }
+      if (block.querySelector('.econ-payroll-row--staff')){
+        var staffRows = [];
+        block.querySelectorAll('.econ-payroll-row--staff:not(.econ-payroll-row--head)').forEach(function(row){
+          var inputs = row.querySelectorAll('input');
+          var sel = row.querySelector('select');
+          staffRows.push([
+            inputs[0] ? plainCellText(inputs[0].value) : '—',
+            inputs[1] ? plainCellText(inputs[1].value) : '—',
+            sel && sel.options[sel.selectedIndex] ? plainCellText(sel.options[sel.selectedIndex].textContent) : '—'
+          ]);
+        });
+        if (staffRows.length) {
+          out.push({
+            title: title,
+            data: {
+              headers: [pdfT('econ.staff.role'), pdfT('econ.staff.salary'), pdfT('econ.staff.roleType')],
+              rows: staffRows
+            }
+          });
+        }
+        return;
+      }
       var rows = [];
       block.querySelectorAll('.econ-payroll-row:not(.econ-payroll-row--head)').forEach(function(row){
         var inputs = row.querySelectorAll('input');
+        var sel = row.querySelector('select');
         var k = inputs[0] ? plainCellText(inputs[0].value) : '';
         var v = inputs[1] ? plainCellText(inputs[1].value) : '';
         if (k || v) rows.push([k || '—', v || '—']);
+        if (sel && !k && !v){
+          rows.push([pdfT('econ.staff.roleType'), plainCellText(sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].textContent : sel.value)]);
+        }
       });
       if (rows.length) {
         out.push({
           title: title,
           data: { headers: [pdfT('pdf.vec.indicator'), pdfT('pdf.vec.value')], rows: rows }
         });
+      }
+    });
+    return out;
+  }
+
+  function parseAdvBlocks(root){
+    if (!root) return [];
+    var out = [];
+    root.querySelectorAll('.adv-block').forEach(function(block){
+      var title = plainCellText(block.querySelector('.adv-h'));
+      var table = block.querySelector('table');
+      if (table){
+        var data = parseHtmlTable(table);
+        if (data){
+          if (table.classList.contains('adv-season')){
+            data.tableKind = 'adv-season';
+            data.colWidths = [0.11, 0.14, 0.14, 0.14, 0.47];
+          }
+          var note = block.querySelector('.adv-note');
+          if (note) data.footnote = plainCellText(note.textContent);
+          out.push({ title: title, data: data });
+        }
+        return;
+      }
+      var list = block.querySelector('.adv-sites-list');
+      if (list){
+        var rows = [];
+        list.querySelectorAll('li').forEach(function(li){
+          var clone = li.cloneNode(true);
+          clone.querySelectorAll('button').forEach(function(b){ b.remove(); });
+          var txt = plainCellText(clone.textContent);
+          if (txt) rows.push([txt]);
+        });
+        var noteSites = block.querySelector('.adv-note');
+        if (rows.length){
+          out.push({
+            title: title,
+            data: {
+              headers: [pdfT('pdf.vec.indicator')],
+              rows: rows,
+              footnote: noteSites ? plainCellText(noteSites.textContent) : null
+            }
+          });
+        }
       }
     });
     return out;
@@ -584,12 +672,25 @@
     return rows.length ? { headers: [pdfT('pdf.vec.indicator'), pdfT('pdf.vec.value')], rows: rows } : null;
   }
 
+  function tableCellText(cell){
+    if (!cell) return '';
+    var inp = cell.querySelector('input, select, textarea');
+    if (inp){
+      if (inp.tagName === 'SELECT'){
+        var opt = inp.options[inp.selectedIndex];
+        return plainCellText(opt ? opt.textContent : inp.value);
+      }
+      return plainCellText(inp.value);
+    }
+    return plainCellText(cell);
+  }
+
   function cellsFromTr(tr){
     var cells = [];
     tr.querySelectorAll('th, td').forEach(function(c){
       var span = parseInt(c.getAttribute('colspan') || '1', 10);
       if (isNaN(span) || span < 1) span = 1;
-      cells.push(plainCellText(c));
+      cells.push(tableCellText(c));
       for (var i = 1; i < span; i++) cells.push('');
     });
     return cells;
@@ -1118,6 +1219,12 @@
       var title = item.titleKey ? pdfT(item.titleKey) : (item.title || '');
       if (item.mode === 'payroll-blocks'){
         parsePayrollBlocks(el).forEach(function(t){
+          out.push({ title: t.title, data: t.data });
+        });
+        return;
+      }
+      if (item.mode === 'adv-blocks'){
+        parseAdvBlocks(el).forEach(function(t){
           out.push({ title: t.title, data: t.data });
         });
         return;

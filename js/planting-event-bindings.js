@@ -805,7 +805,8 @@ const dlg = $('cv-add-dialog');
         dl(farm, {
           build: CALC_BUILD,
           date: new Date().toLocaleDateString(loc === 'en' ? 'en-GB' : 'ru-RU'),
-          filename: 'daogreen-econ-' + slug + '-' + new Date().toISOString().slice(0, 10)
+          filename: 'daogreen-econ-' + slug + '-' + new Date().toISOString().slice(0, 10),
+          econ: state.econ
         });
       } catch (e){
         alert(pr('err.csv', { msg: e.message || e }));

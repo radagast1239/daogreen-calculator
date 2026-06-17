@@ -14,9 +14,38 @@
     return cells.map(escCsv).join(';') + '\n';
   }
 
+  function payrollAllocLabel(mode){
+    var map = {
+      area: 'econ.payroll.allocArea',
+      revenue: 'econ.payroll.allocRevenue',
+      labor: 'econ.payroll.allocLabor',
+      laborOps: 'econ.payroll.allocLaborOps'
+    };
+    return T(map[mode] || map.area);
+  }
+
+  function elecCatLabel(id){
+    var key = 'econ.elec.cat.' + id;
+    var t = T(key);
+    return t !== key ? t : id;
+  }
+
+  function heatingElecCsvRow(cat){
+    cat = cat || {};
+    if (cat.dayNight){
+      var day = (parseFloat(cat.kwDay) || 0) + '×' + (parseFloat(cat.hDay) || 0);
+      var night = (parseFloat(cat.kwNight) || 0) + '×' + (parseFloat(cat.hNight) || 0);
+      var daily = (parseFloat(cat.kwDay) || 0) * (parseFloat(cat.hDay) || 0) +
+        (parseFloat(cat.kwNight) || 0) * (parseFloat(cat.hNight) || 0);
+      return [day + ' + ' + night, daily.toFixed(1)];
+    }
+    return [(parseFloat(cat.kw) || 0) + '×' + (parseFloat(cat.h) || 0), ((parseFloat(cat.kw) || 0) * (parseFloat(cat.h) || 0)).toFixed(1)];
+  }
+
   function exportEconCsv(farm, meta){
     meta = meta || {};
     if (!farm || !farm.parts) throw new Error(T('csv.noData'));
+    var econ = meta.econ || null;
 
     var sym = (global.DG_getCurrency && global.DG_getCurrency() === 'USD') ? '$' : '₽';
     var wasteFactor = farm.wasteFactor != null ? farm.wasteFactor
@@ -30,18 +59,26 @@
     lines.push(rowCsv([]));
 
     lines.push(rowCsv([
-      T('econ.snap.culture'), '%', T('econ.unit.sqm'), T('econ.metrics.out') + '/mo', T('econ.tbl.unit'),
+      T('econ.snap.culture'), '%', T('econ.unit.sqm'), T('econ.cult.laborCoeff'),
+      T('econ.metrics.fotShare') + ', %', T('econ.metrics.out') + '/mo', T('econ.tbl.unit'),
       T('econ.tbl.cost'), T('econ.tbl.rev') + ' ' + sym, T('econ.tbl.margin') + ' ' + sym
     ]));
 
+    var staffTotal = farm.staffTotal || 0;
     farm.parts.forEach(function(p){
       var u = p.slice.outputUnit;
       var out = p.slice.monthlyOutput;
       var revNet = (p.slice.revenue || 0) * wasteFactor;
+      var laborCoeff = p.row && p.row.laborCoeff != null ? p.row.laborCoeff : 1;
+      var fotPct = staffTotal > 0 && p.slice.allocatedStaff != null
+        ? ((p.slice.allocatedStaff / staffTotal) * 100).toFixed(1)
+        : '';
       lines.push(rowCsv([
         p.name,
         p.pct,
         p.slice.area,
+        laborCoeff,
+        fotPct,
         (u === 'кг' || u === T('econ.unit.kg')) ? out.toFixed(1) : out,
         u,
         p.slice.unitCostFull > 0 ? p.slice.unitCostFull.toFixed(2) : '',
@@ -66,6 +103,46 @@
     }
     if (farm.wasteEnabled === false && (farm.wastePct || 0) > 0){
       lines.push(rowCsv([T('econ.wasteInCalc'), T('econ.off') + ' (' + farm.wastePct + '%)']));
+    }
+
+    if (econ){
+      lines.push(rowCsv([]));
+      lines.push(rowCsv([T('csv.payrollSection')]));
+      lines.push(rowCsv([T('econ.payroll.allocMode'), payrollAllocLabel(econ.payrollAllocMode || 'area')]));
+      if (econ.payrollSplitEnabled){
+        lines.push(rowCsv([T('econ.payroll.splitEnabled'), T('pdf.vec.yes')]));
+        lines.push(rowCsv([T('econ.payroll.overheadAlloc'), payrollAllocLabel(econ.payrollOverheadAllocMode === 'area' ? 'area' : 'revenue')]));
+      }
+      if (econ.logisticsFollowPayroll){
+        lines.push(rowCsv([T('econ.logistics.followPayroll'), T('pdf.vec.yes')]));
+      }
+      (econ.staffLines || []).forEach(function(row){
+        var role = row.staffRole === 'overhead' ? T('econ.staff.roleOverhead') : T('econ.staff.roleField');
+        lines.push(rowCsv([row.label || T('econ.staff.role'), row.salary || 0, role]));
+      });
+
+      if (econ.elecCats && typeof econ.elecCats === 'object'){
+        lines.push(rowCsv([]));
+        lines.push(rowCsv([T('csv.elecSection')]));
+        lines.push(rowCsv([T('pdf.vec.elecCat'), T('pdf.vec.elecKw'), T('pdf.vec.elecDaily')]));
+        Object.keys(econ.elecCats).forEach(function(id){
+          var cat = econ.elecCats[id];
+          if (!cat) return;
+          var pair = id === 'heating' ? heatingElecCsvRow(cat) : [(parseFloat(cat.kw) || 0) + '×' + (parseFloat(cat.h) || 0), ((parseFloat(cat.kw) || 0) * (parseFloat(cat.h) || 0)).toFixed(1)];
+          lines.push(rowCsv([elecCatLabel(id), pair[0], pair[1]]));
+        });
+      }
+
+      if (farm.elecBreakdown && farm.elecBreakdown.length){
+        lines.push(rowCsv([]));
+        lines.push(rowCsv([T('csv.elecCostSection')]));
+        lines.push(rowCsv([T('econ.tbl.article'), T('econ.tbl.kwh'), T('econ.tbl.rev') + ' ' + sym]));
+        farm.elecBreakdown.forEach(function(row){
+          var lbl = row.id === 'light' ? T('econ.bd.light') : (T('econ.bd.elecPrefix') + ' ' + elecCatLabel(row.id));
+          if (row.sub) lbl += ' (' + row.sub + ')';
+          lines.push(rowCsv([lbl, Math.round(row.kwh || 0), Math.round(row.cost || 0)]));
+        });
+      }
     }
 
     return lines.join('');
