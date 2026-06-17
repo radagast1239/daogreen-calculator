@@ -1822,6 +1822,7 @@
     const sellKg = outKg * wasteFactor;
     const sellBerriesKg = outBerriesKg * wasteFactor;
     const sellVegetablesKg = outVegetablesKg * wasteFactor;
+    const sellOtherKg = Math.max(0, sellKg - sellBerriesKg - sellVegetablesKg);
     const sellPcs = outPcs * wasteFactor;
     const sellMicroBabyPcs = outMicroBabyPcs * wasteFactor;
     const sellFlowersPcs = outFlowersPcs * wasteFactor;
@@ -1954,6 +1955,9 @@
     }
     const groupBerries = sumOutputGroup(function(p){ return econOutputKgGroup(p.cvId) === 'berries'; });
     const groupVegetables = sumOutputGroup(function(p){ return econOutputKgGroup(p.cvId) === 'vegetables'; });
+    const groupOtherKg = sumOutputGroup(function(p){
+      return p.slice.outputUnit !== 'шт' && econOutputKgGroup(p.cvId) === 'otherKg';
+    });
     const groupMicroBaby = sumOutputGroup(function(p){ return econOutputPcsGroup(p.cvId) === 'microBaby'; });
     const groupFlowers = sumOutputGroup(function(p){ return econOutputPcsGroup(p.cvId) === 'flowers'; });
     const groupWheatgrass = sumOutputGroup(function(p){ return econOutputPcsGroup(p.cvId) === 'wheatgrass'; });
@@ -1975,6 +1979,7 @@
       sellKg: sellKg,
       sellBerriesKg: sellBerriesKg,
       sellVegetablesKg: sellVegetablesKg,
+      sellOtherKg: sellOtherKg,
       sellPcs: sellPcs,
       sellMicroBabyPcs: sellMicroBabyPcs,
       sellFlowersPcs: sellFlowersPcs,
@@ -1990,6 +1995,10 @@
       marginVegetablesKg: groupVegetables.margin,
       areaVegetablesKg: groupVegetables.area,
       unitCostVegetablesKg: groupVegetables.unitCost,
+      revOtherKg: groupOtherKg.revenue,
+      marginOtherKg: groupOtherKg.margin,
+      areaOtherKg: groupOtherKg.area,
+      unitCostOtherKg: groupOtherKg.unitCost,
       revMicroBabyPcs: groupMicroBaby.revenue,
       marginMicroBabyPcs: groupMicroBaby.margin,
       areaMicroBabyPcs: groupMicroBaby.area,

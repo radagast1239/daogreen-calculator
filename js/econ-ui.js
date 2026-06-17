@@ -1833,6 +1833,10 @@
     const hasKg = res.sellKg > 0 || res.outKg > 0;
     const hasPcs = res.sellPcs > 0 || res.outPcs > 0;
     const mixed = hasKg && hasPcs;
+    const kgOutParts = parts.filter(function(p){
+      return p.slice.outputUnit !== 'шт' && p.slice.monthlyOutput > 0;
+    });
+    const kgCultureCount = kgOutParts.length;
 
     function farmGroupAgg(sell, rev, margin, area, unitCost, unit){
       return {
@@ -1910,9 +1914,12 @@
         const pctShow = deps.r1(farm.totalPct > 100 ? 100 : farm.totalPct);
         const totOpts = { mixed: mixed, pctShow: pctShow, farm: farm, res: res, skipWaste: mixed };
         if (hasKg){
-          ch += outputTotalRow(L('econ.tbl.totalKg'), farmGroupAgg(res.sellKg, res.revKg, res.marginKg, res.areaKg || 0, res.unitCostKg, 'кг'), totOpts);
+          if (kgCultureCount <= 1){
+            ch += outputTotalRow(L('econ.tbl.totalKg'), farmGroupAgg(res.sellKg, res.revKg, res.marginKg, res.areaKg || 0, res.unitCostKg, 'кг'), totOpts);
+          }
           ch += outputTotalRow(L('econ.tbl.outBerriesKg'), farmGroupAgg(res.sellBerriesKg, res.revBerriesKg, res.marginBerriesKg, res.areaBerriesKg, res.unitCostBerriesKg, 'кг'), totOpts);
           ch += outputTotalRow(L('econ.tbl.outVegetablesKg'), farmGroupAgg(res.sellVegetablesKg, res.revVegetablesKg, res.marginVegetablesKg, res.areaVegetablesKg, res.unitCostVegetablesKg, 'кг'), totOpts);
+          ch += outputTotalRow(L('econ.tbl.outOtherKg'), farmGroupAgg(res.sellOtherKg, res.revOtherKg, res.marginOtherKg, res.areaOtherKg, res.unitCostOtherKg, 'кг'), totOpts);
         }
         if (hasPcs && !hasKg){
           ch += outputTotalRow(L('econ.tbl.totalPcs'), farmGroupAgg(res.sellPcs, res.revPcs, res.marginPcs, res.areaPcs || 0, res.unitCostPcs, 'шт'), totOpts);
@@ -2012,15 +2019,10 @@
     deps.$('econ-results-metrics').innerHTML = metrics;
 
     let farmCards = '<div class="econ-results" style="margin-top:0">';
-    if (res.sellKg > 0){
-      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.totalKg') + '</div><div class="m-val">' + deps.r1(res.sellKg) + ' <span class="m-u">' + uKg() + '</span></div></div>';
-    }
-    if (res.sellBerriesKg > 0){
-      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outBerriesKg') + '</div><div class="m-val">' + deps.r1(res.sellBerriesKg) + ' <span class="m-u">' + uKg() + '</span></div></div>';
-    }
-    if (res.sellVegetablesKg > 0){
-      farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outVegetablesKg') + '</div><div class="m-val">' + deps.r1(res.sellVegetablesKg) + ' <span class="m-u">' + uKg() + '</span></div></div>';
-    }
+    kgOutParts.forEach(function(p){
+      const sell = p.slice.monthlyOutput * wasteFactor;
+      farmCards += '<div class="m econ-out-card"><div class="m-label">' + p.name + '</div><div class="m-val">' + deps.r1(sell) + ' <span class="m-u">' + uKg() + '</span></div></div>';
+    });
     if (res.sellMicroBabyPcs > 0){
       farmCards += '<div class="m econ-out-card"><div class="m-label">' + L('econ.tbl.outMicroBaby') + '</div><div class="m-val">' + deps.fmtNum(res.sellMicroBabyPcs) + ' <span class="m-u">' + uPcs() + '</span></div></div>';
     }

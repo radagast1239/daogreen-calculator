@@ -31,12 +31,22 @@
       rows.push({ k: t(deps, 'sum.margin'), a: farm.margin, b: moneyUnit(deps), num: true, highlight: true, money: true });
       rows.push({ k: t(deps, 'sum.marginPct'), a: farm.marginPct, b: '%', num: true });
       if (farm.sellKg > 0){
-        rows.push({ k: t(deps, 'sum.salesKg'), a: farm.sellKg, b: t(deps, 'sum.unit.kgMo'), num: true });
-        if (farm.sellBerriesKg > 0){
-          rows.push({ k: t(deps, 'sum.salesBerries'), a: farm.sellBerriesKg, b: t(deps, 'sum.unit.kgMo'), num: true });
-        }
-        if (farm.sellVegetablesKg > 0){
-          rows.push({ k: t(deps, 'sum.salesVegetables'), a: farm.sellVegetablesKg, b: t(deps, 'sum.unit.kgMo'), num: true });
+        var kgParts = (farm.parts || []).filter(function(p){
+          return p.slice && p.slice.outputUnit !== 'шт' && p.slice.monthlyOutput > 0;
+        });
+        if (kgParts.length > 1){
+          kgParts.forEach(function(p){
+            var sell = (p.slice.monthlyOutput || 0) * (farm.wasteFactor != null ? farm.wasteFactor : 1);
+            rows.push({ k: p.name, a: sell, b: t(deps, 'sum.unit.kgMo'), num: true });
+          });
+        } else {
+          rows.push({ k: t(deps, 'sum.salesKg'), a: farm.sellKg, b: t(deps, 'sum.unit.kgMo'), num: true });
+          if (farm.sellBerriesKg > 0){
+            rows.push({ k: t(deps, 'sum.salesBerries'), a: farm.sellBerriesKg, b: t(deps, 'sum.unit.kgMo'), num: true });
+          }
+          if (farm.sellVegetablesKg > 0){
+            rows.push({ k: t(deps, 'sum.salesVegetables'), a: farm.sellVegetablesKg, b: t(deps, 'sum.unit.kgMo'), num: true });
+          }
         }
         rows.push({ k: t(deps, 'sum.unitCost'), a: farm.unitCostKg, b: moneyUnit(deps, deps.t ? deps.t('econ.perKg') : '/кг'), num: true, money: true });
       }

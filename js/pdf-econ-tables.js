@@ -212,10 +212,28 @@
     return out;
   }
 
+  function collectAllPerCultureKgCards(){
+    var table = document.getElementById('econ-cultures-breakdown');
+    if (!table) return [];
+    var out = [];
+    table.querySelectorAll('tr[data-econ-cv-id]').forEach(function(tr){
+      var cells = tr.querySelectorAll('td, th');
+      if (!cells || cells.length < 4) return;
+      var outText = plainCellText(cells[3]);
+      if (/\bшт\b/i.test(outText) || /\bpcs\b/i.test(outText)) return;
+      var name = plainCellText(cells[0]);
+      var value = parseNetOutputCellForKpi(cells[3]);
+      if (!name || !value || value === '—') return;
+      out.push({ label: name, val: value, sub: '' });
+    });
+    return out;
+  }
+
   function expandKgGroupCardsForPdf(cards){
     if (!cards || !cards.length) return cards;
     var berriesLabel = plainCellText(pdfT('econ.tbl.outBerriesKg'));
     var vegetablesLabel = plainCellText(pdfT('econ.tbl.outVegetablesKg'));
+    var totalKgLabel = plainCellText(pdfT('econ.tbl.totalKg'));
     var expanded = [];
     cards.forEach(function(card){
       var lbl = plainCellText(card && card.label);
@@ -230,6 +248,12 @@
       if (perCulture.length) Array.prototype.push.apply(expanded, perCulture);
       else expanded.push(card);
     });
+    var perKg = collectAllPerCultureKgCards();
+    if (perKg.length > 1){
+      expanded = expanded.filter(function(card){
+        return plainCellText(card && card.label) !== totalKgLabel;
+      });
+    }
     return expanded;
   }
 
