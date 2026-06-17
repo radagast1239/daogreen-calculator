@@ -158,7 +158,8 @@
     const gStr = u === 'кг' ? deps.r1(gross) : deps.fmtNum(gross);
     const sStr = u === 'кг' ? deps.r1(sell) : deps.fmtNum(sell);
     const totalStr = wasteActive ? gStr + ' → ' + sStr + ' ' + uOut(u) : gStr + ' ' + uOut(u);
-    return (perSqm ? perSqm + ' · ' : '') + totalStr;
+    if (perSqm) return '<span class="econ-out-rate">' + perSqm + '</span><br><span class="econ-out-vol">' + totalStr + '</span>';
+    return totalStr;
   }
 
   function econYieldInputMode(row, extraKind){
@@ -1767,7 +1768,6 @@
       const isGrandTotal = !!opts.isGrandTotal;
       if (!agg || (!(agg.sell > 0) && !isGrandTotal)) return '';
       const mixed = opts.mixed;
-      const volumeOnly = !!opts.volumeOnly;
       const pctShow = opts.pctShow;
       const farm = opts.farm;
       const res = opts.res;
@@ -1779,14 +1779,17 @@
         const unitLbl = agg.unit === 'шт' ? uPcs() : uKg();
         const valStr = agg.unit === 'кг' ? deps.r1(agg.sell) : deps.fmtNum(agg.sell);
         const perSqm = fmtYieldSqmRate(agg.yieldSqm, agg.unit === 'шт' ? 'шт' : 'кг');
-        outCell = (perSqm ? perSqm + ' · ' : '') + valStr + ' ' + unitLbl + wasteSuffix;
+        const volStr = valStr + ' ' + unitLbl + wasteSuffix;
+        outCell = perSqm
+          ? '<span class="econ-out-rate">' + perSqm + '</span><br><span class="econ-out-vol">' + volStr + '</span>'
+          : volStr;
       }
       const uc = isGrandTotal && mixed ? '—' : (agg.unitCost > 0 ? fmtUnitCost(agg.unitCost, agg.unit) : '—');
-      const revCell = volumeOnly ? '—' : (agg.rev > 0 ? moneyFmt(agg.rev) : '—');
-      const marginCell = volumeOnly ? '—' : (agg.rev > 0 || agg.margin !== 0 ? moneyFmt(agg.margin) : '—');
+      const revCell = agg.rev > 0 ? moneyFmt(agg.rev) : '—';
+      const marginCell = agg.rev > 0 || agg.margin !== 0 ? moneyFmt(agg.margin) : '—';
       const areaShow = agg.area > 0 ? agg.area : farm.areaUsed;
       const pctCell = isGrandTotal ? pctShow : (mixed ? '—' : pctShow);
-      const areaCell = isGrandTotal ? deps.r1(farm.areaUsed) : (mixed ? '—' : deps.r1(areaShow));
+      const areaCell = isGrandTotal ? deps.r1(farm.areaUsed) : (areaShow > 0 ? deps.r1(areaShow) : '—');
       return '<tr class="econ-total-row' + (isGrandTotal ? ' econ-total-row--grand' : '') + '"><td><strong>' + label + '</strong></td><td>' + pctCell + '</td><td>' + areaCell + '</td><td>' +
         outCell + '</td><td>' + uc + '</td><td>—</td><td>' + revCell + '</td><td>' + marginCell + '</td></tr>';
     }
@@ -1815,7 +1818,7 @@
           ch += '<tr data-econ-cv-id="' + econEscAttr(p.cvId || '') + '"><td>' + p.name + '</td><td>' + deps.r1(p.pct) + '</td><td>' + deps.r1(p.slice.area) + '</td><td>' + out + '</td><td>' + uc + '</td><td>' + consSqm + '</td><td>' + moneyFmt(revNet) + '</td><td>' + moneyFmt(p.slice.margin) + '</td></tr>';
         });
         const pctShow = deps.r1(farm.totalPct > 100 ? 100 : farm.totalPct);
-        const totOpts = { mixed: mixed, pctShow: pctShow, farm: farm, res: res, skipWaste: mixed, volumeOnly: mixed };
+        const totOpts = { mixed: mixed, pctShow: pctShow, farm: farm, res: res, skipWaste: mixed };
         if (hasKg){
           ch += outputTotalRow(L('econ.tbl.totalKg'), farmGroupAgg(res.sellKg, res.revKg, res.marginKg, res.areaKg || 0, res.unitCostKg, 'кг'), totOpts);
           ch += outputTotalRow(L('econ.tbl.outBerriesKg'), farmGroupAgg(res.sellBerriesKg, res.revBerriesKg, res.marginBerriesKg, res.areaBerriesKg, res.unitCostBerriesKg, 'кг'), totOpts);
