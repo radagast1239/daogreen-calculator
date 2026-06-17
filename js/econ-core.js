@@ -20,7 +20,8 @@
     PLANT_MONTH: 'plantMonth',
     SQM_MONTH: 'sqmMonth'
   };
-  const ECON_PAYROLL_ALLOC_MODES = ['area', 'revenue', 'labor'];
+  const ECON_PAYROLL_ALLOC_MODES = ['area', 'revenue', 'labor', 'laborOps'];
+  const ECON_OVERHEAD_ALLOC_MODES = ['revenue', 'area'];
   /** Доп. культуры только для экономики (без посадочного каталога). */
   const ECON_EXTRA_CULTURE_DEFAULTS = {
     'econ-berry-blueberry': {
@@ -403,7 +404,8 @@
       consPotVermiculite: 0,
       consPotPot: 0,
       consPotRockwool: 0,
-      laborCoeff: 1
+      laborCoeff: 1,
+      laborSecPerUnit: 0
     };
     if (st().econ){
       row.kwhPerM2Hour = parseFloat(st().econ.kwhPerM2Hour) || row.kwhPerM2Hour;
@@ -428,6 +430,9 @@
       staffLines: defaultStaffLines(),
       payrollCustom: [],
       payrollAllocMode: 'area',
+      payrollSplitEnabled: false,
+      payrollOverheadAllocMode: 'revenue',
+      logisticsFollowPayroll: false,
       accountingMonth: 15000,
       logisticsMonth: 0,
       waterM3Month: 0,
@@ -744,6 +749,7 @@
       out.potHarvestMonths = parsePotHarvestMonthsFromCv(cv, deps.getPlantingSnapshotForCvId(out.cvId));
     }
     out.laborCoeff = deps.clamp(parseFloat(row && row.laborCoeff) || 1, 0.1, 10);
+    out.laborSecPerUnit = Math.max(0, parseFloat(row && row.laborSecPerUnit) || 0);
     return out;
   }
 
@@ -1196,7 +1202,8 @@
         e.staffLines.push({
           id: newEconRowId('staff'),
           label: TF('econ.staff.n', { n: i + 1 }, 'Сотрудник {n}'),
-          salary: salary
+          salary: salary,
+          staffRole: 'field'
         });
       }
     }
@@ -1204,7 +1211,8 @@
       return {
         id: row.id || newEconRowId('staff'),
         label: row.label != null ? String(row.label) : '',
-        salary: parseFloat(row.salary) || 0
+        salary: parseFloat(row.salary) || 0,
+        staffRole: row.staffRole === 'overhead' ? 'overhead' : 'field'
       };
     });
     if (!Array.isArray(e.payrollCustom)) e.payrollCustom = [];
@@ -1230,25 +1238,40 @@
     if (e.payrollStaffCostPct == null || isNaN(parseFloat(e.payrollStaffCostPct))) e.payrollStaffCostPct = 0;
     if (!e.payrollAllocMode) e.payrollAllocMode = 'area';
     else e.payrollAllocMode = normalizePayrollAllocMode(e.payrollAllocMode);
+    if (e.payrollSplitEnabled == null) e.payrollSplitEnabled = false;
+    if (!e.payrollOverheadAllocMode) e.payrollOverheadAllocMode = 'revenue';
+    else e.payrollOverheadAllocMode = normalizeOverheadAllocMode(e.payrollOverheadAllocMode);
+    if (e.logisticsFollowPayroll == null) e.logisticsFollowPayroll = false;
   }
 
   function normalizePayrollAllocMode(mode){
     return ECON_PAYROLL_ALLOC_MODES.indexOf(mode) >= 0 ? mode : 'area';
   }
 
+  function normalizeOverheadAllocMode(mode){
+    return ECON_OVERHEAD_ALLOC_MODES.indexOf(mode) >= 0 ? mode : 'revenue';
+  }
+
+  function payrollLaborCoeffWeight(p){
+    const coeff = deps.clamp(parseFloat(p.row && p.row.laborCoeff) || 1, 0.1, 10);
+    return Math.max(0, (p.slice.area || 0) * coeff);
+  }
+
   function payrollAllocWeight(p, mode, wasteFactor){
     mode = normalizePayrollAllocMode(mode);
     if (mode === 'revenue') return Math.max(0, (p.slice.revenue || 0) * wasteFactor);
-    if (mode === 'labor'){
-      const coeff = deps.clamp(parseFloat(p.row && p.row.laborCoeff) || 1, 0.1, 10);
-      return Math.max(0, (p.slice.area || 0) * coeff);
+    if (mode === 'labor') return payrollLaborCoeffWeight(p);
+    if (mode === 'laborOps'){
+      const cuts = p.bio && p.bio.cutsPerMonth > 0 ? p.bio.cutsPerMonth : 0;
+      const output = Math.max(0, (p.slice.monthlyOutput || 0) * wasteFactor);
+      const sec = Math.max(0, parseFloat(p.row && p.row.laborSecPerUnit) || 0);
+      if (cuts > 0 && output > 0 && sec > 0) return cuts * output * sec;
+      return payrollLaborCoeffWeight(p);
     }
     return Math.max(0, p.slice.area || 0);
   }
 
-  function calcPayrollAllocShares(parts, e, wasteFactor){
-    const mode = normalizePayrollAllocMode(e && e.payrollAllocMode);
-    const weights = parts.map(function(p){ return payrollAllocWeight(p, mode, wasteFactor); });
+  function calcAllocSharesFromWeights(parts, weights){
     const sum = weights.reduce(function(s, w){ return s + w; }, 0);
     if (sum <= 0){
       const areaSum = parts.reduce(function(s, p){ return s + (p.slice.area || 0); }, 0);
@@ -1257,6 +1280,59 @@
       });
     }
     return weights.map(function(w){ return w / sum; });
+  }
+
+  function calcPayrollAllocShares(parts, e, wasteFactor){
+    const mode = normalizePayrollAllocMode(e && e.payrollAllocMode);
+    return calcAllocSharesFromWeights(parts, parts.map(function(p){
+      return payrollAllocWeight(p, mode, wasteFactor);
+    }));
+  }
+
+  function calcOverheadAllocShares(parts, e, wasteFactor){
+    const mode = normalizeOverheadAllocMode(e && e.payrollOverheadAllocMode);
+    if (mode === 'area'){
+      return calcAllocSharesFromWeights(parts, parts.map(function(p){
+        return Math.max(0, p.slice.area || 0);
+      }));
+    }
+    return calcAllocSharesFromWeights(parts, parts.map(function(p){
+      return Math.max(0, (p.slice.revenue || 0) * wasteFactor);
+    }));
+  }
+
+  function calcPayrollPools(e, payroll){
+    migrateEconPayroll(e);
+    const accounting = Math.max(0, parseFloat(e.accountingMonth) || 0);
+    const custom = Math.max(0, payroll.custom || 0);
+    if (!e.payrollSplitEnabled){
+      return {
+        overheadTotal: 0,
+        variableTotal: payroll.total,
+        overheadSharesMode: null
+      };
+    }
+    let overheadGross = 0;
+    let fieldGross = 0;
+    (e.staffLines || []).forEach(function(row){
+      const sal = Math.max(0, parseFloat(row.salary) || 0);
+      if (row.staffRole === 'overhead') overheadGross += sal;
+      else fieldGross += sal;
+    });
+    const gross = overheadGross + fieldGross;
+    const tax = Math.max(0, payroll.payrollTax || 0);
+    const staffCost = Math.max(0, payroll.payrollStaffCost || 0);
+    const overheadTax = gross > 0 ? tax * (overheadGross / gross) : 0;
+    const fieldTax = tax - overheadTax;
+    const overheadStaffCost = gross > 0 ? staffCost * (overheadGross / gross) : 0;
+    const fieldStaffCost = staffCost - overheadStaffCost;
+    const overheadTotal = overheadGross + overheadTax + overheadStaffCost + accounting;
+    const variableTotal = fieldGross + fieldTax + fieldStaffCost + custom;
+    return {
+      overheadTotal: overheadTotal,
+      variableTotal: variableTotal,
+      overheadSharesMode: normalizeOverheadAllocMode(e.payrollOverheadAllocMode)
+    };
   }
 
   function calcVatTaxAmt(revenue, e){
@@ -1744,17 +1820,28 @@
       : 0;
     const breakEvenRevenuePct = revenue > 0 && breakEvenRevenue > 0 ? (breakEvenRevenue / revenue) * 100 : 0;
 
-    const payrollShares = calcPayrollAllocShares(parts, e, wasteFactor);
-    const fixedOpexNoStaff = fixedOpex - staffTotal;
+    const payrollPools = calcPayrollPools(e, payroll);
+    const variableShares = calcPayrollAllocShares(parts, e, wasteFactor);
+    const overheadShares = e.payrollSplitEnabled
+      ? calcOverheadAllocShares(parts, e, wasteFactor)
+      : parts.map(function(){ return 0; });
+    const logisticsShares = e.logisticsFollowPayroll
+      ? variableShares
+      : parts.map(function(p){
+          return areaUsed > 0 ? (p.slice.area || 0) / areaUsed : 0;
+        });
+    const nonStaffLogisticsFixed = rent + other + waterCost + otherElecCost + equipAmort;
 
     parts.forEach(function(p, ri){
       const isPcs = p.slice.outputUnit === 'шт';
       const areaShare = areaUsed > 0 ? p.slice.area / areaUsed : 0;
-      const payrollShare = payrollShares[ri] != null ? payrollShares[ri] : areaShare;
-      const shareStaff = staffTotal * payrollShare;
-      const shareFixed = fixedOpexNoStaff * areaShare + shareStaff;
+      const variableShare = variableShares[ri] != null ? variableShares[ri] : areaShare;
+      const overheadShare = overheadShares[ri] != null ? overheadShares[ri] : 0;
+      const logisticsShare = logisticsShares[ri] != null ? logisticsShares[ri] : areaShare;
+      const shareStaff = payrollPools.overheadTotal * overheadShare + payrollPools.variableTotal * variableShare;
+      const shareLogistics = logistics * logisticsShare;
+      const shareFixed = nonStaffLogisticsFixed * areaShare + shareStaff + shareLogistics;
       const shareRent = rent * areaShare;
-      const shareLogistics = logistics * areaShare;
       const shareWater = waterCost * areaShare;
       const shareOtherElec = otherElecCost * areaShare;
       const shareOther = other * areaShare;
@@ -1976,6 +2063,7 @@
       migrateEconElecCats: migrateEconElecCats,
       migrateEconPayroll: migrateEconPayroll,
       normalizePayrollAllocMode: normalizePayrollAllocMode,
+      normalizeOverheadAllocMode: normalizeOverheadAllocMode,
       migrateEconOtherElectricity: migrateEconOtherElectricity,
       econWaterInCalc: econWaterInCalc,
       econWasteInCalc: econWasteInCalc,

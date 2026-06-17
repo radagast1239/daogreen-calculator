@@ -49,13 +49,17 @@
     }
     function payrollAllocMode(){
       const m = st().econ && st().econ.payrollAllocMode;
-      return m === 'revenue' || m === 'labor' ? m : 'area';
+      return m === 'revenue' || m === 'labor' || m === 'laborOps' ? m : 'area';
     }
     function unitCostBreakdownHintText(){
       const mode = payrollAllocMode();
-      if (mode === 'revenue') return L('econ.metrics.unitCostBreakdownHintRevenue');
-      if (mode === 'labor') return L('econ.metrics.unitCostBreakdownHintLabor');
-      return L('econ.metrics.unitCostBreakdownHint');
+      const logFollow = !!(st().econ && st().econ.logisticsFollowPayroll);
+      const split = !!(st().econ && st().econ.payrollSplitEnabled);
+      if (mode === 'laborOps') return L('econ.metrics.unitCostBreakdownHintLaborOps') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
+      if (mode === 'revenue') return L('econ.metrics.unitCostBreakdownHintRevenue') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
+      if (mode === 'labor') return L('econ.metrics.unitCostBreakdownHintLabor') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
+      if (split) return L('econ.metrics.unitCostBreakdownHintSplit') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
+      return L('econ.metrics.unitCostBreakdownHint') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
     }
     var ECON_MONTH_DAYS = deps.ECON_MONTH_DAYS;
     var ECON_ELEC_CAT_IDS = deps.ECON_ELEC_CAT_IDS || ['pumps', 'fans', 'heating', 'equipment', 'refrigeration', 'packaging', 'misc'];
@@ -630,9 +634,14 @@
 
   function renderPayrollStaffRow(row){
     const sal = parseFloat(row.salary) || 0;
+    const role = row.staffRole === 'overhead' ? 'overhead' : 'field';
     return '<div class="econ-payroll-row" data-econ-staff-id="' + row.id + '">' +
       '<input type="text" class="econ-payroll-label-inp" data-econ-staff-label="' + row.id + '" value="' + econEscAttr(row.label || '') + '" placeholder="' + L('econ.staff.role') + '">' +
       '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-staff-salary="' + row.id + '" value="' + deps.formatInputValue(sal, 0) + '">' +
+      '<select class="econ-payroll-role-sel" data-econ-staff-role="' + row.id + '" title="' + L('econ.staff.roleTypeHint') + '">' +
+      '<option value="field"' + (role === 'field' ? ' selected' : '') + '>' + L('econ.staff.roleField') + '</option>' +
+      '<option value="overhead"' + (role === 'overhead' ? ' selected' : '') + '>' + L('econ.staff.roleOverhead') + '</option>' +
+      '</select>' +
       '<button type="button" class="econ-rm" data-econ-staff-rm="' + row.id + '" title="' + L('econ.btn.remove') + '">×</button></div>';
   }
 
@@ -664,25 +673,47 @@
 
   function renderPayrollAllocBlock(){
     const mode = payrollAllocMode();
+    const split = !!(st().econ && st().econ.payrollSplitEnabled);
+    const logFollow = !!(st().econ && st().econ.logisticsFollowPayroll);
+    const overheadMode = st().econ && st().econ.payrollOverheadAllocMode === 'area' ? 'area' : 'revenue';
     const opts = [
       ['area', L('econ.payroll.allocArea')],
       ['revenue', L('econ.payroll.allocRevenue')],
-      ['labor', L('econ.payroll.allocLabor')]
+      ['labor', L('econ.payroll.allocLabor')],
+      ['laborOps', L('econ.payroll.allocLaborOps')]
     ].map(function(pair){
       return '<option value="' + pair[0] + '"' + (mode === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
     }).join('');
+    const overheadOpts = [
+      ['revenue', L('econ.payroll.overheadRevenue')],
+      ['area', L('econ.payroll.overheadArea')]
+    ].map(function(pair){
+      return '<option value="' + pair[0] + '"' + (overheadMode === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
+    }).join('');
     return '<div class="econ-payroll-block"><h4 class="econ-payroll-h4">' + L('econ.payroll.allocMode') + '</h4>' +
       '<div class="econ-grid econ-grid--tight">' +
-      '<div class="econ-field econ-field--wide"><label>' + L('econ.payroll.allocMode') + '</label>' +
+      '<div class="econ-field econ-field--wide"><label>' + L('econ.payroll.allocVariable') + '</label>' +
       '<select data-econ-payroll-alloc>' + opts + '</select>' +
-      '<p class="econ-hint" style="margin:6px 0 0">' + L('econ.payroll.allocHint.' + mode) + '</p></div></div></div>';
+      '<p class="econ-hint" style="margin:6px 0 0">' + L('econ.payroll.allocHint.' + mode) + '</p></div>' +
+      '<div class="econ-field econ-field--wide"><label class="econ-check-label">' +
+      '<input type="checkbox" data-econ-payroll-split' + (split ? ' checked' : '') + '> ' + L('econ.payroll.splitEnabled') + '</label>' +
+      '<p class="econ-hint" style="margin:4px 0 0">' + L('econ.payroll.splitHint') + '</p></div>' +
+      (split
+        ? '<div class="econ-field econ-field--wide"><label>' + L('econ.payroll.overheadAlloc') + '</label>' +
+          '<select data-econ-payroll-overhead-alloc>' + overheadOpts + '</select>' +
+          '<p class="econ-hint" style="margin:6px 0 0">' + L('econ.payroll.overheadAllocHint') + '</p></div>'
+        : '') +
+      '<div class="econ-field econ-field--wide"><label class="econ-check-label">' +
+      '<input type="checkbox" data-econ-logistics-follow' + (logFollow ? ' checked' : '') + '> ' + L('econ.logistics.followPayroll') + '</label>' +
+      '<p class="econ-hint" style="margin:4px 0 0">' + L('econ.logistics.followPayrollHint') + '</p></div>' +
+      '</div></div>';
   }
 
   function renderPayrollSection(){
     deps.migrateEconOtherElectricity(st().econ);
     const wrap = deps.$('econ-payroll-body');
     if (!wrap) return;
-    const head = '<div class="econ-payroll-row econ-payroll-row--head"><span>' + L('econ.staff.role') + '</span><span>' + L('econ.staff.salary') + ', ' + moneySym() + '</span><span></span></div>';
+    const head = '<div class="econ-payroll-row econ-payroll-row--head"><span>' + L('econ.staff.role') + '</span><span>' + L('econ.staff.salary') + ', ' + moneySym() + '</span><span>' + L('econ.staff.roleType') + '</span><span></span></div>';
     let staffHtml = head;
     (st().econ.staffLines || []).forEach(function(row){ staffHtml += renderPayrollStaffRow(row); });
     let customHtml = '';
@@ -745,7 +776,7 @@
     root.addEventListener('click', function(e){
       if (e.target.id === 'econ-staff-add'){
         deps.migrateEconOtherElectricity(st().econ);
-        st().econ.staffLines.push({ id: 'staff_' + Math.random().toString(36).slice(2, 10), label: '', salary: 55000 });
+        st().econ.staffLines.push({ id: 'staff_' + Math.random().toString(36).slice(2, 10), label: '', salary: 55000, staffRole: 'field' });
         deps.saveEconStore();
         const list = deps.$('econ-staff-list');
         if (list) list.insertAdjacentHTML('beforeend', renderPayrollStaffRow(st().econ.staffLines[st().econ.staffLines.length - 1]));
@@ -770,7 +801,7 @@
       if (rmStaff){
         const id = rmStaff.dataset.econStaffRm;
         st().econ.staffLines = (st().econ.staffLines || []).filter(function(x){ return x.id !== id; });
-        if (!st().econ.staffLines.length) st().econ.staffLines.push({ id: 'staff_' + Math.random().toString(36).slice(2, 10), label: '', salary: 0 });
+        if (!st().econ.staffLines.length) st().econ.staffLines.push({ id: 'staff_' + Math.random().toString(36).slice(2, 10), label: '', salary: 0, staffRole: 'field' });
         deps.saveEconStore();
         const pw = deps.$('econ-payroll-body');
         if (pw) pw.dataset.built = '';
@@ -830,6 +861,38 @@
         const pw = deps.$('econ-payroll-body');
         if (pw) pw.dataset.built = '';
         renderPayrollSection();
+        renderEconomics();
+        return;
+      }
+      const overheadAlloc = t.dataset && t.dataset.econPayrollOverheadAlloc;
+      if (overheadAlloc != null){
+        st().econ.payrollOverheadAllocMode = t.value;
+        deps.saveEconStore();
+        renderEconomics();
+        return;
+      }
+      const staffRole = t.dataset && t.dataset.econStaffRole;
+      if (staffRole){
+        const row = (st().econ.staffLines || []).find(function(x){ return x.id === staffRole; });
+        if (row){
+          row.staffRole = t.value === 'overhead' ? 'overhead' : 'field';
+          deps.saveEconStore();
+          renderEconomics();
+        }
+        return;
+      }
+      if (t.dataset && t.dataset.econPayrollSplit != null){
+        st().econ.payrollSplitEnabled = !!t.checked;
+        deps.saveEconStore();
+        const pw2 = deps.$('econ-payroll-body');
+        if (pw2) pw2.dataset.built = '';
+        renderPayrollSection();
+        renderEconomics();
+        return;
+      }
+      if (t.dataset && t.dataset.econLogisticsFollow != null){
+        st().econ.logisticsFollowPayroll = !!t.checked;
+        deps.saveEconStore();
         renderEconomics();
         return;
       }
@@ -1287,7 +1350,8 @@
         econCultParamInput(i, 'lightHoursDay', L('econ.cult.lightH'), { step: 0.5 }) +
         econCultConsPotFieldHtml(i, norm, cv, consLbl, consPh) +
         (isLot ? '' : econCultParamInput(i, 'potHarvestMonths', replaceLabel, { step: 0.5, decimals: 1 })) +
-        (payrollAllocMode() === 'labor' ? econCultParamInput(i, 'laborCoeff', L('econ.cult.laborCoeff'), { step: 0.1, decimals: 1, min: 0.1, title: L('econ.cult.laborCoeffHint') }) : '') +
+        econCultParamInput(i, 'laborCoeff', L('econ.cult.laborCoeff'), { step: 0.1, decimals: 1, min: 0.1, title: L('econ.cult.laborCoeffHint') }) +
+        econCultParamInput(i, 'laborSecPerUnit', L('econ.cult.laborSecPerUnit'), { step: 0.5, decimals: 1, min: 0, title: L('econ.cult.laborSecPerUnitHint') }) +
         '</div>' +
         '<p class="econ-culture-hint">' + deps.formatEconCultureHint(norm) + '</p>' +
         '</div>';
@@ -1674,23 +1738,39 @@
       };
     }
 
+    function fmtMixedFarmOutputCell(res, wasteSuffix){
+      const parts = [];
+      if (res.sellKg > 0) parts.push(deps.r1(res.sellKg) + ' ' + uKg());
+      if (res.sellPcs > 0) parts.push(deps.fmtNum(res.sellPcs) + ' ' + uPcs());
+      return parts.join(' · ') + (wasteSuffix || '');
+    }
+
     function outputTotalRow(label, agg, opts){
-      if (!agg || !(agg.sell > 0)) return '';
       opts = opts || {};
+      const isGrandTotal = !!opts.isGrandTotal;
+      if (!agg || (!(agg.sell > 0) && !isGrandTotal)) return '';
       const mixed = opts.mixed;
+      const volumeOnly = !!opts.volumeOnly;
       const pctShow = opts.pctShow;
       const farm = opts.farm;
       const res = opts.res;
       const wasteSuffix = wasteActive && !opts.skipWaste ? tFmt('econ.waste', { pct: deps.r1(res.wastePct) }) : '';
-      const unitLbl = agg.unit === 'шт' ? uPcs() : uKg();
-      const valStr = agg.unit === 'кг' ? deps.r1(agg.sell) : deps.fmtNum(agg.sell);
-      const perSqm = fmtYieldSqmRate(agg.yieldSqm, agg.unit === 'шт' ? 'шт' : 'кг');
-      const outCell = (perSqm ? perSqm + ' · ' : '') + valStr + ' ' + unitLbl + wasteSuffix;
-      const uc = agg.unitCost > 0 ? fmtUnitCost(agg.unitCost, agg.unit) : '—';
-      const revCell = agg.rev > 0 ? moneyFmt(agg.rev) : '—';
-      const marginCell = agg.rev > 0 || agg.margin !== 0 ? moneyFmt(agg.margin) : '—';
+      let outCell;
+      if (isGrandTotal && mixed){
+        outCell = fmtMixedFarmOutputCell(res, wasteSuffix);
+      } else {
+        const unitLbl = agg.unit === 'шт' ? uPcs() : uKg();
+        const valStr = agg.unit === 'кг' ? deps.r1(agg.sell) : deps.fmtNum(agg.sell);
+        const perSqm = fmtYieldSqmRate(agg.yieldSqm, agg.unit === 'шт' ? 'шт' : 'кг');
+        outCell = (perSqm ? perSqm + ' · ' : '') + valStr + ' ' + unitLbl + wasteSuffix;
+      }
+      const uc = isGrandTotal && mixed ? '—' : (agg.unitCost > 0 ? fmtUnitCost(agg.unitCost, agg.unit) : '—');
+      const revCell = volumeOnly ? '—' : (agg.rev > 0 ? moneyFmt(agg.rev) : '—');
+      const marginCell = volumeOnly ? '—' : (agg.rev > 0 || agg.margin !== 0 ? moneyFmt(agg.margin) : '—');
       const areaShow = agg.area > 0 ? agg.area : farm.areaUsed;
-      return '<tr class="econ-total-row"><td><strong>' + label + '</strong></td><td>' + (mixed ? '—' : pctShow) + '</td><td>' + (mixed ? '—' : deps.r1(areaShow)) + '</td><td>' +
+      const pctCell = isGrandTotal ? pctShow : (mixed ? '—' : pctShow);
+      const areaCell = isGrandTotal ? deps.r1(farm.areaUsed) : (mixed ? '—' : deps.r1(areaShow));
+      return '<tr class="econ-total-row' + (isGrandTotal ? ' econ-total-row--grand' : '') + '"><td><strong>' + label + '</strong></td><td>' + pctCell + '</td><td>' + areaCell + '</td><td>' +
         outCell + '</td><td>' + uc + '</td><td>—</td><td>' + revCell + '</td><td>' + marginCell + '</td></tr>';
     }
 
@@ -1718,11 +1798,14 @@
           ch += '<tr data-econ-cv-id="' + econEscAttr(p.cvId || '') + '"><td>' + p.name + '</td><td>' + deps.r1(p.pct) + '</td><td>' + deps.r1(p.slice.area) + '</td><td>' + out + '</td><td>' + uc + '</td><td>' + consSqm + '</td><td>' + moneyFmt(revNet) + '</td><td>' + moneyFmt(p.slice.margin) + '</td></tr>';
         });
         const pctShow = deps.r1(farm.totalPct > 100 ? 100 : farm.totalPct);
-        const totOpts = { mixed: mixed, pctShow: pctShow, farm: farm, res: res, skipWaste: mixed };
+        const totOpts = { mixed: mixed, pctShow: pctShow, farm: farm, res: res, skipWaste: mixed, volumeOnly: mixed };
         if (hasKg){
           ch += outputTotalRow(L('econ.tbl.totalKg'), farmGroupAgg(res.sellKg, res.revKg, res.marginKg, res.areaKg || 0, res.unitCostKg, 'кг'), totOpts);
           ch += outputTotalRow(L('econ.tbl.outBerriesKg'), farmGroupAgg(res.sellBerriesKg, res.revBerriesKg, res.marginBerriesKg, res.areaBerriesKg, res.unitCostBerriesKg, 'кг'), totOpts);
           ch += outputTotalRow(L('econ.tbl.outVegetablesKg'), farmGroupAgg(res.sellVegetablesKg, res.revVegetablesKg, res.marginVegetablesKg, res.areaVegetablesKg, res.unitCostVegetablesKg, 'кг'), totOpts);
+        }
+        if (hasPcs && !hasKg){
+          ch += outputTotalRow(L('econ.tbl.totalPcs'), farmGroupAgg(res.sellPcs, res.revPcs, res.marginPcs, res.areaPcs || 0, res.unitCostPcs, 'шт'), totOpts);
         }
         ch += outputTotalRow(L('econ.tbl.outMicroBaby'), farmGroupAgg(res.sellMicroBabyPcs, res.revMicroBabyPcs, res.marginMicroBabyPcs, res.areaMicroBabyPcs, res.unitCostMicroBabyPcs, 'шт'), totOpts);
         ch += outputTotalRow(L('econ.tbl.outFlowers'), farmGroupAgg(res.sellFlowersPcs, res.revFlowersPcs, res.marginFlowersPcs, res.areaFlowersPcs, res.unitCostFlowersPcs, 'шт'), totOpts);
@@ -1730,7 +1813,15 @@
         if (res.sellOtherPcs > 0){
           ch += outputTotalRow(L('econ.tbl.outOtherPcs'), farmGroupAgg(res.sellOtherPcs, res.revOtherPcs, res.marginOtherPcs, res.areaOtherPcs, res.unitCostOtherPcs, 'шт'), totOpts);
         }
-        if (!hasKg && !hasPcs){
+        if (mixed){
+          ch += outputTotalRow(L('econ.tbl.total'), farmGroupAgg(1, res.revenue, res.margin, farm.areaUsed, 0, 'mixed'), {
+            mixed: mixed,
+            pctShow: pctShow,
+            farm: farm,
+            res: res,
+            isGrandTotal: true
+          });
+        } else if (!hasKg && !hasPcs){
           ch += '<tr><td><strong>' + L('econ.tbl.total') + '</strong></td><td colspan="7">—</td></tr>';
         }
         cultTbl.innerHTML = ch;
