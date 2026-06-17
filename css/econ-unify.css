@@ -592,6 +592,70 @@
   color: var(--brand-text);
 }
 
+#view-economics .econ-payroll-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+#view-economics .econ-payroll-row--staff {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px minmax(108px, 140px) 32px;
+  gap: 8px;
+  align-items: center;
+}
+
+#view-economics .econ-payroll-row--head {
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-weight: 600;
+}
+
+#view-economics .econ-payroll-row--head span:last-child {
+  display: none;
+}
+
+#view-economics .econ-payroll-role-sel {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 6px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-size: 12px;
+  background: var(--card);
+}
+
+#view-economics .econ-payroll-row--staff .econ-rm {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--paper-deep);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  justify-self: end;
+}
+
+#view-economics .econ-payroll-row--staff .econ-rm:hover {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+}
+
+#view-economics .econ-culture-hint .econ-culture-fot-share {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius);
+  background: rgba(39, 109, 92, 0.1);
+  color: var(--brand-text);
+  font-weight: 600;
+  font-size: 12px;
+}
+
 #view-economics .econ-equip-label-cell {
   min-width: 0;
 }

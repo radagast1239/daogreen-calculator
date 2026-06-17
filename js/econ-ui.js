@@ -635,7 +635,7 @@
   function renderPayrollStaffRow(row){
     const sal = parseFloat(row.salary) || 0;
     const role = row.staffRole === 'overhead' ? 'overhead' : 'field';
-    return '<div class="econ-payroll-row" data-econ-staff-id="' + row.id + '">' +
+    return '<div class="econ-payroll-row econ-payroll-row--staff" data-econ-staff-id="' + row.id + '">' +
       '<input type="text" class="econ-payroll-label-inp" data-econ-staff-label="' + row.id + '" value="' + econEscAttr(row.label || '') + '" placeholder="' + L('econ.staff.role') + '">' +
       '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="0" data-econ-staff-salary="' + row.id + '" value="' + deps.formatInputValue(sal, 0) + '">' +
       '<select class="econ-payroll-role-sel" data-econ-staff-role="' + row.id + '" title="' + L('econ.staff.roleTypeHint') + '">' +
@@ -713,13 +713,14 @@
     deps.migrateEconOtherElectricity(st().econ);
     const wrap = deps.$('econ-payroll-body');
     if (!wrap) return;
-    const head = '<div class="econ-payroll-row econ-payroll-row--head"><span>' + L('econ.staff.role') + '</span><span>' + L('econ.staff.salary') + ', ' + moneySym() + '</span><span>' + L('econ.staff.roleType') + '</span><span></span></div>';
+    const head = '<div class="econ-payroll-row econ-payroll-row--staff econ-payroll-row--head"><span>' + L('econ.staff.role') + '</span><span>' + L('econ.staff.salary') + ', ' + moneySym() + '</span><span>' + L('econ.staff.roleType') + '</span><span></span></div>';
     let staffHtml = head;
     (st().econ.staffLines || []).forEach(function(row){ staffHtml += renderPayrollStaffRow(row); });
     let customHtml = '';
     if ((st().econ.payrollCustom || []).length) customHtml += renderPayrollCustomHead();
     (st().econ.payrollCustom || []).forEach(function(row){ customHtml += renderPayrollCustomRow(row); });
     wrap.innerHTML =
+      renderPayrollAllocBlock() +
       '<div class="econ-payroll-block"><h4 class="econ-payroll-h4">' + L('econ.section.staff') + '</h4>' +
       '<div class="econ-payroll-items" id="econ-staff-list">' + staffHtml + '</div>' +
       '<button type="button" class="auto-btn" id="econ-staff-add">+ ' + L('econ.staff.add') + '</button></div>' +
@@ -727,8 +728,7 @@
       '<div class="econ-grid econ-grid--tight">' + econNumInput('accountingMonth', moneyLabel('econ.accountingMonth', 'econ.perMonth'), { step: 1000 }) + '</div></div>' +
       '<div class="econ-payroll-block"><h4 class="econ-payroll-h4">' + L('econ.section.payrollCustom') + '</h4>' +
       '<div class="econ-payroll-items" id="econ-payroll-custom-list">' + (customHtml || '<p class="econ-hint" style="margin:0">' + L('econ.payroll.customEmpty') + '</p>') + '</div>' +
-      '<button type="button" class="auto-btn" id="econ-payroll-custom-add">+ ' + L('econ.payroll.customAdd') + '</button></div>' +
-      renderPayrollAllocBlock();
+      '<button type="button" class="auto-btn" id="econ-payroll-custom-add">+ ' + L('econ.payroll.customAdd') + '</button></div>';
   }
 
   function bindEconomicsInputs(){
@@ -1659,6 +1659,23 @@
     el.innerHTML = html;
   }
 
+  function updateCultureFotShareHints(parts, staffTotal){
+    (parts || []).forEach(function(p, i){
+      const card = document.querySelector('.econ-culture-card[data-econ-culture-idx="' + i + '"]');
+      if (!card) return;
+      const hint = card.querySelector('.econ-culture-hint');
+      if (!hint) return;
+      const row = st().econ.cultures[i];
+      let html = deps.formatEconCultureHint(row);
+      const alloc = p.slice && p.slice.allocatedStaff;
+      if (staffTotal > 0 && alloc > 0){
+        const pct = deps.r1((alloc / staffTotal) * 100);
+        html += '<span class="econ-culture-fot-share">' + L('econ.metrics.fotShare') + ': ' + pct + '% ' + L('econ.metrics.fotShareOf') + ' ' + moneyFmt(staffTotal) + '</span>';
+      }
+      hint.innerHTML = html;
+    });
+  }
+
   function renderEconomics(){
     renderEconomicsForm();
     syncEconTaxNestedUi();
@@ -1950,6 +1967,7 @@
       (res.vatTaxAmt > 0 ? '<tr><td>' + tFmt('econ.bd.vat', { pct: deps.r1(res.vatPct) }) + '</td><td>—</td><td>' + moneyFmt(res.vatTaxAmt) + '</td></tr>' : '') +
       (res.profitTaxAmt > 0 ? '<tr><td>' + tFmt('econ.bd.profitTax', { pct: deps.r1(res.profitTaxPct) }) + '</td><td>—</td><td>' + moneyFmt(res.profitTaxAmt) + '</td></tr>' : '') +
       '<tr><td>' + L('econ.bd.margin') + '</td><td>—</td><td>' + moneyFmt(res.margin) + ' (' + deps.r1(res.marginPct) + '%)</td></tr>';
+    updateCultureFotShareHints(parts, res.staffTotal);
     refreshFmtDisplayAll();
   }
 
