@@ -1191,6 +1191,19 @@
     }
   }
 
+  function refreshEconomicsAfterCultEdit(i, cultField){
+    if (isConsPotPartField(cultField)){
+      const card = document.querySelector('.econ-culture-card[data-econ-culture-idx="' + i + '"]');
+      const totalEl = card && card.querySelector('[data-econ-cons-total="' + i + '"]');
+      if (totalEl){
+        const sum = deps.sumConsPotParts ? deps.sumConsPotParts(st().econ.cultures[i]) : 0;
+        const disp = sum > 0 ? sum : st().econ.cultures[i].consumablesPerPot;
+        totalEl.textContent = fmtMoneyInp(disp, 1) + ' ' + moneySym();
+      }
+    }
+    renderEconomics({ preserveCultures: true });
+  }
+
   function econCultParamInput(i, field, label, opts){
     opts = opts || {};
     const row = deps.normalizeEconCultureRow(st().econ.cultures[i]);
@@ -1444,7 +1457,8 @@
         const i = parseInt(e.target.dataset.econCultIdx, 10);
         applyCultFieldValue(i, cultField, e.target.value);
         deps.saveEconStore();
-        renderEconomics();
+        if (cultField === 'yieldInputMode') renderEconomics();
+        else refreshEconomicsAfterCultEdit(i, cultField);
         return;
       }
       if (pctInp != null){
@@ -1499,7 +1513,7 @@
         const i = parseInt(e.target.dataset.econCultIdx, 10);
         applyCultFieldValue(i, cultField, e.target.value);
         deps.saveEconStore();
-        renderEconomics();
+        refreshEconomicsAfterCultEdit(i, cultField);
         return;
       }
       if (e.target.dataset.econMixPctRow != null){
@@ -1676,10 +1690,11 @@
     });
   }
 
-  function renderEconomics(){
+  function renderEconomics(opts){
+    opts = opts || {};
     renderEconomicsForm();
     syncEconTaxNestedUi();
-    renderEconomicsCultures();
+    if (!opts.preserveCultures) renderEconomicsCultures();
     syncEconInputsFromState();
     syncEconEquipmentPanel();
     updateEconEquipmentTotal();
