@@ -305,7 +305,7 @@
         return '<tr><td>' + label + '</td><td><strong>' + value + '</strong></td></tr>';
       }
       var html = '';
-      html += '<table class="econ-breakdown project-compare-table"><tbody>';
+      html += '<table class="econ-breakdown project-compare-table project-compare-table--summary"><tbody>';
       html += metricRow(T('proj.stats.count'), esc(stats.total));
       html += metricRow(T('proj.stats.uniqueClients'), esc(stats.uniqueClients));
       html += metricRow(T('proj.stats.period'), esc(safeDate(stats.firstSavedAt) + ' — ' + safeDate(stats.lastSavedAt)));
@@ -316,7 +316,7 @@
       html += '</tbody></table>';
 
       html += '<p class="compare-lead" style="margin-top:10px">' + T('proj.stats.byFacility') + '</p>';
-      html += '<table class="econ-breakdown project-compare-table"><thead><tr>' +
+      html += '<div class="econ-table-scroll"><table class="econ-breakdown project-compare-table project-compare-table--facility"><thead><tr>' +
         '<th>' + T('proj.stats.facility') + '</th>' +
         '<th>' + T('proj.stats.countShort') + '</th>' +
         '<th>' + T('proj.stats.avgArea') + '</th>' +
@@ -335,7 +335,7 @@
           '<td>' + fmtNum(g.avgMarginPct) + '%</td>' +
           '</tr>';
       });
-      html += '</tbody></table>';
+      html += '</tbody></table></div>';
 
       if (stats.best){
         html += '<p class="compare-meta"><strong>' + T('proj.stats.bestMargin') + ':</strong> ' +
@@ -347,7 +347,7 @@
       }
       if (stats.recent && stats.recent.length){
         html += '<p class="compare-lead" style="margin-top:10px">' + T('proj.stats.recent') + '</p>';
-        html += '<table class="econ-breakdown project-compare-table"><thead><tr>' +
+        html += '<div class="econ-table-scroll"><table class="econ-breakdown project-compare-table project-compare-table--recent"><thead><tr>' +
           '<th>' + T('proj.stats.period') + '</th>' +
           '<th>' + T('proj.title') + '</th>' +
           '<th>' + T('proj.stats.avgRevenue') + '</th>' +
@@ -358,7 +358,7 @@
           html += '<tr><td>' + esc(safeDate(r.savedAt)) + '</td><td>' + esc(r.label || T('proj.recent.unnamed')) + '</td><td>' +
             fmtMoney(r.revenue) + '</td><td>' + fmtMoney(r.margin) + '</td><td>' + fmtNum(r.marginPct) + '%</td></tr>';
         });
-        html += '</tbody></table>';
+        html += '</tbody></table></div>';
       }
       body.innerHTML = html;
     }

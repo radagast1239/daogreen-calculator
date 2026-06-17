@@ -1057,19 +1057,104 @@
 }
 
 /* Трёхколоночные таблицы: статья | число | сумма */
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) th:nth-child(1),
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) td:nth-child(1) {
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) th:nth-child(1),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) td:nth-child(1) {
   width: 48%;
 }
 
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) th:nth-child(2),
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) td:nth-child(2) {
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) th:nth-child(2),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) td:nth-child(2) {
   width: 22%;
 }
 
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) th:nth-child(3),
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield) td:nth-child(3) {
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) th:nth-child(3),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) td:nth-child(3) {
   width: 30%;
+}
+
+/* Статистика / сравнение проектов — свои ширины колонок */
+#view-economics .econ-breakdown.project-compare-table,
+.project-compare-dialog .econ-breakdown.project-compare-table {
+  table-layout: fixed;
+  width: 100%;
+  font-size: 12.5px;
+}
+
+#view-economics .econ-breakdown.project-compare-table th,
+.project-compare-dialog .econ-breakdown.project-compare-table th {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.25;
+  font-size: 11px;
+  vertical-align: bottom;
+}
+
+#view-economics .econ-breakdown.project-compare-table td:first-child,
+.project-compare-dialog .econ-breakdown.project-compare-table td:first-child {
+  white-space: normal;
+  word-break: break-word;
+}
+
+#view-economics .econ-breakdown.project-compare-table td:not(:first-child),
+.project-compare-dialog .econ-breakdown.project-compare-table td:not(:first-child) {
+  white-space: nowrap;
+}
+
+#view-economics .project-compare-table--summary td:first-child,
+.project-compare-dialog .project-compare-table--summary td:first-child { width: 58%; }
+#view-economics .project-compare-table--summary td:last-child,
+.project-compare-dialog .project-compare-table--summary td:last-child { width: 42%; }
+
+#view-economics .project-compare-table--facility th:nth-child(1),
+#view-economics .project-compare-table--facility td:nth-child(1),
+.project-compare-dialog .project-compare-table--facility th:nth-child(1),
+.project-compare-dialog .project-compare-table--facility td:nth-child(1) { width: 18%; }
+#view-economics .project-compare-table--facility th:nth-child(2),
+#view-economics .project-compare-table--facility td:nth-child(2),
+.project-compare-dialog .project-compare-table--facility th:nth-child(2),
+.project-compare-dialog .project-compare-table--facility td:nth-child(2) { width: 8%; }
+#view-economics .project-compare-table--facility th:nth-child(3),
+#view-economics .project-compare-table--facility td:nth-child(3),
+.project-compare-dialog .project-compare-table--facility th:nth-child(3),
+.project-compare-dialog .project-compare-table--facility td:nth-child(3) { width: 14%; }
+#view-economics .project-compare-table--facility th:nth-child(4),
+#view-economics .project-compare-table--facility td:nth-child(4),
+.project-compare-dialog .project-compare-table--facility th:nth-child(4),
+.project-compare-dialog .project-compare-table--facility td:nth-child(4) { width: 20%; }
+#view-economics .project-compare-table--facility th:nth-child(5),
+#view-economics .project-compare-table--facility td:nth-child(5),
+.project-compare-dialog .project-compare-table--facility th:nth-child(5),
+.project-compare-dialog .project-compare-table--facility td:nth-child(5) { width: 22%; }
+#view-economics .project-compare-table--facility th:nth-child(6),
+#view-economics .project-compare-table--facility td:nth-child(6),
+.project-compare-dialog .project-compare-table--facility th:nth-child(6),
+.project-compare-dialog .project-compare-table--facility td:nth-child(6) { width: 18%; }
+
+#view-economics .project-compare-table--recent th:nth-child(1),
+#view-economics .project-compare-table--recent td:nth-child(1),
+.project-compare-dialog .project-compare-table--recent th:nth-child(1),
+.project-compare-dialog .project-compare-table--recent td:nth-child(1) { width: 22%; }
+#view-economics .project-compare-table--recent th:nth-child(2),
+#view-economics .project-compare-table--recent td:nth-child(2),
+.project-compare-dialog .project-compare-table--recent th:nth-child(2),
+.project-compare-dialog .project-compare-table--recent td:nth-child(2) { width: 26%; }
+#view-economics .project-compare-table--recent th:nth-child(3),
+#view-economics .project-compare-table--recent td:nth-child(3),
+.project-compare-dialog .project-compare-table--recent th:nth-child(3),
+.project-compare-dialog .project-compare-table--recent td:nth-child(3) { width: 18%; }
+#view-economics .project-compare-table--recent th:nth-child(4),
+#view-economics .project-compare-table--recent td:nth-child(4),
+.project-compare-dialog .project-compare-table--recent th:nth-child(4),
+.project-compare-dialog .project-compare-table--recent td:nth-child(4) { width: 18%; }
+#view-economics .project-compare-table--recent th:nth-child(5),
+#view-economics .project-compare-table--recent td:nth-child(5),
+.project-compare-dialog .project-compare-table--recent th:nth-child(5),
+.project-compare-dialog .project-compare-table--recent td:nth-child(5) { width: 16%; }
+
+#view-economics #econ-project-stats-body .econ-table-scroll,
+.project-compare-dialog .econ-table-scroll {
+  margin-top: 8px;
+  overflow-x: auto;
 }
 
 #view-economics .econ-breakdown-note {
