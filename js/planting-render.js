@@ -579,6 +579,18 @@
         const rc = rangeDay();
         return Math.max(1, c - Math.round(rc)) + '–' + (c + Math.round(rc)) + ' ' + pm('unit.days');
       }
+      case 'kgSqmMo': {
+        const sqmU = areaYieldSqmUnit(col.cv, hy);
+        let v = 0;
+        if (hy && (hy.yieldPerSqmMonthKg > 0 || hy.yieldPerSqmMonthPcs > 0)){
+          v = hy.unitIsPieces ? hy.yieldPerSqmMonthPcs : hy.yieldPerSqmMonthKg;
+        } else {
+          v = (r.yieldPerSqmYear || 0) / 12;
+        }
+        return st().showRange
+          ? r1(v * (1 - st().errorPct / 100)) + '–' + r1(v * (1 + st().errorPct / 100)) + ' ' + sqmU
+          : (hy && hy.unitIsPieces ? r1(v) : r2(v)) + ' ' + sqmU;
+      }
       case 'kgSqmYear': {
         const sqmU = areaYieldSqmUnit(col.cv, hy);
         const v = r.yieldPerSqmYear || 0;
@@ -653,6 +665,7 @@
       { id: 'canopy', label: ui('cvCompare.row.canopy') },
       { id: 'harvestDay', label: ui('cvCompare.row.harvestDay') },
       { id: 'cycle', label: ui('cvCompare.row.cycle') },
+      { id: 'kgSqmMo', label: anyPcs ? pm('m.pcsSqmMo') : ui('cvCompare.row.yieldMonth') },
       { id: 'kgSqmYear', label: anyPcs ? pm('m.pcsSqmYear') : ui('cvCompare.row.kgSqmYear') },
       { id: 'kgSqmCycle', label: anyPcs ? pm('m.pcsSqmCycle') : ui('cvCompare.row.kgSqmCycle') },
       { id: 'rhoA', label: ui('cvCompare.row.rhoA') },
@@ -1465,6 +1478,7 @@
           { l: pm('m.cyclesYear'), v: r1(r.cyclesPerYear || 0), u: pm('u.pcs'), cls: 'hl' },
           { l: pm('m.yieldCycle'), v: (r.yieldPerCycleKg != null ? r.yieldPerCycleKg : 0).toFixed(1), u: cycleU, cls: 'hl' },
           { l: pcsCv ? pm('m.pcsSqmCycle') : pm('m.kgSqmCycle'), v: r1(r.yieldPerSqmCycle || 0), u: sqmU },
+          { l: pcsCv ? pm('m.pcsSqmMo') : pm('m.kgSqmMo'), v: r1((r.yieldPerSqmYear || 0) / 12), u: sqmU, cls: 'hl' },
           { l: pcsCv ? pm('m.pcsSqmYear') : pm('m.kgSqmYear'), v: r1(r.yieldPerSqmYear || 0), u: sqmU, cls: 'hl' },
           ...(pallet ? [
             { l: pm('m.yieldPal'), v: ((r.yieldPerCycleKg || 0) / Math.max(1, r.totalPalletSlots || r.totalPallets || 1)).toFixed(1), u: pcsCv ? pm('u.pcs') : pm('u.kgPal') }

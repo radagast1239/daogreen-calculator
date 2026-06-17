@@ -126,13 +126,6 @@
     return '';
   }
 
-  function econPcsOutputGroup(cvId){
-    if (cvId === 'pl-microgreens' || cvId === 'pl-baby-living') return 'microBaby';
-    if (cvId === 'pl-edible-flowers') return 'flowers';
-    if (cvId === 'pl-wheatgrass') return 'wheatgrass';
-    return 'otherPcs';
-  }
-
   function fmtYieldSqmRate(yieldPerSqm, unit){
     if (!(yieldPerSqm > 0)) return '';
     if (unit === 'шт') return deps.r1(yieldPerSqm) + ' ' + L('econ.yield.pcsSqm');
@@ -152,34 +145,6 @@
     const sStr = u === 'кг' ? deps.r1(sell) : deps.fmtNum(sell);
     const totalStr = wasteActive ? gStr + ' → ' + sStr + ' ' + uOut(u) : gStr + ' ' + uOut(u);
     return (perSqm ? perSqm + ' · ' : '') + totalStr;
-  }
-
-  function aggregateCultureGroup(parts, pred, wasteFactor){
-    let sell = 0;
-    let rev = 0;
-    let margin = 0;
-    let area = 0;
-    let opex = 0;
-    let unit = 'кг';
-    parts.forEach(p => {
-      if (!pred(p)) return;
-      const gross = p.slice.monthlyOutput;
-      sell += gross * wasteFactor;
-      rev += p.slice.revenue * wasteFactor;
-      margin += p.slice.margin || 0;
-      area += p.slice.area;
-      opex += p.slice.monthlyOpex || 0;
-      unit = p.slice.outputUnit;
-    });
-    return {
-      sell: sell,
-      rev: rev,
-      margin: margin,
-      area: area,
-      unitCost: sell > 0 ? opex / sell : 0,
-      yieldSqm: area > 0 ? sell / area : 0,
-      unit: unit
-    };
   }
 
   function econYieldInputMode(row, extraKind){
