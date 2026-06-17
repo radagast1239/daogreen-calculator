@@ -1252,23 +1252,26 @@
     return ECON_OVERHEAD_ALLOC_MODES.indexOf(mode) >= 0 ? mode : 'revenue';
   }
 
+  function cultureLaborCoeff(p){
+    return deps.clamp(parseFloat(p.row && p.row.laborCoeff) || 1, 0.1, 10);
+  }
+
   function payrollLaborCoeffWeight(p){
-    const coeff = deps.clamp(parseFloat(p.row && p.row.laborCoeff) || 1, 0.1, 10);
-    return Math.max(0, (p.slice.area || 0) * coeff);
+    return Math.max(0, (p.slice.area || 0) * cultureLaborCoeff(p));
   }
 
   function payrollAllocWeight(p, mode, wasteFactor){
     mode = normalizePayrollAllocMode(mode);
-    if (mode === 'revenue') return Math.max(0, (p.slice.revenue || 0) * wasteFactor);
-    if (mode === 'labor') return payrollLaborCoeffWeight(p);
+    const coeff = cultureLaborCoeff(p);
+    if (mode === 'revenue') return Math.max(0, (p.slice.revenue || 0) * wasteFactor) * coeff;
     if (mode === 'laborOps'){
       const cuts = p.bio && p.bio.cutsPerMonth > 0 ? p.bio.cutsPerMonth : 0;
       const output = Math.max(0, (p.slice.monthlyOutput || 0) * wasteFactor);
       const sec = Math.max(0, parseFloat(p.row && p.row.laborSecPerUnit) || 0);
-      if (cuts > 0 && output > 0 && sec > 0) return cuts * output * sec;
+      if (cuts > 0 && output > 0 && sec > 0) return cuts * output * sec * coeff;
       return payrollLaborCoeffWeight(p);
     }
-    return Math.max(0, p.slice.area || 0);
+    return Math.max(0, p.slice.area || 0) * coeff;
   }
 
   function calcAllocSharesFromWeights(parts, weights){
