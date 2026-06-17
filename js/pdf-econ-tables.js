@@ -737,6 +737,19 @@
     return rows.length ? { headers: [pdfT('pdf.vec.indicator'), pdfT('pdf.vec.value')], rows: rows } : null;
   }
 
+  function cultureOutputCellText(cell){
+    if (!cell) return '';
+    var rate = cell.querySelector('.econ-out-rate');
+    var vol = cell.querySelector('.econ-out-vol');
+    if (rate || vol){
+      var parts = [];
+      if (rate) parts.push(plainCellText(rate.textContent));
+      if (vol) parts.push(plainCellText(vol.textContent));
+      return parts.join('\n');
+    }
+    return plainCellText(cell);
+  }
+
   function tableCellText(cell){
     if (!cell) return '';
     var inp = cell.querySelector('input, select, textarea');
@@ -747,7 +760,7 @@
       }
       return plainCellText(inp.value);
     }
-    return plainCellText(cell);
+    return cultureOutputCellText(cell);
   }
 
   function cellsFromTr(tr){
@@ -899,14 +912,17 @@
   }
 
   function compactPdfCultureOutput(cell){
-    var t = String(cell || '')
-      .replace(/\s*→\s*/g, '→')
-      .replace(/\s*->\s*/g, '→')
-      .replace(/\s+/g, ' ')
-      .trim();
+    var t = String(cell || '').trim();
+    if (!t || t === '—') return t || '—';
+    t = t.replace(/\s*→\s*/g, ' → ').replace(/\s*->\s*/g, ' → ');
+    if (t.indexOf('\n') >= 0){
+      return t.split(/\n/).map(function(s){ return s.trim(); }).filter(Boolean).join('\n');
+    }
+    t = t.replace(/((?:кг|шт)\/м²·мес)\s*(\d)/g, '$1\n$2');
+    t = t.replace(/((?:kg|pcs)\/m²·mo)\s*(\d)/gi, '$1\n$2');
     var sep = t.indexOf(' · ');
     if (sep >= 0) return t.slice(0, sep).trim() + '\n' + t.slice(sep + 3).trim();
-    return t;
+    return t.replace(/\s+/g, ' ').trim();
   }
 
   function splitLongWord(pdf, word, maxW, fontSize, lines){
