@@ -55,11 +55,16 @@
       const mode = payrollAllocMode();
       const logFollow = !!(st().econ && st().econ.logisticsFollowPayroll);
       const split = !!(st().econ && st().econ.payrollSplitEnabled);
-      if (mode === 'laborOps') return L('econ.metrics.unitCostBreakdownHintLaborOps') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
-      if (mode === 'revenue') return L('econ.metrics.unitCostBreakdownHintRevenue') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
-      if (mode === 'labor') return L('econ.metrics.unitCostBreakdownHintLabor') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
-      if (split) return L('econ.metrics.unitCostBreakdownHintSplit') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
-      return L('econ.metrics.unitCostBreakdownHint') + (logFollow ? ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : '');
+      let base;
+      if (mode === 'laborOps') base = L('econ.metrics.unitCostBreakdownHintLaborOps');
+      else if (mode === 'revenue') base = L('econ.metrics.unitCostBreakdownHintRevenue');
+      else if (mode === 'labor') base = L('econ.metrics.unitCostBreakdownHintLabor');
+      else if (split) base = L('econ.metrics.unitCostBreakdownHintSplit');
+      else base = L('econ.metrics.unitCostBreakdownHint');
+      if (mode === 'revenue'){
+        return logFollow ? base + ' ' + L('econ.metrics.unitCostBreakdownLogFollow') : base;
+      }
+      return base + ' ' + (logFollow ? L('econ.metrics.unitCostBreakdownLogFollow') : L('econ.metrics.unitCostBreakdownLogArea'));
     }
     var ECON_MONTH_DAYS = deps.ECON_MONTH_DAYS;
     var ECON_ELEC_CAT_IDS = deps.ECON_ELEC_CAT_IDS || ['pumps', 'fans', 'heating', 'equipment', 'refrigeration', 'packaging', 'misc'];
@@ -1902,7 +1907,7 @@
     if (cultTbl){
       if (parts.length){
         const revHdr = wasteActive ? L('econ.tbl.revNet') : L('econ.tbl.rev');
-        let ch = '<tr><th>' + L('econ.cult.culture') + '</th><th>%</th><th>' + L('econ.unit.sqm') + '</th><th>' + L('econ.tbl.out') + '</th><th>' + L('econ.tbl.cost') + '</th><th>' + moneySym() + L('econ.perSqm') + '</th><th>' + revHdr + '</th><th>' + L('econ.tbl.margin') + '</th></tr>';
+        let ch = '<tr><th>' + L('econ.cult.culture') + '</th><th>%</th><th>' + L('econ.unit.sqm') + '</th><th>' + L('econ.tbl.out') + '</th><th>' + L('econ.tbl.cost') + '</th><th>' + L('econ.tbl.consPerSqm') + '</th><th>' + revHdr + '</th><th>' + L('econ.tbl.margin') + '</th></tr>';
         parts.forEach(p => {
           const u = p.slice.outputUnit;
           const revNet = p.slice.revenue * wasteFactor;
