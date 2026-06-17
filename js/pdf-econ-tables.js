@@ -261,7 +261,15 @@
     var cb = field.querySelector('input[type="checkbox"]');
     if (cb) return cb.checked ? pdfT('pdf.vec.yes') : pdfT('pdf.vec.no');
     var inp = field.querySelector('input, select, textarea');
-    if (inp && inp.value != null && String(inp.value).trim() !== '') return plainCellText(inp.value);
+    if (inp){
+      if (inp.tagName === 'SELECT'){
+        var opt = inp.options[inp.selectedIndex];
+        var selText = plainCellText(opt ? opt.textContent : inp.value);
+        if (selText) return selText;
+      } else if (inp.value != null && String(inp.value).trim() !== '') {
+        return plainCellText(inp.value);
+      }
+    }
     var span = field.querySelector('.pdf-static-val');
     if (span) return plainCellText(span);
     return '—';
