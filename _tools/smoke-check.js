@@ -67,6 +67,9 @@ const econSrc = html + econGlue;
 if (econSrc.includes('econCulturesTotalPct: econCulturesTotalPct')) ok('econCulturesTotalPct dep');
 else fail('econCulturesTotalPct not in initEconUI deps');
 
+if (econSrc.includes('elecCatDailyKwh: elecCatDailyKwh')) ok('elecCatDailyKwh dep');
+else fail('elecCatDailyKwh not in initEconUI deps');
+
 if (html.includes('econ-panel-sensitivity')) ok('sensitivity panel in html');
 else fail('econ-panel-sensitivity missing');
 

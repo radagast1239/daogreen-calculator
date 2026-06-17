@@ -57,7 +57,7 @@
     var econYieldParamsForCvId, econCatalogDefaultsForCvId, normalizeEconCultureRow, parsePotHarvestMonthsFromCv, migrateEconCultureRows;
     var econSaladPotConsumablesMode, sumConsPotParts, syncConsPotPartsTotal, hasConsPotParts;
     var econCultureBio, formatEconCultureHint, calcCultureConsumables, econApplyCultureSelect, importEconRowFromPlanting, importAllEconFromPlanting;
-    var calcOtherElecMonthly, migrateEconOtherElectricity, ensureEconCultures, econGetAreaMode, econCulturesTotalPct, econCulturesTotalSqm, syncEconCultureAreaFields, setEconAreaMode, calcCultureSliceFromRow;
+    var calcOtherElecMonthly, migrateEconOtherElectricity, elecCatDailyKwh, migrateHeatingDayNight, ensureEconCultures, econGetAreaMode, econCulturesTotalPct, econCulturesTotalSqm, syncEconCultureAreaFields, setEconAreaMode, calcCultureSliceFromRow;
     var dedupeEconCultures, canAddEconCulture, findDuplicateCultureIds, collectEconWarnings, calcFarmEconomics, calcEconomics;
     var getEconCultureOptionsHtml, isEconCvIdTaken, renderEconomics, syncEconFromPlanting, syncEconInputsFromState;
 
@@ -224,6 +224,8 @@
     importAllEconFromPlanting = ec.importAllEconFromPlanting;
     calcOtherElecMonthly = ec.calcOtherElecMonthly;
     migrateEconOtherElectricity = ec.migrateEconOtherElectricity;
+    elecCatDailyKwh = ec.elecCatDailyKwh;
+    migrateHeatingDayNight = ec.migrateHeatingDayNight;
     ensureEconCultures = ec.ensureEconCultures;
     econGetAreaMode = ec.econGetAreaMode;
     econCulturesTotalPct = ec.econCulturesTotalPct;
@@ -292,6 +294,8 @@
       syncEconCultureAreaFields: syncEconCultureAreaFields,
       setEconAreaMode: setEconAreaMode,
       migrateEconOtherElectricity: migrateEconOtherElectricity,
+      elecCatDailyKwh: elecCatDailyKwh,
+      migrateHeatingDayNight: migrateHeatingDayNight,
       parseNumInput: parseNumInput,
       formatInputValue: formatInputValue,
       decimalsFromStep: decimalsFromStep,

@@ -628,6 +628,16 @@
     return L('econ.elec.catLightSub');
   }
 
+  function heatingDailyKwh(c){
+    if (deps.elecCatDailyKwh) return deps.elecCatDailyKwh(c, 'heating');
+    c = c || {};
+    if (c.dayNight){
+      return (parseFloat(c.kwDay) || 0) * (parseFloat(c.hDay) || 0) +
+        (parseFloat(c.kwNight) || 0) * (parseFloat(c.hNight) || 0);
+    }
+    return (parseFloat(c.kw) || 0) * (parseFloat(c.h) || 0);
+  }
+
   function renderHeatingElecCatCard(c){
     const dayNight = !!(c && c.dayNight);
     const kw = c.kw != null ? c.kw : 0;
@@ -636,7 +646,7 @@
     const hDay = c.hDay != null ? c.hDay : 16;
     const kwNight = c.kwNight != null ? c.kwNight : 1.5;
     const hNight = c.hNight != null ? c.hNight : 8;
-    const dailyKwh = deps.elecCatDailyKwh ? deps.elecCatDailyKwh(c, 'heating') : 0;
+    const dailyKwh = heatingDailyKwh(c);
     return '<div class="econ-elec-cat-card econ-elec-cat-card--heating">' +
       '<div class="econ-elec-cat-title">' + elecCatLabel('heating') + '</div>' +
       '<label class="econ-check-label econ-elec-daynight-toggle">' +
@@ -829,8 +839,8 @@
         deps.saveEconStore();
         if (cat.dayNight){
           const totalEl = root.querySelector('.econ-elec-daynight-total');
-          if (totalEl && deps.elecCatDailyKwh){
-            totalEl.textContent = tFmt('econ.elec.dailyKwh', { kwh: deps.r1(deps.elecCatDailyKwh(cat, 'heating')) });
+          if (totalEl){
+            totalEl.textContent = tFmt('econ.elec.dailyKwh', { kwh: deps.r1(heatingDailyKwh(cat)) });
           }
         }
         renderEconomics({ preserveCultures: true });
