@@ -296,6 +296,16 @@
     var rows = [];
     root.querySelectorAll('.econ-elec-cat-card').forEach(function(card){
       var title = plainCellText(card.querySelector('.econ-elec-cat-title'));
+      var kwDay = card.querySelector('[data-econ-cat-kw-day]');
+      var hDay = card.querySelector('[data-econ-cat-h-day]');
+      var kwNight = card.querySelector('[data-econ-cat-kw-night]');
+      var hNight = card.querySelector('[data-econ-cat-h-night]');
+      if (kwDay || kwNight){
+        var dayPart = (kwDay ? plainCellText(kwDay.value) : '0') + '×' + (hDay ? plainCellText(hDay.value) : '0');
+        var nightPart = (kwNight ? plainCellText(kwNight.value) : '0') + '×' + (hNight ? plainCellText(hNight.value) : '0');
+        rows.push([title, dayPart + ' + ' + nightPart, 'ч/сут']);
+        return;
+      }
       var kw = card.querySelector('[data-econ-cat-kw]');
       var h = card.querySelector('[data-econ-cat-h]');
       rows.push([title, kw ? plainCellText(kw.value) : '—', h ? plainCellText(h.value) : '—']);

@@ -164,6 +164,7 @@
   var ECON_MONTH_DAYS = (global.DG_CUT && global.DG_CUT.HARVEST_MONTH_DAYS) || 30.5;
   const ECON_MAX_CULTURES = 12;
   const ECON_ELEC_CAT_IDS = ['pumps', 'fans', 'heating', 'equipment', 'refrigeration', 'packaging', 'misc'];
+  const ECON_HEATING_CAT_ID = 'heating';
 
   const ECON_EQUIPMENT_GROUPS_RAW = [
     { titleKey: 'econ.eq.grp.prod', items: [
@@ -366,7 +367,7 @@
     return {
       pumps: { kw: 1, h: 4 },
       fans: { kw: 1.2, h: 24 },
-      heating: { kw: 0, h: 12 },
+      heating: { kw: 0, h: 12, dayNight: false, kwDay: 10, hDay: 16, kwNight: 1.5, hNight: 8 },
       equipment: { kw: 5, h: 16 },
       refrigeration: { kw: 0, h: 24 },
       packaging: { kw: 0, h: 24 },
@@ -1162,6 +1163,54 @@
     return { activeId: activeId, snap: liveSnap, cvName: liveSnap && liveSnap.cvName ? liveSnap.cvName : '' };
   }
 
+  function migrateHeatingDayNight(c){
+    if (!c || typeof c !== 'object') return;
+    if (c.dayNight == null) c.dayNight = false;
+    const legacyKw = Math.max(0, parseFloat(c.kw) || 0);
+    const legacyH = Math.max(0, parseFloat(c.h) || 0);
+    if (c.kwDay == null || isNaN(parseFloat(c.kwDay))) c.kwDay = legacyKw > 0 ? legacyKw : 10;
+    if (c.hDay == null || isNaN(parseFloat(c.hDay))) c.hDay = legacyH > 0 ? Math.min(legacyH, 18) : 16;
+    if (c.kwNight == null || isNaN(parseFloat(c.kwNight))) c.kwNight = 1.5;
+    if (c.hNight == null || isNaN(parseFloat(c.hNight))) c.hNight = legacyH > c.hDay ? Math.max(0, legacyH - c.hDay) : 8;
+    c.kwDay = Math.max(0, parseFloat(c.kwDay) || 0);
+    c.hDay = Math.max(0, parseFloat(c.hDay) || 0);
+    c.kwNight = Math.max(0, parseFloat(c.kwNight) || 0);
+    c.hNight = Math.max(0, parseFloat(c.hNight) || 0);
+  }
+
+  function elecCatDailyKwh(c, id){
+    c = c || {};
+    if (id === ECON_HEATING_CAT_ID && c.dayNight){
+      return (parseFloat(c.kwDay) || 0) * (parseFloat(c.hDay) || 0) +
+        (parseFloat(c.kwNight) || 0) * (parseFloat(c.hNight) || 0);
+    }
+    return (parseFloat(c.kw) || 0) * (parseFloat(c.h) || 0);
+  }
+
+  function elecCatDisplayMeta(c, id){
+    c = c || {};
+    if (id === ECON_HEATING_CAT_ID && c.dayNight){
+      const kwDay = parseFloat(c.kwDay) || 0;
+      const hDay = parseFloat(c.hDay) || 0;
+      const kwNight = parseFloat(c.kwNight) || 0;
+      const hNight = parseFloat(c.hNight) || 0;
+      const daily = kwDay * hDay + kwNight * hNight;
+      return {
+        kw: daily > 0 ? daily / 24 : 0,
+        h: 24,
+        sub: TF('econ.elec.catSubDayNight', {
+          kwDay: deps.r1(kwDay),
+          hDay: deps.r1(hDay),
+          kwNight: deps.r1(kwNight),
+          hNight: deps.r1(hNight)
+        })
+      };
+    }
+    const kw = parseFloat(c.kw) || 0;
+    const h = parseFloat(c.h) || 0;
+    return { kw: kw, h: h, sub: null };
+  }
+
   function migrateEconElecCats(e){
     if (e == null) return;
     if (!e.elecCats || typeof e.elecCats !== 'object'){
@@ -1171,6 +1220,7 @@
       if (!e.elecCats[id] || typeof e.elecCats[id] !== 'object') e.elecCats[id] = { kw: 0, h: 24 };
       if (e.elecCats[id].h == null || isNaN(parseFloat(e.elecCats[id].h))) e.elecCats[id].h = 24;
       if (e.elecCats[id].kw == null || isNaN(parseFloat(e.elecCats[id].kw))) e.elecCats[id].kw = 0;
+      if (id === ECON_HEATING_CAT_ID) migrateHeatingDayNight(e.elecCats[id]);
     });
     const legacyKw = parseFloat(e.otherElecKw);
     if (!isNaN(legacyKw) && legacyKw > 0){
@@ -1409,11 +1459,11 @@
     let kwSum = 0;
     ECON_ELEC_CAT_IDS.forEach(function(id){
       const c = e.elecCats[id] || {};
-      const kw = parseFloat(c.kw) || 0;
-      const h = parseFloat(c.h) || 0;
-      kwh += kw * h * ECON_MONTH_DAYS;
-      cost += kw * h * ECON_MONTH_DAYS * price;
-      kwSum += kw;
+      const dailyKwh = elecCatDailyKwh(c, id);
+      kwh += dailyKwh * ECON_MONTH_DAYS;
+      cost += dailyKwh * ECON_MONTH_DAYS * price;
+      const meta = elecCatDisplayMeta(c, id);
+      kwSum += meta.kw || 0;
     });
     return { kw: kwSum, hoursDay: 24, kwh: kwh, cost: cost };
   }
@@ -1424,10 +1474,10 @@
     const rows = [{ id: 'light', kw: null, h: null, kwh: lightKwh || 0, cost: lightCost || 0 }];
     ECON_ELEC_CAT_IDS.forEach(function(id){
       const c = e.elecCats[id] || {};
-      const kw = parseFloat(c.kw) || 0;
-      const h = parseFloat(c.h) || 0;
-      const kwh = kw * h * ECON_MONTH_DAYS;
-      rows.push({ id: id, kw: kw, h: h, kwh: kwh, cost: kwh * price });
+      const dailyKwh = elecCatDailyKwh(c, id);
+      const kwh = dailyKwh * ECON_MONTH_DAYS;
+      const meta = elecCatDisplayMeta(c, id);
+      rows.push({ id: id, kw: meta.kw, h: meta.h, kwh: kwh, cost: kwh * price, sub: meta.sub });
     });
     return rows;
   }
@@ -2072,6 +2122,10 @@
       econWasteInCalc: econWasteInCalc,
       econWasteFactor: econWasteFactor,
       ECON_ELEC_CAT_IDS: ECON_ELEC_CAT_IDS,
+      ECON_HEATING_CAT_ID: ECON_HEATING_CAT_ID,
+      elecCatDailyKwh: elecCatDailyKwh,
+      elecCatDisplayMeta: elecCatDisplayMeta,
+      migrateHeatingDayNight: migrateHeatingDayNight,
       ensureEconCultures: ensureEconCultures,
       econGetAreaMode: econGetAreaMode,
       econCulturesTotalPct: econCulturesTotalPct,

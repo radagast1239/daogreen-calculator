@@ -420,6 +420,52 @@
   flex-shrink: 0;
 }
 
+#view-economics .econ-elec-cat-card--heating {
+  grid-column: span 2;
+}
+
+#view-economics .econ-elec-daynight-toggle {
+  margin: 0 0 6px;
+  font-size: 12px;
+}
+
+#view-economics .econ-elec-daynight-hint {
+  margin: 0 0 8px;
+  font-size: 11px;
+}
+
+#view-economics .econ-elec-shift {
+  padding: 6px 0 4px;
+  border-top: 1px solid var(--rule);
+}
+
+#view-economics .econ-elec-shift:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+#view-economics .econ-elec-shift-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+#view-economics .econ-elec-shift-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+#view-economics .econ-elec-daynight-total {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-text);
+}
+
 #view-economics .econ-elec-bar-fill {
   height: 100%;
   min-width: 2px;

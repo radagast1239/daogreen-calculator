@@ -218,6 +218,14 @@
       } else if (inp.dataset.econCultField != null){
         const i = parseInt(inp.dataset.econCultIdx, 10);
         if (st().econ.cultures[i]) v = st().econ.cultures[i][inp.dataset.econCultField];
+      } else if (inp.dataset.econCatKwDay != null){
+        if (st().econ.elecCats && st().econ.elecCats.heating) v = st().econ.elecCats.heating.kwDay;
+      } else if (inp.dataset.econCatHDay != null){
+        if (st().econ.elecCats && st().econ.elecCats.heating) v = st().econ.elecCats.heating.hDay;
+      } else if (inp.dataset.econCatKwNight != null){
+        if (st().econ.elecCats && st().econ.elecCats.heating) v = st().econ.elecCats.heating.kwNight;
+      } else if (inp.dataset.econCatHNight != null){
+        if (st().econ.elecCats && st().econ.elecCats.heating) v = st().econ.elecCats.heating.hNight;
       } else if (inp.dataset.econCulturePrice != null){
         const i = parseInt(inp.dataset.econCulturePrice, 10);
         if (st().econ.cultures[i]) v = st().econ.cultures[i].salePrice;
@@ -614,6 +622,48 @@
     return L('econ.elec.cat.' + id);
   }
 
+  function elecRowSubText(row){
+    if (row.sub) return row.sub;
+    if (row.kw != null) return tFmt('econ.elec.catSub', { kw: deps.r1(row.kw), h: deps.r1(row.h) });
+    return L('econ.elec.catLightSub');
+  }
+
+  function renderHeatingElecCatCard(c){
+    const dayNight = !!(c && c.dayNight);
+    const kw = c.kw != null ? c.kw : 0;
+    const h = c.h != null ? c.h : 24;
+    const kwDay = c.kwDay != null ? c.kwDay : 10;
+    const hDay = c.hDay != null ? c.hDay : 16;
+    const kwNight = c.kwNight != null ? c.kwNight : 1.5;
+    const hNight = c.hNight != null ? c.hNight : 8;
+    const dailyKwh = deps.elecCatDailyKwh ? deps.elecCatDailyKwh(c, 'heating') : 0;
+    return '<div class="econ-elec-cat-card econ-elec-cat-card--heating">' +
+      '<div class="econ-elec-cat-title">' + elecCatLabel('heating') + '</div>' +
+      '<label class="econ-check-label econ-elec-daynight-toggle">' +
+      '<input type="checkbox" data-econ-cat-daynight="heating"' + (dayNight ? ' checked' : '') + '> ' +
+      L('econ.elec.heatingDayNight') + '</label>' +
+      '<p class="econ-hint econ-elec-daynight-hint"' + (dayNight ? '' : ' hidden') + '>' + L('econ.elec.heatingDayNightHint') + '</p>' +
+      '<div class="econ-elec-daynight-fields"' + (dayNight ? '' : ' hidden') + '>' +
+      '<div class="econ-elec-shift"><div class="econ-elec-shift-label">' + L('econ.elec.shiftDay') + '</div>' +
+      '<div class="econ-elec-shift-grid">' +
+      '<div class="econ-field"><label>' + L('econ.elec.kw') + '</label>' +
+      '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="2" data-econ-cat-kw-day="heating" value="' + deps.formatInputValue(kwDay, 2) + '"></div>' +
+      '<div class="econ-field"><label>' + L('econ.elec.hDay') + '</label>' +
+      '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-cat-h-day="heating" value="' + deps.formatInputValue(hDay, 1) + '"></div></div></div>' +
+      '<div class="econ-elec-shift"><div class="econ-elec-shift-label">' + L('econ.elec.shiftNight') + '</div>' +
+      '<div class="econ-elec-shift-grid">' +
+      '<div class="econ-field"><label>' + L('econ.elec.kw') + '</label>' +
+      '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="2" data-econ-cat-kw-night="heating" value="' + deps.formatInputValue(kwNight, 2) + '"></div>' +
+      '<div class="econ-field"><label>' + L('econ.elec.hDay') + '</label>' +
+      '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-cat-h-night="heating" value="' + deps.formatInputValue(hNight, 1) + '"></div></div></div>' +
+      '<p class="econ-elec-daynight-total">' + tFmt('econ.elec.dailyKwh', { kwh: deps.r1(dailyKwh) }) + '</p></div>' +
+      '<div class="econ-elec-simple-fields"' + (dayNight ? ' hidden' : '') + '>' +
+      '<div class="econ-field"><label>' + L('econ.elec.kw') + '</label>' +
+      '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="2" data-econ-cat-kw="heating" value="' + deps.formatInputValue(kw, 2) + '"></div>' +
+      '<div class="econ-field"><label>' + L('econ.elec.hDay') + '</label>' +
+      '<input type="text" inputmode="decimal" class="econ-num-fmt" data-econ-decimals="1" data-econ-cat-h="heating" value="' + deps.formatInputValue(h, 1) + '"></div></div></div>';
+  }
+
   function renderElecCatsInputs(){
     deps.migrateEconOtherElectricity(st().econ);
     const wrap = deps.$('econ-elec-cats-inputs');
@@ -621,6 +671,10 @@
     let html = '<p class="econ-elec-cats-intro">' + L('econ.elec.catsIntro') + '</p><div class="econ-elec-cats-grid">';
     ECON_ELEC_CAT_IDS.forEach(function(id){
       const c = (st().econ.elecCats && st().econ.elecCats[id]) || { kw: 0, h: 24 };
+      if (id === 'heating'){
+        html += renderHeatingElecCatCard(c);
+        return;
+      }
       const kw = c.kw != null ? c.kw : 0;
       const h = c.h != null ? c.h : 24;
       html += '<div class="econ-elec-cat-card"><div class="econ-elec-cat-title">' + elecCatLabel(id) + '</div>' +
@@ -756,17 +810,43 @@
       }
       const catKw = e.target.closest('[data-econ-cat-kw]');
       const catH = e.target.closest('[data-econ-cat-h]');
-      const catInp = catKw || catH;
+      const catKwDay = e.target.closest('[data-econ-cat-kw-day]');
+      const catHDay = e.target.closest('[data-econ-cat-h-day]');
+      const catKwNight = e.target.closest('[data-econ-cat-kw-night]');
+      const catHNight = e.target.closest('[data-econ-cat-h-night]');
+      const catInp = catKw || catH || catKwDay || catHDay || catKwNight || catHNight;
       if (catInp){
         deps.migrateEconOtherElectricity(st().econ);
-        const id = catInp.dataset.econCatKw || catInp.dataset.econCatH;
-        if (!id || !st().econ.elecCats[id]) return;
+        const cat = st().econ.elecCats.heating;
+        if (!cat) return;
         const v = deps.parseNumInput(catInp.value);
-        if (catKw) st().econ.elecCats[id].kw = isNaN(v) ? 0 : v;
-        else st().econ.elecCats[id].h = isNaN(v) ? 0 : v;
+        if (catKw) st().econ.elecCats[catKw.dataset.econCatKw].kw = isNaN(v) ? 0 : v;
+        else if (catH) st().econ.elecCats[catH.dataset.econCatH].h = isNaN(v) ? 0 : v;
+        else if (catKwDay) cat.kwDay = isNaN(v) ? 0 : v;
+        else if (catHDay) cat.hDay = isNaN(v) ? 0 : v;
+        else if (catKwNight) cat.kwNight = isNaN(v) ? 0 : v;
+        else if (catHNight) cat.hNight = isNaN(v) ? 0 : v;
         deps.saveEconStore();
-        renderEconomics();
+        if (cat.dayNight){
+          const totalEl = root.querySelector('.econ-elec-daynight-total');
+          if (totalEl && deps.elecCatDailyKwh){
+            totalEl.textContent = tFmt('econ.elec.dailyKwh', { kwh: deps.r1(deps.elecCatDailyKwh(cat, 'heating')) });
+          }
+        }
+        renderEconomics({ preserveCultures: true });
       }
+    });
+    root.addEventListener('change', function(e){
+      const dayNightChk = e.target.closest('[data-econ-cat-daynight]');
+      if (!dayNightChk) return;
+      deps.migrateEconOtherElectricity(st().econ);
+      const cat = st().econ.elecCats.heating;
+      if (!cat) return;
+      cat.dayNight = !!dayNightChk.checked;
+      if (cat.dayNight && deps.migrateHeatingDayNight) deps.migrateHeatingDayNight(cat);
+      deps.saveEconStore();
+      renderElecCatsInputs();
+      renderEconomics({ preserveCultures: true });
     });
   }
 
@@ -921,7 +1001,7 @@
     rows.forEach(function(row){
       const pct = maxCost > 0 ? Math.round((row.cost / maxCost) * 100) : 0;
       const lbl = row.id === 'light' ? L('econ.elec.cat.light') : elecCatLabel(row.id);
-      const sub = row.kw != null ? tFmt('econ.elec.catSub', { kw: deps.r1(row.kw), h: deps.r1(row.h) }) : L('econ.elec.catLightSub');
+      const sub = elecRowSubText(row);
       const zero = !(row.cost > 0);
       html += '<div class="econ-elec-bar-row' + (zero ? ' econ-elec-bar-row--zero' : '') + '">' +
         '<span class="econ-elec-bar-label">' + lbl + '<span class="econ-elec-bar-sub">' + sub + '</span></span>' +
@@ -1913,7 +1993,9 @@
       '<div class="econ-table-scroll econ-table-scroll--elec"><table class="econ-breakdown econ-elec-total"><tr><th>' + L('econ.tbl.article') + '</th><th>' + L('econ.tbl.kwh') + '</th><th>' + moneySym() + '</th></tr>';
     (res.elecBreakdown || []).forEach(function(row){
       const lbl = row.id === 'light' ? L('econ.elec.cat.light') : elecCatLabel(row.id);
-      const sub = row.kw != null ? ' <span class="econ-tbl-sub">(' + tFmt('econ.elec.catSub', { kw: deps.r1(row.kw), h: deps.r1(row.h) }) + ')</span>' : '';
+      const sub = row.sub
+        ? ' <span class="econ-tbl-sub">(' + row.sub + ')</span>'
+        : (row.kw != null ? ' <span class="econ-tbl-sub">(' + tFmt('econ.elec.catSub', { kw: deps.r1(row.kw), h: deps.r1(row.h) }) + ')</span>' : '');
       metrics += '<tr><td>' + lbl + sub + '</td><td>' + deps.fmtNum(row.kwh || 0) + '</td><td>' + moneyFmt(row.cost) + '</td></tr>';
     });
     metrics += '<tr class="econ-row-total"><td><strong>' + L('econ.elec.total') + '</strong></td><td><strong>' + deps.fmtNum(res.totalElecKwhMonth || 0) + '</strong></td><td><strong>' + moneyFmt(res.totalElecCost || 0) + '</strong></td></tr></table></div></div></div>';
