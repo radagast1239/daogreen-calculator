@@ -1499,22 +1499,7 @@
         const i = parseInt(e.target.dataset.econCultIdx, 10);
         applyCultFieldValue(i, cultField, e.target.value);
         deps.saveEconStore();
-        if (isConsPotPartField(cultField)){
-          const card = e.target.closest('.econ-culture-card');
-          const totalEl = card && card.querySelector('[data-econ-cons-total="' + i + '"]');
-          if (totalEl){
-            const sum = deps.sumConsPotParts ? deps.sumConsPotParts(st().econ.cultures[i]) : 0;
-            const disp = sum > 0 ? sum : st().econ.cultures[i].consumablesPerPot;
-            totalEl.textContent = fmtMoneyInp(disp, 1) + ' ' + moneySym();
-          }
-        }
-        renderEconDerivedPanel();
-        const hint = e.target.closest('.econ-culture-card')?.querySelector('.econ-culture-hint');
-        if (hint){
-          const bio = deps.econCultureBio(st().econ.cultures[i]);
-      const ySqm = bio.unitIsPieces ? deps.r1(bio.yieldPerSqmMonthPcs) + ' ' + L('econ.yield.pcsSqm') : deps.r2(bio.yieldPerSqmMonthKg) + ' ' + L('econ.yield.kgSqm');
-      hint.innerHTML = deps.formatEconCultureHint(st().econ.cultures[i]);
-        }
+        renderEconomics();
         return;
       }
       if (e.target.dataset.econMixPctRow != null){
@@ -1854,7 +1839,11 @@
         if (!breakdown && sl.unitCostElec > 0){
           breakdown = unitCostBreakdownLine(L('econ.metrics.unitCostElec'), sl.unitCostElec, u);
         }
+        const staffSharePct = res.staffTotal > 0 && sl.allocatedStaff > 0
+          ? deps.r1((sl.allocatedStaff / res.staffTotal) * 100)
+          : '';
         breakdown += unitCostBreakdownLine(L('econ.metrics.unitCostFot'), sl.unitCostStaff, u, sl.allocatedStaff || 0) +
+          (staffSharePct ? '<div class="line line--sub line--fot-share"><span>' + L('econ.metrics.fotShare') + '</span><strong>' + staffSharePct + '% ' + L('econ.metrics.fotShareOf') + ' ' + moneyFmt(res.staffTotal) + '</strong></div>' : '') +
           unitCostBreakdownLine(L('econ.metrics.unitCostRent'), sl.unitCostRent, u, sl.allocatedRent || 0) +
           unitCostBreakdownLine(L('econ.metrics.unitCostLog'), sl.unitCostLogistics, u, sl.allocatedLogistics || 0) +
           unitCostBreakdownLine(L('econ.metrics.unitCostWater'), sl.unitCostWater, u, sl.allocatedWater || 0) +
