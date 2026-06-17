@@ -1843,7 +1843,6 @@
           ? deps.r1((sl.allocatedStaff / res.staffTotal) * 100)
           : '';
         breakdown += unitCostBreakdownLine(L('econ.metrics.unitCostFot'), sl.unitCostStaff, u, sl.allocatedStaff || 0) +
-          (staffSharePct ? '<div class="line line--sub line--fot-share"><span>' + L('econ.metrics.fotShare') + '</span><strong>' + staffSharePct + '% ' + L('econ.metrics.fotShareOf') + ' ' + moneyFmt(res.staffTotal) + '</strong></div>' : '') +
           unitCostBreakdownLine(L('econ.metrics.unitCostRent'), sl.unitCostRent, u, sl.allocatedRent || 0) +
           unitCostBreakdownLine(L('econ.metrics.unitCostLog'), sl.unitCostLogistics, u, sl.allocatedLogistics || 0) +
           unitCostBreakdownLine(L('econ.metrics.unitCostWater'), sl.unitCostWater, u, sl.allocatedWater || 0) +
@@ -1865,6 +1864,7 @@
           '<div class="line"><span>' + L('econ.metrics.consArea') + '</span><strong>' + consMo + '</strong></div>' +
           '<div class="line"><span>' + L('econ.derived.yield') + '</span><strong>' + ySqmFmt + '</strong></div>' +
           '<div class="line"><span>' + L('econ.metrics.out') + '</span><strong>' + outVal + ' ' + outLbl + '</strong></div>' +
+          (staffSharePct ? '<div class="line econ-metric-line--fot"><span>' + L('econ.metrics.fotShare') + '</span><strong>' + staffSharePct + '% ' + L('econ.metrics.fotShareOf') + ' ' + moneyFmt(res.staffTotal) + '</strong></div>' : '') +
           '<div class="line econ-metric-line--share"><span>' + L('econ.metrics.share') + '</span><strong>' + deps.r1(p.pct) + '% · ' + deps.r1(p.slice.area) + ' ' + L('econ.unit.sqm') + '</strong></div></div></div>';
 
       });
