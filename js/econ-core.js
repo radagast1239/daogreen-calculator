@@ -20,6 +20,7 @@
     PLANT_MONTH: 'plantMonth',
     SQM_MONTH: 'sqmMonth'
   };
+  const ECON_PAYROLL_ALLOC_MODES = ['area', 'revenue', 'labor'];
   /** Доп. культуры только для экономики (без посадочного каталога). */
   const ECON_EXTRA_CULTURE_DEFAULTS = {
     'econ-berry-blueberry': {
@@ -401,7 +402,8 @@
       consPotSeeds: 0,
       consPotVermiculite: 0,
       consPotPot: 0,
-      consPotRockwool: 0
+      consPotRockwool: 0,
+      laborCoeff: 1
     };
     if (st().econ){
       row.kwhPerM2Hour = parseFloat(st().econ.kwhPerM2Hour) || row.kwhPerM2Hour;
@@ -425,6 +427,7 @@
       payrollStaffCostPct: 0,
       staffLines: defaultStaffLines(),
       payrollCustom: [],
+      payrollAllocMode: 'area',
       accountingMonth: 15000,
       logisticsMonth: 0,
       waterM3Month: 0,
@@ -740,6 +743,7 @@
     if (cv && cv.econLotSale){
       out.potHarvestMonths = parsePotHarvestMonthsFromCv(cv, deps.getPlantingSnapshotForCvId(out.cvId));
     }
+    out.laborCoeff = deps.clamp(parseFloat(row && row.laborCoeff) || 1, 0.1, 10);
     return out;
   }
 
@@ -1224,6 +1228,35 @@
       e.payrollTaxPct = e.payrollTax !== false ? 42.5 : 30;
     }
     if (e.payrollStaffCostPct == null || isNaN(parseFloat(e.payrollStaffCostPct))) e.payrollStaffCostPct = 0;
+    if (!e.payrollAllocMode) e.payrollAllocMode = 'area';
+    else e.payrollAllocMode = normalizePayrollAllocMode(e.payrollAllocMode);
+  }
+
+  function normalizePayrollAllocMode(mode){
+    return ECON_PAYROLL_ALLOC_MODES.indexOf(mode) >= 0 ? mode : 'area';
+  }
+
+  function payrollAllocWeight(p, mode, wasteFactor){
+    mode = normalizePayrollAllocMode(mode);
+    if (mode === 'revenue') return Math.max(0, (p.slice.revenue || 0) * wasteFactor);
+    if (mode === 'labor'){
+      const coeff = deps.clamp(parseFloat(p.row && p.row.laborCoeff) || 1, 0.1, 10);
+      return Math.max(0, (p.slice.area || 0) * coeff);
+    }
+    return Math.max(0, p.slice.area || 0);
+  }
+
+  function calcPayrollAllocShares(parts, e, wasteFactor){
+    const mode = normalizePayrollAllocMode(e && e.payrollAllocMode);
+    const weights = parts.map(function(p){ return payrollAllocWeight(p, mode, wasteFactor); });
+    const sum = weights.reduce(function(s, w){ return s + w; }, 0);
+    if (sum <= 0){
+      const areaSum = parts.reduce(function(s, p){ return s + (p.slice.area || 0); }, 0);
+      return parts.map(function(p){
+        return areaSum > 0 ? (p.slice.area || 0) / areaSum : (parts.length ? 1 / parts.length : 0);
+      });
+    }
+    return weights.map(function(w){ return w / sum; });
   }
 
   function calcVatTaxAmt(revenue, e){
@@ -1711,11 +1744,15 @@
       : 0;
     const breakEvenRevenuePct = revenue > 0 && breakEvenRevenue > 0 ? (breakEvenRevenue / revenue) * 100 : 0;
 
-    parts.forEach(p => {
+    const payrollShares = calcPayrollAllocShares(parts, e, wasteFactor);
+    const fixedOpexNoStaff = fixedOpex - staffTotal;
+
+    parts.forEach(function(p, ri){
       const isPcs = p.slice.outputUnit === 'шт';
       const areaShare = areaUsed > 0 ? p.slice.area / areaUsed : 0;
-      const shareFixed = fixedOpex * areaShare;
-      const shareStaff = staffTotal * areaShare;
+      const payrollShare = payrollShares[ri] != null ? payrollShares[ri] : areaShare;
+      const shareStaff = staffTotal * payrollShare;
+      const shareFixed = fixedOpexNoStaff * areaShare + shareStaff;
       const shareRent = rent * areaShare;
       const shareLogistics = logistics * areaShare;
       const shareWater = waterCost * areaShare;
@@ -1938,6 +1975,7 @@
       calcPayrollMonthly: calcPayrollMonthly,
       migrateEconElecCats: migrateEconElecCats,
       migrateEconPayroll: migrateEconPayroll,
+      normalizePayrollAllocMode: normalizePayrollAllocMode,
       migrateEconOtherElectricity: migrateEconOtherElectricity,
       econWaterInCalc: econWaterInCalc,
       econWasteInCalc: econWasteInCalc,

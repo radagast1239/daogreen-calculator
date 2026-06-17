@@ -61,7 +61,11 @@
       if (ci === 1) return isDashCell(cell) ? 'center' : 'right';
       return 'right';
     }
-    if (tableKind === 'yield' || tableKind === 'cultures-breakdown' || tableKind === 'elec-cost') return 'right';
+    if (tableKind === 'cultures-breakdown'){
+      if (ci === 3) return 'left';
+      return 'right';
+    }
+    if (tableKind === 'yield' || tableKind === 'elec-cost') return 'right';
     if (ci === cols - 1 && looksNumericCell(cell)) return 'right';
     if (ci > 0 && looksNumericCell(cell)) return 'right';
     return 'left';
@@ -77,7 +81,11 @@
       if (ci === 1) return 'center';
       return 'right';
     }
-    if (tableKind === 'yield' || tableKind === 'cultures-breakdown' || tableKind === 'elec-cost') return 'right';
+    if (tableKind === 'cultures-breakdown'){
+      if (ci === 3) return 'left';
+      return 'right';
+    }
+    if (tableKind === 'yield' || tableKind === 'elec-cost') return 'right';
     if (ci > 0) return 'right';
     return 'left';
   }
@@ -683,8 +691,8 @@
       ];
     }
     if (kind === 'cultures-breakdown'){
-      if (cols === 8) return [0.13, 0.07, 0.07, 0.20, 0.13, 0.11, 0.13, 0.16].map(function(p){ return contentW * p; });
-      if (cols === 7) return [0.14, 0.07, 0.08, 0.22, 0.14, 0.15, 0.20].map(function(p){ return contentW * p; });
+      if (cols === 8) return [0.12, 0.06, 0.06, 0.26, 0.12, 0.10, 0.14, 0.14].map(function(p){ return contentW * p; });
+      if (cols === 7) return [0.12, 0.06, 0.06, 0.28, 0.12, 0.16, 0.20].map(function(p){ return contentW * p; });
     }
     if (cols >= 6){
       var first = contentW * 0.22;
@@ -714,11 +722,55 @@
   }
 
   function compactPdfCultureOutput(cell){
-    return String(cell || '')
+    var t = String(cell || '')
       .replace(/\s*→\s*/g, '→')
       .replace(/\s*->\s*/g, '→')
       .replace(/\s+/g, ' ')
       .trim();
+    var sep = t.indexOf(' · ');
+    if (sep >= 0) return t.slice(0, sep).trim() + '\n' + t.slice(sep + 3).trim();
+    return t;
+  }
+
+  function splitLongWord(pdf, word, maxW, fontSize, lines){
+    pdf.setFontSize(fontSize);
+    if (!word) return '';
+    if (pdf.getTextWidth(word) <= maxW) return word;
+    var chunk = '';
+    for (var i = 0; i < word.length; i++){
+      var test = chunk + word.charAt(i);
+      if (pdf.getTextWidth(test) <= maxW) chunk = test;
+      else {
+        if (chunk) lines.push(chunk);
+        chunk = word.charAt(i);
+      }
+    }
+    return chunk;
+  }
+
+  function splitLines(pdf, text, maxW, fontSize){
+    pdf.setFontSize(fontSize);
+    var paragraphs = plainCellText(String(text || '—')).split(/\n/);
+    var lines = [];
+    paragraphs.forEach(function(para, pi){
+      var words = para.split(/\s+/).filter(Boolean);
+      var line = '';
+      words.forEach(function(w){
+        w = splitLongWord(pdf, w, maxW, fontSize, lines);
+        if (!w) return;
+        var test = line ? line + ' ' + w : w;
+        if (pdf.getTextWidth(test) <= maxW) line = test;
+        else {
+          if (line) lines.push(line);
+          line = splitLongWord(pdf, w, maxW, fontSize, lines);
+        }
+      });
+      if (line) lines.push(line);
+      if (pi < paragraphs.length - 1 && lines.length && lines[lines.length - 1] !== '') lines.push('');
+    });
+    while (lines.length && lines[lines.length - 1] === '') lines.pop();
+    if (!lines.length) lines.push('—');
+    return lines;
   }
 
   function drawPdfCellText(pdf, lines, align, xLeft, xRight, colW, yStart, lineH){
@@ -778,24 +830,6 @@
     ctx.pdf.addPage();
     ctx.y = ctx.contentTop != null ? ctx.contentTop : ctx.margin;
     ctx.pdf.setFont(FONT_NAME, 'normal');
-  }
-
-  function splitLines(pdf, text, maxW, fontSize){
-    pdf.setFontSize(fontSize);
-    var words = plainCellText(String(text || '—')).split(/\s+/).filter(Boolean);
-    var lines = [];
-    var line = '';
-    words.forEach(function(w){
-      var test = line ? line + ' ' + w : w;
-      if (pdf.getTextWidth(test) <= maxW) line = test;
-      else {
-        if (line) lines.push(line);
-        line = w;
-      }
-    });
-    if (line) lines.push(line);
-    if (!lines.length) lines.push('—');
-    return lines;
   }
 
   function drawPdfTable(pdf, ctx, table, opts){

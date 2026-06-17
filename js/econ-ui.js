@@ -47,6 +47,16 @@
     function moneyLabel(baseKey, perKey){
       return L(baseKey) + ', ' + moneySym() + L(perKey);
     }
+    function payrollAllocMode(){
+      const m = st().econ && st().econ.payrollAllocMode;
+      return m === 'revenue' || m === 'labor' ? m : 'area';
+    }
+    function unitCostBreakdownHintText(){
+      const mode = payrollAllocMode();
+      if (mode === 'revenue') return L('econ.metrics.unitCostBreakdownHintRevenue');
+      if (mode === 'labor') return L('econ.metrics.unitCostBreakdownHintLabor');
+      return L('econ.metrics.unitCostBreakdownHint');
+    }
     var ECON_MONTH_DAYS = deps.ECON_MONTH_DAYS;
     var ECON_ELEC_CAT_IDS = deps.ECON_ELEC_CAT_IDS || ['pumps', 'fans', 'heating', 'equipment', 'refrigeration', 'packaging', 'misc'];
     var ECON_MAX_CULTURES = deps.ECON_MAX_CULTURES;
@@ -652,6 +662,22 @@
       '<button type="button" class="econ-rm" data-econ-pc-rm="' + row.id + '" title="' + L('econ.btn.remove') + '">×</button></div>';
   }
 
+  function renderPayrollAllocBlock(){
+    const mode = payrollAllocMode();
+    const opts = [
+      ['area', L('econ.payroll.allocArea')],
+      ['revenue', L('econ.payroll.allocRevenue')],
+      ['labor', L('econ.payroll.allocLabor')]
+    ].map(function(pair){
+      return '<option value="' + pair[0] + '"' + (mode === pair[0] ? ' selected' : '') + '>' + pair[1] + '</option>';
+    }).join('');
+    return '<div class="econ-payroll-block"><h4 class="econ-payroll-h4">' + L('econ.payroll.allocMode') + '</h4>' +
+      '<div class="econ-grid econ-grid--tight">' +
+      '<div class="econ-field econ-field--wide"><label>' + L('econ.payroll.allocMode') + '</label>' +
+      '<select data-econ-payroll-alloc>' + opts + '</select>' +
+      '<p class="econ-hint" style="margin:6px 0 0">' + L('econ.payroll.allocHint.' + mode) + '</p></div></div></div>';
+  }
+
   function renderPayrollSection(){
     deps.migrateEconOtherElectricity(st().econ);
     const wrap = deps.$('econ-payroll-body');
@@ -670,7 +696,8 @@
       '<div class="econ-grid econ-grid--tight">' + econNumInput('accountingMonth', moneyLabel('econ.accountingMonth', 'econ.perMonth'), { step: 1000 }) + '</div></div>' +
       '<div class="econ-payroll-block"><h4 class="econ-payroll-h4">' + L('econ.section.payrollCustom') + '</h4>' +
       '<div class="econ-payroll-items" id="econ-payroll-custom-list">' + (customHtml || '<p class="econ-hint" style="margin:0">' + L('econ.payroll.customEmpty') + '</p>') + '</div>' +
-      '<button type="button" class="auto-btn" id="econ-payroll-custom-add">+ ' + L('econ.payroll.customAdd') + '</button></div>';
+      '<button type="button" class="auto-btn" id="econ-payroll-custom-add">+ ' + L('econ.payroll.customAdd') + '</button></div>' +
+      renderPayrollAllocBlock();
   }
 
   function bindEconomicsInputs(){
@@ -797,6 +824,15 @@
     });
     root.addEventListener('change', function(e){
       const t = e.target;
+      if (t.dataset && t.dataset.econPayrollAlloc != null){
+        st().econ.payrollAllocMode = t.value;
+        deps.saveEconStore();
+        const pw = deps.$('econ-payroll-body');
+        if (pw) pw.dataset.built = '';
+        renderPayrollSection();
+        renderEconomics();
+        return;
+      }
       const punit = t.dataset && t.dataset.econPcUnit;
       if (!punit) return;
       const row = (st().econ.payrollCustom || []).find(function(x){ return x.id === punit; });
@@ -1251,6 +1287,7 @@
         econCultParamInput(i, 'lightHoursDay', L('econ.cult.lightH'), { step: 0.5 }) +
         econCultConsPotFieldHtml(i, norm, cv, consLbl, consPh) +
         (isLot ? '' : econCultParamInput(i, 'potHarvestMonths', replaceLabel, { step: 0.5, decimals: 1 })) +
+        (payrollAllocMode() === 'labor' ? econCultParamInput(i, 'laborCoeff', L('econ.cult.laborCoeff'), { step: 0.1, decimals: 1, min: 0.1, title: L('econ.cult.laborCoeffHint') }) : '') +
         '</div>' +
         '<p class="econ-culture-hint">' + deps.formatEconCultureHint(norm) + '</p>' +
         '</div>';
@@ -1741,7 +1778,7 @@
         metrics += '<div class="econ-culture-metric"><div class="name">' + p.name + '</div>' +
           '<div class="line line--total"><span>' + L('econ.metrics.unitCost') + '</span><strong>' + ucFmt + '</strong></div>' +
           (breakdown ? '<div class="econ-uc-breakdown"><div class="econ-uc-breakdown-title">' + L('econ.metrics.unitCostBreakdown') + '</div>' +
-            '<p class="econ-uc-breakdown-hint">' + L('econ.metrics.unitCostBreakdownHint') + '</p>' + breakdown + '</div>' : '') +
+            '<p class="econ-uc-breakdown-hint">' + unitCostBreakdownHintText() + '</p>' + breakdown + '</div>' : '') +
           '<div class="econ-uc-extra">' +
           '<div class="line"><span>' + L('econ.metrics.sowOnce') + '</span><strong>' + consOnceSqm + '</strong> · ' + consOnceArea + '</div>' +
           '<div class="line"><span>' + L('econ.metrics.sowMo') + '</span><strong>' + consSqm + '</strong></div>' +
