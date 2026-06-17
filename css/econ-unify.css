@@ -1103,18 +1103,18 @@
 }
 
 /* Трёхколоночные таблицы: статья | число | сумма */
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) th:nth-child(1),
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) td:nth-child(1) {
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season):not(.econ-sens-table) th:nth-child(1),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season):not(.econ-sens-table) td:nth-child(1) {
   width: 48%;
 }
 
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) th:nth-child(2),
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) td:nth-child(2) {
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season):not(.econ-sens-table) th:nth-child(2),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season):not(.econ-sens-table) td:nth-child(2) {
   width: 22%;
 }
 
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) th:nth-child(3),
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) td:nth-child(3) {
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season):not(.econ-sens-table) th:nth-child(3),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season):not(.econ-sens-table) td:nth-child(3) {
   width: 30%;
 }
 
@@ -1147,6 +1147,45 @@
   width: 100%;
   max-width: 72px;
   box-sizing: border-box;
+}
+
+/* Сценарии «что если»: сценарий + 4 числовых колонки */
+#view-economics .econ-breakdown.econ-sens-table {
+  width: 100%;
+  font-size: 12.5px;
+}
+
+#view-economics .econ-breakdown.econ-sens-table th:nth-child(1),
+#view-economics .econ-breakdown.econ-sens-table td:nth-child(1) { width: 26%; }
+
+#view-economics .econ-breakdown.econ-sens-table th:nth-child(2),
+#view-economics .econ-breakdown.econ-sens-table td:nth-child(2),
+#view-economics .econ-breakdown.econ-sens-table th:nth-child(3),
+#view-economics .econ-breakdown.econ-sens-table td:nth-child(3),
+#view-economics .econ-breakdown.econ-sens-table th:nth-child(4),
+#view-economics .econ-breakdown.econ-sens-table td:nth-child(4) { width: 17%; }
+
+#view-economics .econ-breakdown.econ-sens-table th:nth-child(5),
+#view-economics .econ-breakdown.econ-sens-table td:nth-child(5) { width: 9%; }
+
+#view-economics .econ-breakdown.econ-sens-table th:nth-child(6),
+#view-economics .econ-breakdown.econ-sens-table td:nth-child(6) { width: 14%; }
+
+#view-economics .econ-breakdown.econ-sens-table th {
+  white-space: nowrap;
+  word-break: normal;
+  hyphens: none;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+#view-economics .econ-breakdown.econ-sens-table td:first-child {
+  white-space: normal;
+  line-height: 1.35;
+}
+
+#view-economics .econ-breakdown.econ-sens-table td:not(:first-child) {
+  white-space: nowrap;
 }
 
 /* Статистика / сравнение проектов — свои ширины колонок */
