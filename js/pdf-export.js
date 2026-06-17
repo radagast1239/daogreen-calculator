@@ -713,6 +713,17 @@
         cards.slice(i, i + CULT_PDF_PER_PAGE).forEach(function(card){
           grid.appendChild(card.cloneNode(true));
         });
+        var hintText = '';
+        grid.querySelectorAll('.econ-uc-breakdown-hint').forEach(function(el){
+          if (!hintText) hintText = el.textContent.trim();
+          el.remove();
+        });
+        if (hintText){
+          var hintP = document.createElement('p');
+          hintP.className = 'econ-uc-breakdown-hint econ-uc-breakdown-hint--pdf';
+          hintP.textContent = hintText;
+          wrap.appendChild(hintP);
+        }
         wrap.appendChild(grid);
         prepareClone(wrap, { group: 'economics' });
         blocks.push(wrap);
