@@ -199,7 +199,7 @@
         '<td><input type="number" step="0.05" min="0" data-seas="cost" data-m="' + m + '" value="' + sens.costIdx[m] + '"></td>' +
         '<td>' + mf(deps, fm.margin) + '</td></tr>';
     }
-    html += '</tbody></table><p class="adv-note">' + TF('adv.yearMargin', { margin: mf(deps, yearMargin), sym: sym(deps) }) + '</p></div>';
+    html += '</tbody></table><p class="adv-note">' + TF('adv.yearMargin', { margin: mf(deps, yearMargin) }) + '</p></div>';
 
     var inf = state.econInflation;
     html += '<div class="adv-block"><h4 class="adv-h">' + T('adv.infTitle') + '</h4>' +

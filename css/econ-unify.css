@@ -1103,19 +1103,50 @@
 }
 
 /* Трёхколоночные таблицы: статья | число | сумма */
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) th:nth-child(1),
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) td:nth-child(1) {
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) th:nth-child(1),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) td:nth-child(1) {
   width: 48%;
 }
 
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) th:nth-child(2),
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) td:nth-child(2) {
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) th:nth-child(2),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) td:nth-child(2) {
   width: 22%;
 }
 
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) th:nth-child(3),
-#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table) td:nth-child(3) {
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) th:nth-child(3),
+#view-economics .econ-breakdown:not(.econ-cultures-table):not(.econ-breakdown--yield):not(.project-compare-table):not(.adv-season) td:nth-child(3) {
   width: 30%;
+}
+
+/* Сезонность: месяц + 3 индекса + маржа */
+#view-economics .econ-breakdown.adv-season {
+  width: 100%;
+  font-size: 12.5px;
+}
+
+#view-economics .econ-breakdown.adv-season th:nth-child(1),
+#view-economics .econ-breakdown.adv-season td:nth-child(1) { width: 10%; }
+
+#view-economics .econ-breakdown.adv-season th:nth-child(2),
+#view-economics .econ-breakdown.adv-season td:nth-child(2),
+#view-economics .econ-breakdown.adv-season th:nth-child(3),
+#view-economics .econ-breakdown.adv-season td:nth-child(3),
+#view-economics .econ-breakdown.adv-season th:nth-child(4),
+#view-economics .econ-breakdown.adv-season td:nth-child(4) { width: 16%; }
+
+#view-economics .econ-breakdown.adv-season th:nth-child(5),
+#view-economics .econ-breakdown.adv-season td:nth-child(5) { width: 42%; }
+
+#view-economics .econ-breakdown.adv-season th {
+  white-space: nowrap;
+  word-break: normal;
+  hyphens: none;
+}
+
+#view-economics .econ-breakdown.adv-season td input {
+  width: 100%;
+  max-width: 72px;
+  box-sizing: border-box;
 }
 
 /* Статистика / сравнение проектов — свои ширины колонок */
