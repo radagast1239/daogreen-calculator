@@ -294,11 +294,32 @@
     return rows.length ? { headers: [pdfT('pdf.vec.indicator'), pdfT('pdf.vec.value')], rows: rows } : null;
   }
 
+  function parseElecNum(el){
+    if (!el) return 0;
+    var s = plainCellText(el.value != null ? el.value : el).replace(/\s/g, '').replace(',', '.');
+    var v = parseFloat(s);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function fmtElecDaily(n){
+    var v = Math.round(n * 10) / 10;
+    return String(v).replace('.', ',');
+  }
+
+  function elecPairCell(kwEl, hEl){
+    return (kwEl ? plainCellText(kwEl.value) : '0') + '×' + (hEl ? plainCellText(hEl.value) : '0');
+  }
+
   function parseElecCats(root){
     if (!root) return null;
-    var rows = [];
+    var cards = root.querySelectorAll('.econ-elec-cat-card');
     var hasDayNight = false;
-    root.querySelectorAll('.econ-elec-cat-card').forEach(function(card){
+    cards.forEach(function(card){
+      var dayNightChk = card.querySelector('[data-econ-cat-daynight]');
+      if (dayNightChk && dayNightChk.checked) hasDayNight = true;
+    });
+    var rows = [];
+    cards.forEach(function(card){
       var title = plainCellText(card.querySelector('.econ-elec-cat-title'));
       var dayNightChk = card.querySelector('[data-econ-cat-daynight]');
       var kwDay = card.querySelector('[data-econ-cat-kw-day]');
@@ -306,25 +327,37 @@
       var kwNight = card.querySelector('[data-econ-cat-kw-night]');
       var hNight = card.querySelector('[data-econ-cat-h-night]');
       if (dayNightChk && dayNightChk.checked && (kwDay || kwNight)){
-        hasDayNight = true;
-        var dayPart = (kwDay ? plainCellText(kwDay.value) : '0') + '×' + (hDay ? plainCellText(hDay.value) : '0');
-        var nightPart = (kwNight ? plainCellText(kwNight.value) : '0') + '×' + (hNight ? plainCellText(hNight.value) : '0');
-        var totalEl = card.querySelector('.econ-elec-daynight-total');
-        var totalStr = totalEl ? plainCellText(totalEl.textContent) : '';
-        rows.push([title, dayPart + ' + ' + nightPart, totalStr || '—']);
+        var kd = parseElecNum(kwDay);
+        var hd = parseElecNum(hDay);
+        var kn = parseElecNum(kwNight);
+        var hn = parseElecNum(hNight);
+        rows.push([
+          title,
+          elecPairCell(kwDay, hDay) + '\n' + elecPairCell(kwNight, hNight),
+          fmtElecDaily(kd * hd + kn * hn)
+        ]);
         return;
       }
       var kw = card.querySelector('[data-econ-cat-kw]');
       var h = card.querySelector('[data-econ-cat-h]');
-      rows.push([title, kw ? plainCellText(kw.value) : '—', h ? plainCellText(h.value) : '—']);
+      if (hasDayNight){
+        rows.push([
+          title,
+          elecPairCell(kw, h),
+          fmtElecDaily(parseElecNum(kw) * parseElecNum(h))
+        ]);
+      } else {
+        rows.push([title, kw ? plainCellText(kw.value) : '—', h ? plainCellText(h.value) : '—']);
+      }
     });
     return rows.length ? {
       headers: [
         pdfT('pdf.vec.elecCat'),
-        pdfT('pdf.vec.elecKw'),
+        hasDayNight ? pdfT('pdf.vec.elecKwH') : pdfT('pdf.vec.elecKw'),
         hasDayNight ? pdfT('pdf.vec.elecDaily') : pdfT('pdf.vec.elecH')
       ],
-      rows: rows
+      rows: rows,
+      tableKind: hasDayNight ? 'elec-cats-daynight' : 'elec-cats'
     } : null;
   }
 
@@ -794,6 +827,7 @@
     if (cols === 2) return [contentW * 0.58, contentW * 0.42];
     if (cols === 3 && kind === 'cost-breakdown') return [contentW * 0.52, contentW * 0.16, contentW * 0.32];
     if (cols === 3 && kind === 'elec-cost') return [contentW * 0.50, contentW * 0.24, contentW * 0.26];
+    if (cols === 3 && kind === 'elec-cats-daynight') return [contentW * 0.40, contentW * 0.36, contentW * 0.24];
     if (cols === 3) return [contentW * 0.44, contentW * 0.28, contentW * 0.28];
     if (cols === 8 && kind === 'yield'){
       return [
